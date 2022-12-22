@@ -11,9 +11,12 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 
+[project.scripts]
+everystamps = "everystamps.everystamps:main"
+
 [project.urls]
 "Homepage" = "https://github.com/tikk3r/EveryStamps"
 "Bug Tracker" = "https://github.com/tikk3r/EveryStamps/issues"
 
 [build-system]
-requires = ["requests"]
+requires = ["setuptools", "wheel", "requests"]

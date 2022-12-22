@@ -74,3 +74,42 @@ class FileDownloader(object):
                 fp.write(chunk)
 
         return target_dest_dir
+
+
+class LegacyDownloader(FileDownloader):
+    ''' Downloader sub-class for the DESI Legacy Imaging Surveys.
+    '''
+    supported_keywords = ['ra', 'dec', 'mode', 'layer', 'pixscale', 'bands', 'size_pix']
+
+    def __init__(self):
+        self.url = 'https://www.legacysurvey.org/viewer/{mode:s}-cutout/?ra={ra:f}&dec={dec:f}&layer={layer:s}&pixscale={pixscale:.3f}&bands={bands:s}&size={size_pix:d}'
+
+    def format_url(self, ra=None, dec=None, size=None, bands='grz', mode='jpeg', layer='ls-dr9', pixscale=0.262, autoscale=False, **kwargs):
+        '''Returns a properly formatted URL that can be used to obtain a cutout from Legacy.
+        '''
+        size_pix = int(size * 3600 / pixscale)
+        dlpixscale = pixscale
+        dlsize_pix = size_pix
+        if (size_pix > 3000) and autoscale:
+            # Jump to the next available pixel size by scaling from the (approximate) native pixel scale.
+            new_pixscale = pixscale
+            new_size_pix = int(size * 3600 / new_pixscale)
+            while new_size_pix > 3000:
+                new_pixscale += 0.262
+                new_size_pix = int(size * 3600 / new_pixscale)
+            warnings.warn('Image size of {:.2f} deg with pixel scale {:.3f} exceeds server limit of 3000 pixels! Automatically adjusting pixel scale to {:.3f} giving {:d} pixels.'.format(size, pixscale, new_pixscale, new_size_pix), Warning, stacklevel=2)
+            dlpixscale = new_pixscale
+            dlsize_pix = new_size_pix
+        elif (size_pix > 3000):
+            warnings.warn('Image size of {:.2f} deg with pixel scale {:.3f} exceeds server limit of 3000 pixels! Image will be truncated! Use --autoscale or pass autoscale=True to automatically switch pixel scales.'.format(size, pixscale), Warning, stacklevel=2)
+        return self.url.format(ra=ra, dec=dec, size_pix=dlsize_pix, bands=bands, mode=mode, layer=layer, pixscale=dlpixscale)
+
+    def download(self, **kwargs):
+        furl = self.format_url(**kwargs)
+        print(furl)
+        if kwargs['ddir']:
+            fname = kwargs['ddir'] + '/legacystamps_{ra:f}_{dec:f}_{layer:s}.{mode:s}'.format(ra=kwargs['ra'], dec=kwargs['dec'], layer=kwargs['layer'], mode=kwargs['mode'])
+        else:
+            print('Download directory not specified, downloading to ' + os.getcwd() + ' instead.')
+        fname = os.getcwd() + '/legacystamps_{ra:f}_{dec:f}_{layer:s}.{mode:s}'.format(ra=kwargs['ra'], dec=kwargs['dec'], layer=kwargs['layer'], mode=kwargs['mode'])
+        self.download_file(furl, filename=fname)
