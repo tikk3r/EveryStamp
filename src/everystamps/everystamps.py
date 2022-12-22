@@ -6,7 +6,7 @@ __license__ = 'GPLv3'
 
 if __name__ == '__main__':
     import argparse
-    parser = argparse.ArgumentParser(description='Legacystamps {:s} by {:s}'.format(__version__, __author__))
+    parser = argparse.ArgumentParser(description='EveryStamps {:s} by {:s}'.format(__version__, __author__))
     parser.add_argument('--ra', type=float, required=True, help='Right ascension of cutout centre in degrees.')
     parser.add_argument('--dec', type=float, required=True, help='Declination of cutout centre in degrees.')
     parser.add_argument('--bands', type=str, required=True, help='Bands to download. Allowed values are g, r and z. Multiple bands can be specified as a single string. In the case of a JPEG image a colour image will be generated. In the case of a FITS image a FITS cube will be downloaded.')
