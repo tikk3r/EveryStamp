@@ -51,11 +51,7 @@ def main():
     elif args.survey == 'vlass':
         from everystamp.downloaders import VLASSDownloader
         vd = VLASSDownloader()
-
-        tiles = vd.get_tiles('test_summaryfile')
-        from astropy.coordinates import SkyCoord
-        c = SkyCoord(165.345, 65.567, unit='deg')
-        vd.download(ra=c.ra, dec=c.dec, crop=True, consider_QA_rejected=args.vlass_consider_QA_rejected, ddir=args.ddir)
+        vd.download(ra=args.ra, dec=args.dec, crop=True, consider_QA_rejected=args.vlass_consider_QA_rejected, ddir=args.ddir)
 
 
 if __name__ == '__main__':
