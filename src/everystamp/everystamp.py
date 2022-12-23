@@ -17,7 +17,7 @@ def main():
     parser._action_groups.pop()
 
     required_args = parser.add_argument_group('Required arguments')
-    required_args.add_argument('--survey', type=str, required=True, choices=['legacy', 'panstarrs', 'test'], help='Survey from which to download the cutout.')
+    required_args.add_argument('--survey', type=str, required=True, choices=['legacy', 'pan-starrs', 'vlass'], help='Survey from which to download the cutout.')
     required_args.add_argument('--ra', type=float, required=True, help='Right ascension of cutout centre in degrees.')
     required_args.add_argument('--dec', type=float, required=True, help='Declination of cutout centre in degrees.')
     required_args.add_argument('--size', type=float, required=False, default=0.01, help='Cutout size in degrees.')
@@ -31,19 +31,32 @@ def main():
     legacy_args.add_argument('--legacy_layer', type=str, required=False, default='ls-dr9', help='Layer to make a cutout from. Default value is ls-dr9. Examples are ls-dr9, sdss or unwise-neo4. See Legacy documentation for all possibilies.')
     legacy_args.add_argument('--legacy_autoscale', required=False, default=False, action='store_true', help='Automatically change the pixel size if the resulting image would exceed the server maximum of 3000x3000 pixels.')
 
-    ps_args = parser.add_argument_group('[PanSTARRS]')
-    ps_args.add_argument('--ps_bands', type=str, required=False, help='Bands to download. Allowed values are g, r and i. Multiple bands can be specified as a single string. Default: gri')
+    ps_args = parser.add_argument_group('[Pan-STARRS]')
+    ps_args.add_argument('--ps_bands', type=str, required=False, default='gri', help='Bands to download. Allowed values are g, r and i. Multiple bands can be specified as a single string. Default: gri')
+
+    vlass_args = parser.add_argument_group('[VLASS]')
+    vlass_args.add_argument('--vlass_ms', type=str, required=False, default='', help='Measurement Set to take the cutout position from.')
+    vlass_args.add_argument('--vlass_consider_QA_rejected', type=bool, required=False, default=False, help='Also consider tiles that failed the Quality Assurance checks.')
 
     args = parser.parse_args()
     logger.info('Survey is %s', args.survey)
-    if args.survey.lower() == 'legacy':
+    if args.survey == 'legacy':
         from everystamp.downloaders import LegacyDownloader
         ld = LegacyDownloader()
         ld.download(ra=args.ra, dec=args.dec, bands=args.legacy_bands, mode=args.mode, size=args.size, layer=args.legacy_layer, autoscale=args.legacy_autoscale, ddir=args.ddir)
-    elif args.survey.lower() == 'panstarrs':
-        from everystamp.downloaders import PANSTARRSDownloader
-        pd = PANSTARRSDownloader()
+    elif args.survey == 'panstarrs':
+        from everystamp.downloaders import PanSTARRSDownloader
+        pd = PanSTARRSDownloader()
         pd.download(ra=args.ra, dec=args.dec, bands=args.ps_bands, mode=args.mode, size=args.size, ddir=args.ddir)
+    elif args.survey == 'vlass':
+        logger.warn('VLASS downloading is not yet implemented.')
+        from everystamp.downloaders import VLASSDownloader
+        vd = VLASSDownloader()
+
+        tiles = vd.get_tiles('test_summaryfile')
+        from astropy.coordinates import SkyCoord
+        c = SkyCoord(165.345, 65.567, unit='deg')
+        vd.download(ra=c.ra, dec=c.dec, crop=True, consider_QA_rejected=args.vlass_consider_QA_rejected)
 
 
 if __name__ == '__main__':
