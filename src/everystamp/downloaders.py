@@ -236,7 +236,7 @@ class VLASSDownloader(FileDownloader):
 
     def get_subtiles(self, tilename, epoch, consider_QA_rejected):
         ''' For a given tile name, get the subtile filenames in the VLASS directory
-        
+
         Parse those filenames and return a list of subtile RA and Dec.
         RA and Dec returned as a SkyCoord object
 
@@ -248,24 +248,31 @@ class VLASSDownloader(FileDownloader):
             The epoch the tile was observed in.
         consider_QA_rejected : bool
             Also consider tiles that did not pass the quality assurance checks.
+
+        Returns
+        -------
+        fname : str
+            Name of the subtile.
+        c : astropy SkyCoord
+            Coordinate of the subtile.
         '''
-        
-        #Obtain the HTML for the given tile
+
+        # Obtain the HTML for the given tile
         urlpath = urlopen(f"https://archive-new.nrao.edu/vlass/quicklook/{epoch}v2/{tilename}")
         string = urlpath.read().decode('utf-8').split("\n")
 
         if consider_QA_rejected:
-            #Obtain the HTML for the QA Rejected
+            # Obtain the HTML for the QA Rejected
             urlpath_rejected = urlopen(f"https://archive-new.nrao.edu/vlass/quicklook/{epoch}v2/QA_REJECTED")
             string += urlpath_rejected.read().decode('utf-8').split("\n")
 
-        #Select only the subtile parts
+        # Select only the subtile parts
         vals = np.array([val.strip() for val in string if ("href" in val.strip()) and (tilename in val.strip())])
         
-        #Select the coordinate part. You want the 'VLASS1.1.ql.T25t12.J150000+603000.10.2048.v1/' bit
+        # Select the coordinate part. You want the 'VLASS1.1.ql.T25t12.J150000+603000.10.2048.v1/' bit
         fname = np.array([val.split("\"")[7] for val in vals])
 
-        #Split out the actual coordinate string
+        # Split out the actual coordinate string
         pos_raw = np.array([val.split(".")[4] for val in fname])
         if '-' in pos_raw[0]:
             # dec < 0
@@ -290,28 +297,44 @@ class VLASSDownloader(FileDownloader):
         return fname, c
 
     def get_cutout(self, imname, c, crop_scale):
-        #Define output name
+        ''' Get a smaller cutout from the subtile.
+        
+        Parameters
+        ----------
+        imname : str
+            Name of the image to make a cutout from.
+        c : astropy SkyCoord
+            Coordinate around which to make a cutout.
+        crop_scale : int
+            Size of the cutout in pixels.
+
+        Returns
+        -------
+        output_fits : str
+            Name of the output FITS file.
+        '''
+        # Define output name
         output_fits = imname.rstrip('.fits') + '_poststamp.fits'
         
-        #Get header info
+        # Get header info
         hdu_list = fits.open(imname)
         header = hdu_list[0].header
         data = hdu_list[0].data[0,0,:,:]
         
-        #Obtain header and drop useless axes
+        # Obtain header and drop useless axes
         wcs = WCS(header)
         wcs = wcs.dropaxis(2).dropaxis(2)
         
         pixel_coords = skycoord_to_pixel(SkyCoord(c.ra.deg, c.dec.deg, unit='deg', frame='icrs'), wcs)
         
         if pixel_coords[0] < 0  or pixel_coords[1] < 0 or pixel_coords[0] > data.shape[0]  or pixel_coords[1] > data.shape[1]:
-            subprocess.call(f"rm -f {imname}", shell=True)
-            raise Exception("Requested coordinate not within the available subtiles. Consider running with consider_QA_rejected=True to also search additional subtiles which failed initial QA checks")
+            subprocess.call(f'rm -f {imname}', shell=True)
+            raise Exception('Requested coordinate not within the available subtiles. Consider running with consider_QA_rejected=True to also search additional subtiles which failed initial QA checks')
             
-        #Produce a cutout
+        # Produce a cutout
         cutout = Cutout2D(data, c, (crop_scale, crop_scale), wcs=wcs)
             
-        #Update the HDU
+        # Update the HDU
         hdu_list[0].data = cutout.data
         new_header = cutout.wcs.to_header()
         hdu_list[0].header.update(new_header)
@@ -322,21 +345,35 @@ class VLASSDownloader(FileDownloader):
         hdu_list[0].header.remove('MJDREF', ignore_missing=True)
         hdu_list[0].header.remove('MJD-OBS', ignore_missing=True)
         
-        #Write the new fits
+        # Write the new fits
         hdu_list.writeto(output_fits, overwrite=True)
         
-        #Cleanup
+        # Cleanup
         subprocess.call(f"rm -f {imname}", shell=True)
 
         return output_fits
 
-    def search_vlass(self, c, crop, crop_scale=256, consider_QA_rejected=False, ddir=os.getcwd()):
+    def search_vlass(self, c, crop=False, crop_scale=256, consider_QA_rejected=False, ddir=os.getcwd()):
         """ 
         Searches the VLASS catalog for a source
 
         Parameters
         ----------
-        c: coordinates as SkyCoord object
+        c : astropy SkyCoord
+            Coordinate to search for in tiles.
+        crop : bool
+            Make a cropped cutout of the area of interest.
+        crop_scale : int
+            Crop the cutout to this amount of pixels centred around c.
+        consider_QA_rejected : bool
+            Also consider tiles that failed the Quality Assurance checks.
+        ddir : str
+            Location to download the cutout to.
+
+        Returns
+        -------
+        imname : str
+            Name of the output image.
         """
         # Find the VLASS tile
         tiles = self.get_tiles()
@@ -363,11 +400,30 @@ class VLASSDownloader(FileDownloader):
             return imname
 
     def download(self, ra=0.0, dec=0.0, size=0.1, ms='', crop=True, consider_QA_rejected=False, ddir=os.getcwd()):
+        ''' Download a cutout from the VLASS survey.
+
+        Parameters
+        ----------
+        ra : float
+            Right ascension of the coordinate of interest.
+        dec : float
+            Declination of the coordinate of interest.
+        size : float
+            Size of the area of interest in degrees.
+        ms : str
+            Path to a Measurement Set to take coordinates from instead of using ra and dec.
+        crop : bool
+            Crop the image to the area of interest.
+        consider_QA_rejected : bool
+            Also consider tiles that failed the Quality Assurance checks.
+        ddir : str
+            Location to download the cutout to.
+        '''
         if ms:
             with ct.table(ms.rstrip('/') + '::FIELD') as field:
                 direction = field.getcol('PHASE_DIR').squeeze()
-            ra = (direction[0] % (2 * pi)) / pi * 180
-            dec = direction[1] / pi * 180
+            ra = (direction[0] % (2 * np.pi)) / np.pi * 180
+            dec = direction[1] / np.pi * 180
 
         c = SkyCoord(ra, dec, unit='deg')
         
