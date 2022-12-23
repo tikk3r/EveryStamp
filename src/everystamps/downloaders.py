@@ -1,5 +1,6 @@
 import os
 import sys
+import warnings
 
 import tqdm
 import requests
@@ -100,7 +101,7 @@ class LegacyDownloader(FileDownloader):
             warnings.warn('Image size of {:.2f} deg with pixel scale {:.3f} exceeds server limit of 3000 pixels! Automatically adjusting pixel scale to {:.3f} giving {:d} pixels.'.format(size, pixscale, new_pixscale, new_size_pix), Warning, stacklevel=2)
             dlpixscale = new_pixscale
             dlsize_pix = new_size_pix
-        elif (size_pix > 3000):
+        elif size_pix > 3000:
             warnings.warn('Image size of {:.2f} deg with pixel scale {:.3f} exceeds server limit of 3000 pixels! Image will be truncated! Use --autoscale or pass autoscale=True to automatically switch pixel scales.'.format(size, pixscale), Warning, stacklevel=2)
         return self.url.format(ra=ra, dec=dec, size_pix=dlsize_pix, bands=bands, mode=mode, layer=layer, pixscale=dlpixscale)
 

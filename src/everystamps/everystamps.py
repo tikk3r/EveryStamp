@@ -4,11 +4,15 @@ __version__ = 'v0.0.0'
 __author__ = 'Frits Sweijen'
 __license__ = 'GPLv3'
 
+import logging
+logging.basicConfig(format='[%(name)s] %(asctime)s - %(levelname)s: %(message)s', level=logging.INFO)
+logger = logging.getLogger('EveryStamp')
+
 def main():
     '''Main entry point if called as a standalone executable.
     '''
     import argparse
-    parser = argparse.ArgumentParser(description='EveryStamps {:s} by {:s}'.format(__version__, __author__), add_help=True)
+    parser = argparse.ArgumentParser(description='EveryStamps {:s} by {:s}'.format(__version__, __author__), add_help=True, usage=argparse.SUPPRESS)
     parser._action_groups.pop()
 
     required_args = parser.add_argument_group('Required arguments')
@@ -27,7 +31,7 @@ def main():
     legacy_args.add_argument('--legacy_autoscale', required=False, default=False, action='store_true', help='Automatically change the pixel size if the resulting image would exceed the server maximum of 3000x3000 pixels.')
 
     args = parser.parse_args()
-    print('Survey is', args.survey)
+    logger.info('Survey is ' + args.survey)
     if args.survey.lower() == 'legacy':
         from everystamps.downloaders import LegacyDownloader
         ld = LegacyDownloader()
