@@ -49,6 +49,8 @@ def main():
         pd = PanSTARRSDownloader()
         pd.download(ra=args.ra, dec=args.dec, bands=args.ps_bands, mode=args.mode, size=args.size, ddir=args.ddir)
     elif args.survey == 'vlass':
+        if args.mode == 'both' or args.mode == 'jpeg':
+            raise ValueError('VLASS download does not support JPEG (yet).')
         from everystamp.downloaders import VLASSDownloader
         vd = VLASSDownloader()
         vd.download(ra=args.ra, dec=args.dec, crop=True, consider_QA_rejected=args.vlass_consider_QA_rejected, ddir=args.ddir)
