@@ -78,7 +78,11 @@ class FileDownloader(object):
 
         req = requests.get(url, stream=True, verify=True)
         req.raise_for_status()
-        file_size = int(req.headers['Content-Length'])
+        try:
+            file_size = int(req.headers['Content-Length'])
+        except KeyError:
+            if req.headers['Transfer-Encoding'] == 'chunked':
+                file_size = 0
         chunk_size = 1024  # 1 MB
         num_bars = int(file_size / chunk_size)
 
@@ -165,6 +169,7 @@ class VLASSDownloader(FileDownloader):
     def __init__(self):
         self.summary_url = 'https://archive-new.nrao.edu/vlass/VLASS_dyn_summary.php'
         self.logger = logging.getLogger('EveryStamp:VLASSDownloader')
+        self.pixel_scale = 1.0  # arcsec / pixel
 
     def get_tiles(self, summary_file='VLASS_dyn_summary.php'):
         '''
@@ -286,7 +291,7 @@ class VLASSDownloader(FileDownloader):
 
     def get_cutout(self, imname, c, crop_scale):
         #Define output name
-        output_fits = "vlass_poststamp.fits"
+        output_fits = imname.rstrip('.fits') + '_poststamp.fits'
         
         #Get header info
         hdu_list = fits.open(imname)
@@ -325,7 +330,7 @@ class VLASSDownloader(FileDownloader):
 
         return output_fits
 
-    def search_vlass(self, c, crop, crop_scale=256, consider_QA_rejected=False):
+    def search_vlass(self, c, crop, crop_scale=256, consider_QA_rejected=False, ddir=os.getcwd()):
         """ 
         Searches the VLASS catalog for a source
 
@@ -345,18 +350,19 @@ class VLASSDownloader(FileDownloader):
         if len(glob.glob(imname)) == 0:
             url_get = f"https://archive-new.nrao.edu/vlass/quicklook/{epoch}v2/{tilename}/{subtile}"
             fname = f"{url_get}{imname}"
-            result = subprocess.run(["wget", fname], capture_output=True)
-            if result.stderr and consider_QA_rejected:
+            self.logger.info('Downloading to ' + ddir)
+            self.download_file(fname, target_dir=ddir)
+            if consider_QA_rejected:
                 url_get = f"https://archive-new.nrao.edu/vlass/quicklook/{epoch}v2/QA_REJECTED/{subtile}"
                 fname = f"{url_get}{imname}"
-                subprocess.run(["wget", fname])
+                self.download_file(fname, target_dir=ddir)
         if crop:    
-            out = self.get_cutout(imname, c, crop_scale=crop_scale)
+            out = self.get_cutout(os.path.join(ddir, imname), c, crop_scale=crop_scale)
             return out
         else:
             return imname
 
-    def download(self, ra=0.0, dec=0.0, ms='', crop=True, crop_scale=256, consider_QA_rejected=False):
+    def download(self, ra=0.0, dec=0.0, size=0.1, ms='', crop=True, consider_QA_rejected=False, ddir=os.getcwd()):
         if ms:
             with ct.table(ms.rstrip('/') + '::FIELD') as field:
                 direction = field.getcol('PHASE_DIR').squeeze()
@@ -365,5 +371,6 @@ class VLASSDownloader(FileDownloader):
 
         c = SkyCoord(ra, dec, unit='deg')
         
-        print(crop, crop_scale, consider_QA_rejected)
-        self.search_vlass(c, crop=crop, crop_scale=crop_scale, consider_QA_rejected=consider_QA_rejected)
+        crop_scale = size * 3600 / self.pixel_scale
+        self.logger.info('Downloading cutout from VLASS')
+        self.search_vlass(c, crop=crop, crop_scale=crop_scale, consider_QA_rejected=consider_QA_rejected, ddir=ddir)

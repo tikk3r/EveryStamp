@@ -49,14 +49,13 @@ def main():
         pd = PanSTARRSDownloader()
         pd.download(ra=args.ra, dec=args.dec, bands=args.ps_bands, mode=args.mode, size=args.size, ddir=args.ddir)
     elif args.survey == 'vlass':
-        logger.warn('VLASS downloading is not yet implemented.')
         from everystamp.downloaders import VLASSDownloader
         vd = VLASSDownloader()
 
         tiles = vd.get_tiles('test_summaryfile')
         from astropy.coordinates import SkyCoord
         c = SkyCoord(165.345, 65.567, unit='deg')
-        vd.download(ra=c.ra, dec=c.dec, crop=True, consider_QA_rejected=args.vlass_consider_QA_rejected)
+        vd.download(ra=c.ra, dec=c.dec, crop=True, consider_QA_rejected=args.vlass_consider_QA_rejected, ddir=args.ddir)
 
 
 if __name__ == '__main__':
