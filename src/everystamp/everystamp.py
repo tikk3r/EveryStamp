@@ -8,6 +8,7 @@ import logging
 logging.basicConfig(format='[%(name)s] %(asctime)s - %(levelname)s: %(message)s', level=logging.INFO)
 logger = logging.getLogger('EveryStamp')
 
+
 def main():
     '''Main entry point if called as a standalone executable.
     '''
@@ -31,7 +32,7 @@ def main():
     legacy_args.add_argument('--legacy_autoscale', required=False, default=False, action='store_true', help='Automatically change the pixel size if the resulting image would exceed the server maximum of 3000x3000 pixels.')
 
     args = parser.parse_args()
-    logger.info('Survey is ' + args.survey)
+    logger.info('Survey is %s', args.survey)
     if args.survey.lower() == 'legacy':
         from everystamp.downloaders import LegacyDownloader
         ld = LegacyDownloader()
@@ -40,6 +41,7 @@ def main():
         parser = argparse.ArgumentParser(description='Legacyparser {:s} by {:s}'.format(__version__, __author__))
         parser.add_argument('--test_bands', type=str, required=True, help='Bands to download. Allowed values are g, r and z. Multiple bands can be specified as a single string. In the case of a JPEG image a colour image will be generated. In the case of a FITS image a FITS cube will be downloaded.')
         args = parser.parse_args()
+
 
 if __name__ == '__main__':
     main()

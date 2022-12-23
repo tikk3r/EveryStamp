@@ -1,6 +1,6 @@
 import os
 import sys
-import warnings
+import logging
 
 import tqdm
 import requests
@@ -81,6 +81,7 @@ class LegacyDownloader(FileDownloader):
     ''' Downloader sub-class for the DESI Legacy Imaging Surveys.
     '''
     supported_keywords = ['ra', 'dec', 'mode', 'layer', 'pixscale', 'bands', 'size_pix']
+    logger = logging.getLogger('EveryStamp:LegacyDownloader')
 
     def __init__(self):
         self.url = 'https://www.legacysurvey.org/viewer/{mode:s}-cutout/?ra={ra:f}&dec={dec:f}&layer={layer:s}&pixscale={pixscale:.3f}&bands={bands:s}&size={size_pix:d}'
@@ -98,19 +99,19 @@ class LegacyDownloader(FileDownloader):
             while new_size_pix > 3000:
                 new_pixscale += 0.262
                 new_size_pix = int(size * 3600 / new_pixscale)
-            warnings.warn('Image size of {:.2f} deg with pixel scale {:.3f} exceeds server limit of 3000 pixels! Automatically adjusting pixel scale to {:.3f} giving {:d} pixels.'.format(size, pixscale, new_pixscale, new_size_pix), Warning, stacklevel=2)
+            self.logger.warn('Image size of {:.2f} deg with pixel scale {:.3f} exceeds server limit of 3000 pixels! Automatically adjusting pixel scale to {:.3f} giving {:d} pixels.'.format(size, pixscale, new_pixscale, new_size_pix), Warning, stacklevel=2)
             dlpixscale = new_pixscale
             dlsize_pix = new_size_pix
         elif size_pix > 3000:
-            warnings.warn('Image size of {:.2f} deg with pixel scale {:.3f} exceeds server limit of 3000 pixels! Image will be truncated! Use --autoscale or pass autoscale=True to automatically switch pixel scales.'.format(size, pixscale), Warning, stacklevel=2)
+            self.logger.warn('Image size of {:.2f} deg with pixel scale {:.3f} exceeds server limit of 3000 pixels! Image will be truncated! Use --autoscale or pass autoscale=True to automatically switch pixel scales.'.format(size, pixscale), Warning, stacklevel=2)
         return self.url.format(ra=ra, dec=dec, size_pix=dlsize_pix, bands=bands, mode=mode, layer=layer, pixscale=dlpixscale)
 
     def download(self, **kwargs):
         furl = self.format_url(**kwargs)
-        print(furl)
+        self.logger.info('Downloading cutout from %s', furl)
         if kwargs['ddir']:
             fname = kwargs['ddir'] + '/legacystamps_{ra:f}_{dec:f}_{layer:s}.{mode:s}'.format(ra=kwargs['ra'], dec=kwargs['dec'], layer=kwargs['layer'], mode=kwargs['mode'])
         else:
-            print('Download directory not specified, downloading to ' + os.getcwd() + ' instead.')
+            self.logger.info('Download directory not specified, downloading to %s instead', os.getcwd())
         fname = os.getcwd() + '/legacystamps_{ra:f}_{dec:f}_{layer:s}.{mode:s}'.format(ra=kwargs['ra'], dec=kwargs['dec'], layer=kwargs['layer'], mode=kwargs['mode'])
         self.download_file(furl, filename=fname)
