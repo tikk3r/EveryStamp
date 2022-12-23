@@ -1,5 +1,5 @@
 [project]
-name = "EveryStamps"
+name = "EveryStamp"
 version = "0.0.0"
 authors = [
     { name = "Frits Sweijen" },
@@ -12,11 +12,11 @@ classifiers = [
 ]
 
 [project.scripts]
-everystamps = "everystamps.everystamps:main"
+everystamps = "everystamp.everystamp:main"
 
 [project.urls]
-"Homepage" = "https://github.com/tikk3r/EveryStamps"
-"Bug Tracker" = "https://github.com/tikk3r/EveryStamps/issues"
+"Homepage" = "https://github.com/tikk3r/EveryStamp"
+"Bug Tracker" = "https://github.com/tikk3r/EveryStamp/issues"
 
 [build-system]
 requires = ["setuptools", "wheel", "requests"]

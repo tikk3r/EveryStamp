@@ -33,7 +33,7 @@ def main():
     args = parser.parse_args()
     logger.info('Survey is ' + args.survey)
     if args.survey.lower() == 'legacy':
-        from everystamps.downloaders import LegacyDownloader
+        from everystamp.downloaders import LegacyDownloader
         ld = LegacyDownloader()
         ld.download(ra=args.ra, dec=args.dec, bands=args.legacy_bands, mode=args.legacy_mode, size=args.size, layer=args.legacy_layer, autoscale=args.legacy_autoscale, ddir=args.ddir)
     else:
