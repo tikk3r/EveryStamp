@@ -141,7 +141,7 @@ class PANSTARRSDownloader(FileDownloader):
             get_fits = True
         arcsecsize = size * 3600
         self.logger.info('Downloading cutout from PANSTARRS')
-        d = self.psdownloader(ra=ra, dec=dec, downloadDirectory=ddir or os.getcwd(), fits=get_fits, jpeg=get_jpeg, color=True, singleFilters=False, filterSet=bands, imageType='stack', arcsecSize=arcsecsize, log=self.logger)
+        d = self.psdownloader(ra=ra, dec=dec, downloadDirectory=ddir or os.getcwd(), fits=get_fits, jpeg=get_jpeg, color=True, singleFilters=True, filterSet=bands, imageType='stack', arcsecSize=arcsecsize, log=self.logger)
         fitspath, jpegpath, colorpaths = d.get()
         # Rename the output slightly so the user can find it easier.
         for colorpath in colorpaths:

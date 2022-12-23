@@ -44,10 +44,6 @@ def main():
         from everystamp.downloaders import PANSTARRSDownloader
         pd = PANSTARRSDownloader()
         pd.download(ra=args.ra, dec=args.dec, bands=args.ps_bands, mode=args.mode, size=args.size, ddir=args.ddir)
-    else:
-        parser = argparse.ArgumentParser(description='Legacyparser {:s} by {:s}'.format(__version__, __author__))
-        parser.add_argument('--test_bands', type=str, required=True, help='Bands to download. Allowed values are g, r and z. Multiple bands can be specified as a single string. In the case of a JPEG image a colour image will be generated. In the case of a FITS image a FITS cube will be downloaded.')
-        args = parser.parse_args()
 
 
 if __name__ == '__main__':
