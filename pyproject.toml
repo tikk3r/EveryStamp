@@ -12,7 +12,7 @@ classifiers = [
 ]
 
 [project.scripts]
-everystamps = "everystamp.everystamp:main"
+everystamp = "everystamp.everystamp:main"
 
 [project.urls]
 "Homepage" = "https://github.com/tikk3r/EveryStamp"

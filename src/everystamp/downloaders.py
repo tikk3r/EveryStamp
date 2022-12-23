@@ -103,15 +103,55 @@ class LegacyDownloader(FileDownloader):
             dlpixscale = new_pixscale
             dlsize_pix = new_size_pix
         elif size_pix > 3000:
-            self.logger.warn('Image size of {:.2f} deg with pixel scale {:.3f} exceeds server limit of 3000 pixels! Image will be truncated! Use --autoscale or pass autoscale=True to automatically switch pixel scales.'.format(size, pixscale), Warning, stacklevel=2)
+            self.logger.warn('Image size of {:.2f} deg with pixel scale {:.3f} exceeds server limit of 3000 pixels! Image will be truncated! Use --legacy_autoscale or pass autoscale=True to automatically switch pixel scales.'.format(size, pixscale), Warning, stacklevel=2)
         return self.url.format(ra=ra, dec=dec, size_pix=dlsize_pix, bands=bands, mode=mode, layer=layer, pixscale=dlpixscale)
 
     def download(self, **kwargs):
         furl = self.format_url(**kwargs)
         self.logger.info('Downloading cutout from %s', furl)
-        if kwargs['ddir']:
-            fname = kwargs['ddir'] + '/legacystamps_{ra:f}_{dec:f}_{layer:s}.{mode:s}'.format(ra=kwargs['ra'], dec=kwargs['dec'], layer=kwargs['layer'], mode=kwargs['mode'])
-        else:
+        if not kwargs['ddir']:
             self.logger.info('Download directory not specified, downloading to %s instead', os.getcwd())
-        fname = os.getcwd() + '/legacystamps_{ra:f}_{dec:f}_{layer:s}.{mode:s}'.format(ra=kwargs['ra'], dec=kwargs['dec'], layer=kwargs['layer'], mode=kwargs['mode'])
-        self.download_file(furl, filename=fname)
+            ddir = os.getcwd()
+        else:
+            ddir = kwargs['ddir']
+        fname = 'legacystamps_{ra:f}_{dec:f}_{layer:s}.{mode:s}'.format(ra=kwargs['ra'], dec=kwargs['dec'], layer=kwargs['layer'], mode=kwargs['mode'])
+        self.download_file(furl, filename=fname, target_dir=ddir)
+
+
+class PANSTARRSDownloader(FileDownloader):
+    ''' Downloader sub-class for the VLASS survey.
+    '''
+    from panstamps.downloader import downloader as psdownloader
+
+    supported_keywords = ['ra', 'dec', 'mode', 'layer', 'pixscale', 'bands', 'size_pix']
+    logger = logging.getLogger('EveryStamp:PANSTARRSDownloader')
+    
+    def __init__(self):
+        pass
+
+    def download(self, ra, dec, size, mode='jpeg', ddir='', bands='gri'):
+        if mode == 'jpeg':
+            get_jpeg = True
+            get_fits = False
+        elif mode == 'fits':
+            get_jpeg = False
+            get_fits = True
+        elif mode == 'both':
+            get_jpeg = True
+            get_fits = True
+        arcsecsize = size * 3600
+        self.logger.info('Downloading cutout from PANSTARRS')
+        d = self.psdownloader(ra=ra, dec=dec, downloadDirectory=ddir or os.getcwd(), fits=get_fits, jpeg=get_jpeg, color=True, singleFilters=False, filterSet=bands, imageType='stack', arcsecSize=arcsecsize, log=self.logger)
+        fitspath, jpegpath, colorpaths = d.get()
+        # Rename the output slightly so the user can find it easier.
+        for colorpath in colorpaths:
+            os.rename(colorpath, os.path.join(os.path.dirname(colorpath),  'panstamps_' + os.path.basename(colorpath)))
+
+
+
+class VLASSDownloader(FileDownloader):
+    ''' Downloader sub-class for the VLASS survey.
+    '''
+
+    def __init__():
+        pass
