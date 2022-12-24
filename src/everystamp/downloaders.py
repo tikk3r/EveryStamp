@@ -165,6 +165,8 @@ class PanSTARRSDownloader():
 
 class VLASSDownloader(FileDownloader):
     ''' Downloader sub-class for the VLASS survey.
+
+    Based on the original code by Anna Ho (https://github.com/annayqho/Query_VLASS) and edits by R. Timmerman.
     '''
     def __init__(self):
         self.summary_url = 'https://archive-new.nrao.edu/vlass/VLASS_dyn_summary.php'
