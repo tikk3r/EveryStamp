@@ -17,7 +17,7 @@ def main():
     parser._action_groups.pop()
 
     required_args = parser.add_argument_group('Required arguments')
-    required_args.add_argument('--survey', type=str, required=True, choices=['legacy', 'pan-starrs', 'vlass', 'lolss'], help='Survey from which to download the cutout.')
+    required_args.add_argument('--survey', type=str, required=True, choices=['legacy', 'pan-starrs', 'vlass', 'lolss', 'lotss', 'tgss'], help='Survey from which to download the cutout.')
     required_args.add_argument('--ra', type=float, required=True, help='Right ascension of cutout centre in degrees.')
     required_args.add_argument('--dec', type=float, required=True, help='Declination of cutout centre in degrees.')
     required_args.add_argument('--size', type=float, required=False, default=0.01, help='Cutout size in degrees.')
@@ -37,6 +37,12 @@ def main():
     vlass_args = parser.add_argument_group('[VLASS]')
     vlass_args.add_argument('--vlass_ms', type=str, required=False, default='', help='Measurement Set to take the cutout position from.')
     vlass_args.add_argument('--vlass_consider_QA_rejected', type=bool, required=False, default=False, help='Also consider tiles that failed the Quality Assurance checks.')
+
+    lolss_args = parser.add_argument_group('[LoLSS]')
+    lolss_args.add_argument('--lolss_release', type=str, required=False, default='pdr', choices=['pdr'], help='Data release to download from.')
+
+    lotss_args = parser.add_argument_group('[LoTSS]')
+    lotss_args.add_argument('--lotss_release', type=str, required=False, default='dr1', choices=['pdr', 'dr1'], help='Data release to download from.')
 
     args = parser.parse_args()
     logger.info('Survey is %s', args.survey)
@@ -60,6 +66,13 @@ def main():
         from everystamp.downloaders import VODownloader
         vd = VODownloader(url='https://vo.astron.nl/lolss/q/cutout/siap.xml', name='LoLSS')
         vd.download(ra=args.ra, dec=args.dec, ddir=args.ddir)
+    elif args.survey == 'tgss':
+        if args.mode == 'both' or args.mode == 'jpeg':
+            raise ValueError('TGSS download does not support JPEG (yet).')
+        from everystamp.downloaders import VODownloader
+        vd = VODownloader(url='https://vo.astron.nl/tgssadr/q_fits/cutout/siap.xml', name='TGSS')
+        vd.download(ra=args.ra, dec=args.dec, ddir=args.ddir)
+
 
 if __name__ == '__main__':
     main()

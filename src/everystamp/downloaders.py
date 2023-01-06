@@ -448,7 +448,7 @@ class VODownloader():
             self.logger = logging.getLogger('EveryStamp:VODownloader')
         else:
             self.name = name
-            self.logger = logging.getLogger('EveryStamp:{:s}Downloader'.format(self.name))
+            self.logger = logging.getLogger('EveryStamp:VODownloader[{:s}]'.format(self.name))
 
     def download(self, ra=0.0, dec=0.0, size=0.1, ddir=os.getcwd()):
         ''' Download a cutout from the VLASS survey.
