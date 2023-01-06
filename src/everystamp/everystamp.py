@@ -65,13 +65,22 @@ def main():
             raise ValueError('LoLLS download does not support JPEG (yet).')
         from everystamp.downloaders import VODownloader
         vd = VODownloader(url='https://vo.astron.nl/lolss/q/cutout/siap.xml', name='LoLSS')
-        vd.download(ra=args.ra, dec=args.dec, ddir=args.ddir)
+        vd.download(ra=args.ra, dec=args.dec, size=args.size, ddir=args.ddir)
+    elif args.survey == 'lotss':
+        if args.mode == 'both' or args.mode == 'jpeg':
+            raise ValueError('LoLLS download does not support JPEG (yet).')
+        from everystamp.downloaders import VODownloader
+        if args.lotss_release == 'pdr':
+            vd = VODownloader(url='https://vo.astron.nl/lofartier1/q_img/cutout/siap.xml', name='LoTSS-PDR')
+        elif args.lotss_release == 'dr1':
+            vd = VODownloader(url='https://vo.astron.nl/hetdex/lotss-dr1-img/cutout/siap.xml', name='LoTSS-DR1')
+        vd.download(ra=args.ra, dec=args.dec, size=args.size, ddir=args.ddir)
     elif args.survey == 'tgss':
         if args.mode == 'both' or args.mode == 'jpeg':
             raise ValueError('TGSS download does not support JPEG (yet).')
         from everystamp.downloaders import VODownloader
         vd = VODownloader(url='https://vo.astron.nl/tgssadr/q_fits/cutout/siap.xml', name='TGSS')
-        vd.download(ra=args.ra, dec=args.dec, ddir=args.ddir)
+        vd.download(ra=args.ra, dec=args.dec, size=args.size, ddir=args.ddir)
 
 
 if __name__ == '__main__':
