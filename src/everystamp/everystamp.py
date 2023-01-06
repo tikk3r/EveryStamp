@@ -17,7 +17,7 @@ def main():
     parser._action_groups.pop()
 
     required_args = parser.add_argument_group('Required arguments')
-    required_args.add_argument('--survey', type=str, required=True, choices=['legacy', 'pan-starrs', 'vlass'], help='Survey from which to download the cutout.')
+    required_args.add_argument('--survey', type=str, required=True, choices=['legacy', 'pan-starrs', 'vlass', 'lolss'], help='Survey from which to download the cutout.')
     required_args.add_argument('--ra', type=float, required=True, help='Right ascension of cutout centre in degrees.')
     required_args.add_argument('--dec', type=float, required=True, help='Declination of cutout centre in degrees.')
     required_args.add_argument('--size', type=float, required=False, default=0.01, help='Cutout size in degrees.')
@@ -54,7 +54,12 @@ def main():
         from everystamp.downloaders import VLASSDownloader
         vd = VLASSDownloader()
         vd.download(ra=args.ra, dec=args.dec, crop=True, consider_QA_rejected=args.vlass_consider_QA_rejected, ddir=args.ddir)
-
+    elif args.survey == 'lolss':
+        if args.mode == 'both' or args.mode == 'jpeg':
+            raise ValueError('LoLLS download does not support JPEG (yet).')
+        from everystamp.downloaders import VODownloader
+        vd = VODownloader(url='https://vo.astron.nl/lolss/q/cutout/siap.xml', name='LoLSS')
+        vd.download(ra=args.ra, dec=args.dec, ddir=args.ddir)
 
 if __name__ == '__main__':
     main()

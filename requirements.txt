@@ -1,1 +1,3 @@
 panstamps
+pyvo
+tqdm

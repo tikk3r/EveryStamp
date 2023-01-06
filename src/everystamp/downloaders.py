@@ -15,6 +15,7 @@ from astropy.wcs.utils import skycoord_to_pixel
 
 import casacore.tables as ct
 import numpy as np
+import pyvo
 import requests
 import tqdm
 
@@ -432,3 +433,44 @@ class VLASSDownloader(FileDownloader):
         crop_scale = size * 3600 / self.pixel_scale
         self.logger.info('Downloading cutout from VLASS')
         self.search_vlass(c, crop=crop, crop_scale=crop_scale, consider_QA_rejected=consider_QA_rejected, ddir=ddir)
+
+
+class VODownloader():
+    ''' Downloader sub-class for surveys offeret through a VO.
+    '''
+    def __init__(self, url, name=''):
+        if not url:
+            raise ValueError('VO url cannot be empty.')
+        else:
+            self.url = url
+        if not name:
+            self.name = self.url
+            self.logger = logging.getLogger('EveryStamp:VODownloader')
+        else:
+            self.name = name
+            self.logger = logging.getLogger('EveryStamp:{:s}Downloader'.format(self.name))
+
+    def download(self, ra=0.0, dec=0.0, size=0.1, ddir=os.getcwd()):
+        ''' Download a cutout from the VLASS survey.
+
+        Parameters
+        ----------
+        ra : float
+            Right ascension of the coordinate of interest in degrees.
+        dec : float
+            Declination of the coordinate of interest in degrees    .
+        size : float
+            Size of the area of interest in degrees.
+        ddir : str
+            Location to download the cutout to.
+        '''
+        c = SkyCoord(ra, dec, unit='deg')
+        
+        vo = pyvo.sia.SIAService(self.url)
+        query = vo.search(c, size=size)
+        if not query:
+            raise ValueError('Requested coordinates not covered by the specified VO!')
+        im = query.getrecord(0)
+        if im.format == 'image/fits':
+            self.logger.info('Downloading cutout from {:s}'.format(self.name))
+            im.cachedataset(os.path.join(ddir, '{:s}_{:.4f}_{:.4f}_{:.3f}.fits'.format(self.name, ra, dec, size)))
