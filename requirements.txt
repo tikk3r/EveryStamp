@@ -1,3 +1,4 @@
+astroquery
 panstamps
 pyvo
 tqdm

@@ -42,7 +42,7 @@ def main():
     lolss_args.add_argument('--lolss_release', type=str, required=False, default='pdr', choices=['pdr'], help='Data release to download from.')
 
     lotss_args = parser.add_argument_group('[LoTSS]')
-    lotss_args.add_argument('--lotss_release', type=str, required=False, default='dr1', choices=['pdr', 'dr1'], help='Data release to download from.')
+    lotss_args.add_argument('--lotss_release', type=str, required=False, default='dr1', choices=['pdr', 'dr1', 'dr2'], help='Data release to download from.')
 
     args = parser.parse_args()
     logger.info('Survey is %s', args.survey)
@@ -67,14 +67,18 @@ def main():
         vd = VODownloader(url='https://vo.astron.nl/lolss/q/cutout/siap.xml', name='LoLSS')
         vd.download(ra=args.ra, dec=args.dec, size=args.size, ddir=args.ddir)
     elif args.survey == 'lotss':
-        if args.mode == 'both' or args.mode == 'jpeg':
-            raise ValueError('LoLLS download does not support JPEG (yet).')
+        if (args.mode == 'both' or args.mode == 'jpeg') and (args.lotss_release != 'dr2'):
+            raise ValueError('LoTSS {:s} download does not support JPEG (yet).'.format(args.lotss_release.upper()))
         from everystamp.downloaders import VODownloader
         if args.lotss_release == 'pdr':
             vd = VODownloader(url='https://vo.astron.nl/lofartier1/q_img/cutout/siap.xml', name='LoTSS-PDR')
         elif args.lotss_release == 'dr1':
             vd = VODownloader(url='https://vo.astron.nl/hetdex/lotss-dr1-img/cutout/siap.xml', name='LoTSS-DR1')
-        vd.download(ra=args.ra, dec=args.dec, size=args.size, ddir=args.ddir)
+            vd.download(ra=args.ra, dec=args.dec, size=args.size, ddir=args.ddir)
+        elif args.lotss_release == 'dr2':
+            from everystamp.downloaders import HiPSDownloader
+            vd = HiPSDownloader(hips='astron.nl/P/lotss_dr2_high', name='LoTSS-DR2')
+            vd.download(ra=args.ra, dec=args.dec, size=args.size, ddir=args.ddir, mode=args.mode.replace('e', ''), pixsize=1.5)
     elif args.survey == 'tgss':
         if args.mode == 'both' or args.mode == 'jpeg':
             raise ValueError('TGSS download does not support JPEG (yet).')

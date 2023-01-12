@@ -12,7 +12,9 @@ from astropy.nddata import Cutout2D
 from astropy.table import Table
 from astropy.wcs import WCS
 from astropy.wcs.utils import skycoord_to_pixel
+from astroquery.hips2fits import hips2fits
 
+import astropy.units as u
 import casacore.tables as ct
 import numpy as np
 import pyvo
@@ -474,3 +476,46 @@ class VODownloader():
         if im.format == 'image/fits':
             self.logger.info('Downloading cutout from {:s}'.format(self.name))
             im.cachedataset(os.path.join(ddir, '{:s}_{:.4f}_{:.4f}_{:.3f}.fits'.format(self.name, ra, dec, size)))
+
+
+class HiPSDownloader():
+    ''' Sub-class to download a file from a HiPS image using hips2fits.
+    '''
+    def __init__(self, hips, name=''):
+        if not hips:
+            raise ValueError('HiPS name cannot be empty.')
+        else:
+            self.hips = hips
+        if not name:
+            self.name = self.hips
+            self.logger = logging.getLogger('EveryStamp:VODownloader')
+        else:
+            self.name = name
+            self.logger = logging.getLogger('EveryStamp:HiPSDownloader[{:s}]'.format(self.name))
+
+    def download(self, ra=0.0, dec=0.0, size=0.1, ddir=os.getcwd(), pixsize=1.0, mode='jpg'):
+        ''' Download a cutout from the VLASS survey.
+
+        Parameters
+        ----------
+        ra : float
+            Right ascension of the coordinate of interest in degrees.
+        dec : float
+            Declination of the coordinate of interest in degrees    .
+        size : float
+            Size of the area of interest in degrees.
+        ddir : str
+            Location to download the cutout to.
+        pixsize : float
+            Pixel scale of the survey in arcsec. Default is 1.0 arcsec per pixel.
+        mode : str
+            What image format to download. Can be jpg or fits, default is jpg.
+        '''
+        imsize = int(size / (pixsize / 3600))
+        img = hips2fits.query(hips=self.hips, format=mode, width=imsize, height=imsize, projection='SIN', fov=size*u.deg, ra=ra*u.deg, dec=dec*u.deg)
+        if mode == 'jpg':
+            from PIL import Image
+            imdata = Image.fromarray(img)
+            imdata.save(os.path.join(ddir, '{:s}_{:.4f}_{:.4f}_{:.3f}.jpeg'.format(self.name, ra, dec, size)))
+        elif mode == 'fits':
+            img.writeto(os.path.join(ddir, '{:s}_{:.4f}_{:.4f}_{:.3f}.fits'.format(self.name, ra, dec, size)))
