@@ -22,7 +22,7 @@ author: Frits Sweijen
 navbar-links:
   #About Me: "aboutme"
   Resources:
-    - Documentation: "#"
+    - Documentation: "docs/installation"
     - Examples: "#"
   #Author's home: "https://deanattali.com"
 
