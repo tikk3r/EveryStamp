@@ -26,10 +26,10 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Check dependency installation
       run: |
+        sudo apt-get install libboost-python libboost-python-dev
         python -m pip install --upgrade pip setuptools wheel
         python -m pip install git+https://github.com/tikk3r/EveryStamp.git
     - name: Run tests
       run: |
-        sudo apt-get install libboost-python-dev
         mkdir tests_output
         bash test/run_tests.sh
