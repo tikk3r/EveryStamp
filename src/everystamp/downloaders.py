@@ -13,6 +13,7 @@ from astropy.table import Table
 from astropy.wcs import WCS
 from astropy.wcs.utils import skycoord_to_pixel
 from astroquery.hips2fits import hips2fits
+from astroquery.skyview import SkyView
 
 import astropy.units as u
 import casacore.tables as ct
@@ -519,3 +520,34 @@ class HiPSDownloader():
             imdata.save(os.path.join(ddir, '{:s}_{:.4f}_{:.4f}_{:.3f}.jpeg'.format(self.name, ra, dec, size)))
         elif mode == 'fits':
             img.writeto(os.path.join(ddir, '{:s}_{:.4f}_{:.4f}_{:.3f}.fits'.format(self.name, ra, dec, size)))
+
+class SkyViewDownloader():
+    ''' Downloader sub-class for surveys offeret through a VO.
+    '''
+    def __init__(self, survey):
+        if not survey:
+            raise ValueError('SkyView survey cannot be empty.')
+        else:
+            self.survey = survey
+            self.logger = logging.getLogger('EveryStamp:SkyViewDownloader[{:s}]'.format(self.survey))
+
+    def download(self, ra=0.0, dec=0.0, size=0.1, ddir=os.getcwd(), suffix=''):
+        ''' Download a cutout from the VLASS survey.
+
+        Parameters
+        ----------
+        ra : float
+            Right ascension of the coordinate of interest in degrees.
+        dec : float
+            Declination of the coordinate of interest in degrees    .
+        size : float
+            Size of the area of interest in degrees.
+        ddir : str
+            Location to download the cutout to.
+        '''
+        c = SkyCoord(ra, dec, unit='deg')
+        
+        sv = SkyView()
+
+        hdul = sv.get_images(c, self.survey, radius=size * u.deg)
+        hdul[0].writeto(os.path.join(ddir, '{:s}_{:.4f}_{:.4f}_{:.3f}.fits'.format(self.survey.replace(' ', '_'), ra, dec, size)))            
