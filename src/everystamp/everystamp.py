@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ''' Python library aiming to provide a wrapper around various astronomical surveys that offer cutouts.'''
-__version__ = 'v0.0.0'
+__version__ = '1.0.0'
 __author__ = 'Frits Sweijen'
 __license__ = 'GPLv3'
 
@@ -34,11 +34,11 @@ def main():
     required_args.add_argument('--survey', type=str, required=True, choices=allowed_surveys, help='Survey from which to download the cutout.')
     required_args.add_argument('--ra', type=float, required=True, help='Right ascension of cutout centre in degrees.')
     required_args.add_argument('--dec', type=float, required=True, help='Declination of cutout centre in degrees.')
-    required_args.add_argument('--size', type=float, required=False, default=0.01, help='Cutout size in degrees.')
+    required_args.add_argument('--mode', type=str, required=True, default='', choices=['jpeg', 'fits', 'both'], help='Image type to retrieve. Can be "jpeg", "fits" or "both" to retrieve either a JPEG image, FITS file or both. Default value is jpeg.')
 
     optional_args = parser.add_argument_group('Optional arguments')
     optional_args.add_argument('--download_dir', type=str, required=False, default='', dest='ddir', help='Directory to store downloaded files. If not given will download to $PWD.')
-    optional_args.add_argument('--mode', type=str, required=False, default='jpeg', choices=['jpeg', 'fits', 'both'], help='Image type to retrieve. Can be "jpeg", "fits" or "both" to retrieve either a JPEG image, FITS file or both. Default value is jpeg.')
+    optional_args.add_argument('--size', type=float, required=False, default=0.01, help='Cutout size in degrees.')
 
     legacy_args = parser.add_argument_group('[DESI Legacy Imaging Surveys]')
     legacy_args.add_argument('--legacy_bands', type=str, required=False, help='Bands to download. Allowed values are g, r and z. Multiple bands can be specified as a single string. In the case of a JPEG image a colour image will be generated. In the case of a FITS image a FITS cube will be downloaded. Default: grz')
