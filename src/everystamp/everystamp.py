@@ -114,7 +114,12 @@ def main():
         from everystamp.downloaders import VODownloader
         vd = VODownloader(url='https://vo.astron.nl/tgssadr/q_fits/cutout/siap.xml', name='TGSS')
         vd.download(ra=args.ra, dec=args.dec, size=args.size, ddir=args.ddir)
-
+    else:
+        if args.mode == 'both' or args.mode == 'jpeg':
+            raise ValueError('SkyView download does not support JPEG (yet).')
+        from everystamp.downloaders import SkyViewDownloader
+        sd = SkyViewDownloader(args.survey)
+        sd.download(ra=args.ra, dec=args.dec, size=args.size, ddir=args.ddir)
 
 if __name__ == '__main__':
     main()
