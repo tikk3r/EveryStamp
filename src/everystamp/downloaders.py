@@ -264,7 +264,12 @@ class VLASSDownloader(FileDownloader):
         '''
 
         # Obtain the HTML for the given tile
-        urlpath = urlopen(f"https://archive-new.nrao.edu/vlass/quicklook/{epoch}v2/{tilename}")
+        if '2.1' in epoch:
+            self.logger.info(f'Downloading from https://archive-new.nrao.edu/vlass/quicklook/{epoch}/{tilename}')
+            urlpath = urlopen(f"https://archive-new.nrao.edu/vlass/quicklook/{epoch}/{tilename}")
+        else:
+            self.logger.info(f'Downloading from https://archive-new.nrao.edu/vlass/quicklook/{epoch}v2/{tilename}')
+            urlpath = urlopen(f"https://archive-new.nrao.edu/vlass/quicklook/{epoch}v2/{tilename}")
         string = urlpath.read().decode('utf-8').split("\n")
 
         if consider_QA_rejected:
@@ -274,12 +279,13 @@ class VLASSDownloader(FileDownloader):
 
         # Select only the subtile parts
         vals = np.array([val.strip() for val in string if ("href" in val.strip()) and (tilename in val.strip())])
-        
+
         # Select the coordinate part. You want the 'VLASS1.1.ql.T25t12.J150000+603000.10.2048.v1/' bit
         fname = np.array([val.split("\"")[7] for val in vals])
 
         # Split out the actual coordinate string
         pos_raw = np.array([val.split(".")[4] for val in fname])
+
         if '-' in pos_raw[0]:
             # dec < 0
             ra_raw = np.array([val.split("-")[0] for val in pos_raw])
@@ -391,12 +397,18 @@ class VLASSDownloader(FileDownloader):
 
         imname = f"{subtile[:-1]}.I.iter1.image.pbcor.tt0.subim.fits"
         if len(glob.glob(imname)) == 0:
-            url_get = f"https://archive-new.nrao.edu/vlass/quicklook/{epoch}v2/{tilename}/{subtile}"
+            if '2.1' in epoch:
+                url_get = f"https://archive-new.nrao.edu/vlass/quicklook/{epoch}/{tilename}/{subtile}"
+            else:
+                url_get = f"https://archive-new.nrao.edu/vlass/quicklook/{epoch}v2/{tilename}/{subtile}"
             fname = f"{url_get}{imname}"
             self.logger.info('Downloading to ' + ddir)
             self.download_file(fname, target_dir=ddir)
             if consider_QA_rejected:
-                url_get = f"https://archive-new.nrao.edu/vlass/quicklook/{epoch}v2/QA_REJECTED/{subtile}"
+                if '2.1' in epoch:
+                    url_get = f"https://archive-new.nrao.edu/vlass/quicklook/{epoch}/QA_REJECTED/{subtile}"
+                else:
+                    url_get = f"https://archive-new.nrao.edu/vlass/quicklook/{epoch}v2/QA_REJECTED/{subtile}"
                 fname = f"{url_get}{imname}"
                 self.download_file(fname, target_dir=ddir)
         if crop:    
