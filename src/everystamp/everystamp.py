@@ -8,16 +8,30 @@ import logging
 logging.basicConfig(format='[%(name)s] %(asctime)s - %(levelname)s: %(message)s', level=logging.INFO)
 logger = logging.getLogger('EveryStamp')
 
+from astroquery.skyview import SkyView
+from collections.abc import Iterable
+
+def flatten(xs): 
+    for x in xs: 
+        if isinstance(x, Iterable) and not isinstance(x, (str, bytes)): 
+            yield from flatten(x) 
+        else: 
+            yield x 
+
 
 def main():
     '''Main entry point if called as a standalone executable.
     '''
+    custom_surveys = ['legacy', 'pan-starrs', 'vlass', 'lolss', 'lotss', 'tgss']
+    skyview_surveys = list(flatten(list(SkyView.survey_dict.values())))
+    allowed_surveys = custom_surveys + skyview_surveys
+
     import argparse
     parser = argparse.ArgumentParser(description='EveryStamps {:s} by {:s}'.format(__version__, __author__), add_help=True, usage=argparse.SUPPRESS)
     parser._action_groups.pop()
 
     required_args = parser.add_argument_group('Required arguments')
-    required_args.add_argument('--survey', type=str, required=True, choices=['legacy', 'pan-starrs', 'vlass', 'lolss', 'lotss', 'tgss'], help='Survey from which to download the cutout.')
+    required_args.add_argument('--survey', type=str, required=True, choices=allowed_surveys, help='Survey from which to download the cutout.')
     required_args.add_argument('--ra', type=float, required=True, help='Right ascension of cutout centre in degrees.')
     required_args.add_argument('--dec', type=float, required=True, help='Declination of cutout centre in degrees.')
     required_args.add_argument('--size', type=float, required=False, default=0.01, help='Cutout size in degrees.')
