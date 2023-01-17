@@ -30,5 +30,6 @@ jobs:
         python -m pip install git+https://github.com/tikk3r/EveryStamp.git
     - name: Run tests
       run: |
+        sudo apt-get install libboost-python-dev
         mkdir tests_output
         bash test/run_tests.sh
