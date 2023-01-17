@@ -28,3 +28,11 @@ jobs:
       run: |
         python -m pip install --upgrade pip setuptools wheel
         python -m pip install git+https://github.com/tikk3r/EveryStamp.git
+    - name: Run tests
+      uses: canastro/copy-file-action@master
+      with:
+        source: "test/run_tests.sh"
+        target: "run_tests.sh"
+      run: |
+        mkdir tests_output
+        bash run_tests.sh
