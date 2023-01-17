@@ -79,7 +79,7 @@ def main():
         from everystamp.downloaders import LegacyDownloader
         ld = LegacyDownloader()
         ld.download(ra=args.ra, dec=args.dec, bands=args.legacy_bands, mode=args.mode, size=args.size, layer=args.legacy_layer, autoscale=args.legacy_autoscale, ddir=args.ddir)
-    elif args.survey == 'panstarrs':
+    elif args.survey == 'pan-starrs':
         from everystamp.downloaders import PanSTARRSDownloader
         pd = PanSTARRSDownloader()
         pd.download(ra=args.ra, dec=args.dec, bands=args.ps_bands, mode=args.mode, size=args.size, ddir=args.ddir)
