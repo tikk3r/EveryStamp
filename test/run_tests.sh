@@ -13,5 +13,8 @@ everystamp download --survey lotss --ra 202.4841667 --dec 47.2305556 --size 0.3 
 echo \\nTesting Pan-STARRS download
 everystamp download --survey pan-starrs --ra 165.345 --dec 65.567 --size 0.1 --mode jpeg --ps_bands gri --download_dir tests_output
 
+echo \\nTesting TGSS download
+everystamp download --survey tgss --ra 165.345 --dec 65.567 --size 0.1 --download_dir tests_output --mode fits
+
 echo \\nTesting VLASS download
 everystamp download --survey vlass --ra 165.345 --dec 65.567 --size 0.1 --download_dir tests_output --mode fits
