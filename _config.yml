@@ -21,9 +21,8 @@ author: Frits Sweijen
 
 navbar-links:
   #About Me: "aboutme"
-  Resources:
-    - Installation: "installation"
-    - Examples: "#"
+  #Resources:
+  - Installation: "installation"
   #Author's home: "https://deanattali.com"
 
 ################
