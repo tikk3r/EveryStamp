@@ -3,8 +3,11 @@ layout: page
 title: Installation instructions
 subtitle: Instructions for installing the EveryStamp package
 ---
+EveryStamp can be installed using pip:
 
-To install EveryStamp, currently the approach is to clone the repository and use e.g. pip to install it:
+    pip install EveryStamp
+
+To install EveryStamp from the repository:
 
     git clone https://github.com/tikk3r/EveryStamp.git
     cd EveryStamp
