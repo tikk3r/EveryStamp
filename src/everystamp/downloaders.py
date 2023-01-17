@@ -533,6 +533,7 @@ class HiPSDownloader():
         elif mode == 'fits':
             img.writeto(os.path.join(ddir, '{:s}_{:.4f}_{:.4f}_{:.3f}.fits'.format(self.name, ra, dec, size)))
 
+
 class SkyViewDownloader():
     ''' Downloader sub-class for surveys offeret through a VO.
     '''
