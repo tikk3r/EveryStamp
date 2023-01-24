@@ -21,6 +21,20 @@ import pyvo
 import requests
 import tqdm
 
+import logging
+logging.basicConfig(format='[%(name)s] %(asctime)s - %(levelname)s: %(message)s', level=logging.INFO)
+logger = logging.getLogger('EveryStamp:Downloader')
+
+from astroquery.skyview import SkyView
+from collections.abc import Iterable
+import requests
+
+def flatten(xs): 
+    for x in xs: 
+        if isinstance(x, Iterable) and not isinstance(x, (str, bytes)): 
+            yield from flatten(x) 
+        else: 
+            yield x 
 
 class FileDownloader(object):
     ''' From https://medium.com/better-programming/python-progress-bars-with-tqdm-by-example-ce98dbbc9697
@@ -519,3 +533,4 @@ class HiPSDownloader():
             imdata.save(os.path.join(ddir, '{:s}_{:.4f}_{:.4f}_{:.3f}.jpeg'.format(self.name, ra, dec, size)))
         elif mode == 'fits':
             img.writeto(os.path.join(ddir, '{:s}_{:.4f}_{:.4f}_{:.3f}.fits'.format(self.name, ra, dec, size)))
+
