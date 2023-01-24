@@ -533,4 +533,3 @@ class HiPSDownloader():
             imdata.save(os.path.join(ddir, '{:s}_{:.4f}_{:.4f}_{:.3f}.jpeg'.format(self.name, ra, dec, size)))
         elif mode == 'fits':
             img.writeto(os.path.join(ddir, '{:s}_{:.4f}_{:.4f}_{:.3f}.fits'.format(self.name, ra, dec, size)))
-
