@@ -48,7 +48,7 @@ def main():
     required_args.add_argument('--survey', type=str, required=False, choices=allowed_surveys, help='Survey from which to download the cutout.')
     required_args.add_argument('--ra', type=float, required=False, help='Right ascension of cutout centre in degrees.')
     required_args.add_argument('--dec', type=float, required=False, help='Declination of cutout centre in degrees.')
-    required_args.add_argument('--size', type=float, required=False, default=0.01, help='Cutout size in degrees.')
+    required_args.add_argument('--mode', type=str, required=False, default='jpeg', choices=['fits', 'jpeg', 'both'], help='Cutout size in degrees.')
 
     optional_args = subparser_dl.add_argument_group('Optional arguments')
     optional_args.add_argument('--download_dir', type=str, required=False, default='', dest='ddir', help='Directory to store downloaded files. If not given will download to $PWD.')
@@ -79,7 +79,7 @@ def main():
         from everystamp.downloaders import LegacyDownloader
         ld = LegacyDownloader()
         ld.download(ra=args.ra, dec=args.dec, bands=args.legacy_bands, mode=args.mode, size=args.size, layer=args.legacy_layer, autoscale=args.legacy_autoscale, ddir=args.ddir)
-    elif args.survey == 'pan-starrs':
+    elif args.survey == 'panstarrs':
         from everystamp.downloaders import PanSTARRSDownloader
         pd = PanSTARRSDownloader()
         pd.download(ra=args.ra, dec=args.dec, bands=args.ps_bands, mode=args.mode, size=args.size, ddir=args.ddir)
