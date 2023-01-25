@@ -4,6 +4,7 @@ __version__ = '1.0.0'
 __author__ = 'Frits Sweijen'
 __license__ = 'GPLv3'
 
+import argparse
 import logging
 logging.basicConfig(format='[%(name)s] %(asctime)s - %(levelname)s: %(message)s', level=logging.INFO)
 logger = logging.getLogger('EveryStamp')
@@ -20,10 +21,7 @@ def flatten(xs):
             yield x 
 
 
-def main():
-    '''Main entry point if called as a standalone executable.
-    '''
-    modes = ['download', 'plot', '-h', '--help']
+def add_args_download(parser):
     custom_surveys = ['legacy', 'pan-starrs', 'vlass', 'lolss', 'lotss', 'tgss']
     try:
         skyview_surveys = list(flatten(list(SkyView.survey_dict.values())))
@@ -31,55 +29,45 @@ def main():
         logger.warning('Failed to get SkyView surveys. SkyView cutouts will not be available.')
         skyview_surveys = []
     allowed_surveys = custom_surveys + skyview_surveys
-
-    import argparse
-    parser = argparse.ArgumentParser(description='EveryStamp {:s} by {:s}'.format(__version__, __author__))
-    parser._action_groups.pop()
-    #parser.add_argument('mode', metavar='mode', type=str, choices=modes, help='Mode of operation. Download a cutout, or plot a FITS file.')
-    #parser.add_argument('-h', '--help', action='store_true', dest='help', help='Print this help message.')
-
-    #args = parser.parse_args()
-
-    subparsers = parser.add_subparsers(dest='cmd', description='Description of sub commands.')
-    subparser_dl = subparsers.add_parser('download', description='Download a cutout from a user-specified survey. See everystamp download -h for more information.', usage=argparse.SUPPRESS)
-
-
-    required_args = subparser_dl.add_argument_group('Required arguments')
+    required_args = parser.add_argument_group('Required arguments')
     required_args.add_argument('--survey', type=str, required=False, choices=allowed_surveys, help='Survey from which to download the cutout.')
     required_args.add_argument('--ra', type=float, required=False, help='Right ascension of cutout centre in degrees.')
     required_args.add_argument('--dec', type=float, required=False, help='Declination of cutout centre in degrees.')
     required_args.add_argument('--mode', type=str, required=False, default='jpeg', choices=['fits', 'jpeg', 'both'], help='Cutout size in degrees.')
 
-    optional_args = subparser_dl.add_argument_group('Optional arguments')
+    optional_args = parser.add_argument_group('Optional arguments')
     optional_args.add_argument('--download_dir', type=str, required=False, default='', dest='ddir', help='Directory to store downloaded files. If not given will download to $PWD.')
     optional_args.add_argument('--size', type=float, required=False, default=0.01, help='Cutout size in degrees.')
 
-    legacy_args = subparser_dl.add_argument_group('[DESI Legacy Imaging Surveys]')
+    legacy_args = parser.add_argument_group('[DESI Legacy Imaging Surveys]')
     legacy_args.add_argument('--legacy_bands', type=str, required=False, help='Bands to download. Allowed values are g, r and z. Multiple bands can be specified as a single string. In the case of a JPEG image a colour image will be generated. In the case of a FITS image a FITS cube will be downloaded. Default: grz')
     legacy_args.add_argument('--legacy_layer', type=str, required=False, default='ls-dr9', help='Layer to make a cutout from. Default value is ls-dr9. Examples are ls-dr9, sdss or unwise-neo4. See Legacy documentation for all possibilies.')
     legacy_args.add_argument('--legacy_autoscale', required=False, default=False, action='store_true', help='Automatically change the pixel size if the resulting image would exceed the server maximum of 3000x3000 pixels.')
 
-    ps_args = subparser_dl.add_argument_group('[Pan-STARRS]')
+    ps_args = parser.add_argument_group('[Pan-STARRS]')
     ps_args.add_argument('--ps_bands', type=str, required=False, default='gri', help='Bands to download. Allowed values are g, r and i. Multiple bands can be specified as a single string. Default: gri')
 
-    vlass_args = subparser_dl.add_argument_group('[VLASS]')
+    vlass_args = parser.add_argument_group('[VLASS]')
     vlass_args.add_argument('--vlass_ms', type=str, required=False, default='', help='Measurement Set to take the cutout position from.')
     vlass_args.add_argument('--vlass_consider_QA_rejected', type=bool, required=False, default=False, help='Also consider tiles that failed the Quality Assurance checks.')
 
-    lolss_args = subparser_dl.add_argument_group('[LoLSS]')
+    lolss_args = parser.add_argument_group('[LoLSS]')
     lolss_args.add_argument('--lolss_release', type=str, required=False, default='pdr', choices=['pdr'], help='Data release to download from.')
 
-    lotss_args = subparser_dl.add_argument_group('[LoTSS]')
+    lotss_args = parser.add_argument_group('[LoTSS]')
     lotss_args.add_argument('--lotss_release', type=str, required=False, default='dr1', choices=['pdr', 'dr1', 'dr2'], help='Data release to download from.')
-    
-    args = parser.parse_args()
 
+def add_args_plotter():
+    pass
+
+
+def process_args_download(args):
     logger.info('Survey is %s', args.survey)
     if args.survey == 'legacy':
         from everystamp.downloaders import LegacyDownloader
         ld = LegacyDownloader()
         ld.download(ra=args.ra, dec=args.dec, bands=args.legacy_bands, mode=args.mode, size=args.size, layer=args.legacy_layer, autoscale=args.legacy_autoscale, ddir=args.ddir)
-    elif args.survey == 'panstarrs':
+    elif args.survey == 'pan-starrs':
         from everystamp.downloaders import PanSTARRSDownloader
         pd = PanSTARRSDownloader()
         pd.download(ra=args.ra, dec=args.dec, bands=args.ps_bands, mode=args.mode, size=args.size, ddir=args.ddir)
@@ -120,6 +108,27 @@ def main():
         from everystamp.downloaders import SkyViewDownloader
         sd = SkyViewDownloader(args.survey)
         sd.download(ra=args.ra, dec=args.dec, size=args.size, ddir=args.ddir)
+
+
+def process_args_plotter():
+    pass
+
+
+def main():
+    '''Main entry point if called as a standalone executable.
+    '''
+    parser = argparse.ArgumentParser(description='EveryStamp {:s} by {:s}'.format(__version__, __author__))
+    parser._action_groups.pop()
+
+    subparsers = parser.add_subparsers(dest='cmd', description='Description of sub commands.')
+    subparser_dl = subparsers.add_parser('download', description='Download a cutout from a user-specified survey. See everystamp download -h for more information.', usage=argparse.SUPPRESS)
+
+    add_args_download(subparser_dl)
+    
+    args = parser.parse_args()
+
+    if args.cmd == 'download':
+        process_args_download(args)
 
 if __name__ == '__main__':
     main()
