@@ -12,7 +12,7 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
@@ -31,6 +31,4 @@ jobs:
         python -m pip install git+https://github.com/tikk3r/EveryStamp.git
     - name: Run tests
       run: |
-        rm -rf tests_output
-        mkdir tests_output
         bash test/run_tests.sh
