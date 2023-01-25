@@ -23,6 +23,7 @@ navbar-links:
   #About Me: "aboutme"
   #Resources:
   Installation: "installation"
+  Documentation: "apidocs"
   #Author's home: "https://deanattali.com"
 
 ################
