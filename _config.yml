@@ -23,7 +23,7 @@ navbar-links:
   #About Me: "aboutme"
   #Resources:
   Installation: "installation"
-  Documentation: "apidocs"
+  Documentation: "apidocs/everybeam"
   #Author's home: "https://deanattali.com"
 
 ################
