@@ -50,6 +50,31 @@ import pyvo
 import requests
 import tqdm
 
+import logging
+logging.basicConfig(format=&#39;[%(name)s] %(asctime)s - %(levelname)s: %(message)s&#39;, level=logging.INFO)
+logger = logging.getLogger(&#39;EveryStamp:Downloader&#39;)
+
+from astroquery.skyview import SkyView
+from collections.abc import Iterable
+import requests
+
+def flatten(xs):
+    &#39;&#39;&#39; Flatten a nested list, as per the example on https://stackoverflow.com/a/40857703.
+    
+    Args:
+        xs : list
+            Nested list to flatten.
+    
+    Returns:
+        x : list
+            Flattened list.
+    &#39;&#39;&#39;
+    for x in xs: 
+        if isinstance(x, Iterable) and not isinstance(x, (str, bytes)): 
+            yield from flatten(x) 
+        else: 
+            yield x 
+
 
 class FileDownloader(object):
     &#39;&#39;&#39; From https://medium.com/better-programming/python-progress-bars-with-tqdm-by-example-ce98dbbc9697
@@ -599,6 +624,45 @@ class SkyViewDownloader():
 <section>
 </section>
 <section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="everystamp.downloaders.flatten"><code class="name flex">
+<span>def <span class="ident">flatten</span></span>(<span>xs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Flatten a nested list, as per the example on <a href="https://stackoverflow.com/a/40857703.">https://stackoverflow.com/a/40857703.</a></p>
+<h2 id="args">Args</h2>
+<p>xs : list
+Nested list to flatten.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>x </code></dt>
+<dd>list
+Flattened list.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def flatten(xs):
+    &#39;&#39;&#39; Flatten a nested list, as per the example on https://stackoverflow.com/a/40857703.
+    
+    Args:
+        xs : list
+            Nested list to flatten.
+    
+    Returns:
+        x : list
+            Flattened list.
+    &#39;&#39;&#39;
+    for x in xs: 
+        if isinstance(x, Iterable) and not isinstance(x, (str, bytes)): 
+            yield from flatten(x) 
+        else: 
+            yield x </code></pre>
+</details>
+</dd>
+</dl>
 </section>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
@@ -855,7 +919,7 @@ limitations under the License.</p></div>
 <h3>Methods</h3>
 <dl>
 <dt id="everystamp.downloaders.HiPSDownloader.download"><code class="name flex">
-<span>def <span class="ident">download</span></span>(<span>self, ra=0.0, dec=0.0, size=0.1, ddir='/home/frits/testeverystamp', pixsize=1.0, mode='jpg')</span>
+<span>def <span class="ident">download</span></span>(<span>self, ra=0.0, dec=0.0, size=0.1, ddir='/home/frits/EveryStamp', pixsize=1.0, mode='jpg')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Download a cutout from the VLASS survey.</p>
@@ -1196,7 +1260,7 @@ fitsPaths, jpegPaths, colorPath = downloader(
 <h3>Methods</h3>
 <dl>
 <dt id="everystamp.downloaders.SkyViewDownloader.download"><code class="name flex">
-<span>def <span class="ident">download</span></span>(<span>self, ra=0.0, dec=0.0, size=0.1, ddir='/home/frits/testeverystamp', suffix='')</span>
+<span>def <span class="ident">download</span></span>(<span>self, ra=0.0, dec=0.0, size=0.1, ddir='/home/frits/EveryStamp', suffix='')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Download a cutout from the VLASS survey.</p>
@@ -1539,7 +1603,7 @@ fitsPaths, jpegPaths, colorPath = downloader(
 <h3>Methods</h3>
 <dl>
 <dt id="everystamp.downloaders.VLASSDownloader.download"><code class="name flex">
-<span>def <span class="ident">download</span></span>(<span>self, ra=0.0, dec=0.0, size=0.1, ms='', crop=True, consider_QA_rejected=False, ddir='/home/frits/testeverystamp')</span>
+<span>def <span class="ident">download</span></span>(<span>self, ra=0.0, dec=0.0, size=0.1, ms='', crop=True, consider_QA_rejected=False, ddir='/home/frits/EveryStamp')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Download a cutout from the VLASS survey.</p>
@@ -1884,7 +1948,7 @@ RA and Dec returned as a SkyCoord object</p>
 </details>
 </dd>
 <dt id="everystamp.downloaders.VLASSDownloader.search_vlass"><code class="name flex">
-<span>def <span class="ident">search_vlass</span></span>(<span>self, c, crop=False, crop_scale=256, consider_QA_rejected=False, ddir='/home/frits/testeverystamp')</span>
+<span>def <span class="ident">search_vlass</span></span>(<span>self, c, crop=False, crop_scale=256, consider_QA_rejected=False, ddir='/home/frits/EveryStamp')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Searches the VLASS catalog for a source</p>
@@ -2027,7 +2091,7 @@ RA and Dec returned as a SkyCoord object</p>
 <h3>Methods</h3>
 <dl>
 <dt id="everystamp.downloaders.VODownloader.download"><code class="name flex">
-<span>def <span class="ident">download</span></span>(<span>self, ra=0.0, dec=0.0, size=0.1, ddir='/home/frits/testeverystamp', suffix='')</span>
+<span>def <span class="ident">download</span></span>(<span>self, ra=0.0, dec=0.0, size=0.1, ddir='/home/frits/EveryStamp', suffix='')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Download a cutout from the VLASS survey.</p>
@@ -2087,6 +2151,11 @@ RA and Dec returned as a SkyCoord object</p>
 <li><h3>Super-module</h3>
 <ul>
 <li><code><a title="everystamp" href="index.html">everystamp</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="everystamp.downloaders.flatten" href="#everystamp.downloaders.flatten">flatten</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
