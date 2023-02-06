@@ -12,11 +12,19 @@ on:
 jobs:
   build:
 
+<<<<<<< HEAD
     runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
         python-version: ["3.6", "3.7", "3.8", "3.9", "3.10", "3.11"]
+=======
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
+>>>>>>> master
 
     steps:
     - uses: actions/checkout@v2
@@ -31,5 +39,8 @@ jobs:
         python -m pip install git+https://github.com/tikk3r/EveryStamp.git
     - name: Run tests
       run: |
+<<<<<<< HEAD
         mkdir tests_output
+=======
+>>>>>>> master
         bash test/run_tests.sh

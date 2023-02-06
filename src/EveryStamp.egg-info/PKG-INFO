@@ -1,0 +1,12 @@
+Metadata-Version: 2.1
+Name: EveryStamp
+Version: 1.0.0
+Summary: A Python interface for retrieving FITS or image cutouts from a variety of astronomical surveys.
+Author: Frits Sweijen
+Project-URL: Homepage, https://tikk3r.github.io/EveryStamp/
+Project-URL: Bug Tracker, https://github.com/tikk3r/EveryStamp/issues
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: GNU General Public License v3 (GPLv3)
+Classifier: Operating System :: OS Independent
+Classifier: Topic :: Scientific/Engineering :: Astronomy
+Requires-Python: >=3.7

@@ -1,0 +1,2 @@
+[console_scripts]
+everystamp = everystamp.everystamp:main

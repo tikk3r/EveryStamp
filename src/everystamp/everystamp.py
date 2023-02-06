@@ -30,10 +30,10 @@ def add_args_download(parser):
         skyview_surveys = []
     allowed_surveys = custom_surveys + skyview_surveys
     required_args = parser.add_argument_group('Required arguments')
-    required_args.add_argument('--survey', type=str, required=False, choices=allowed_surveys, help='Survey from which to download the cutout.')
-    required_args.add_argument('--ra', type=float, required=False, help='Right ascension of cutout centre in degrees.')
-    required_args.add_argument('--dec', type=float, required=False, help='Declination of cutout centre in degrees.')
-    required_args.add_argument('--mode', type=str, required=False, default='jpeg', choices=['fits', 'jpeg', 'both'], help='Cutout size in degrees.')
+    required_args.add_argument('--survey', type=str, required=True, choices=allowed_surveys, help='Survey from which to download the cutout.')
+    required_args.add_argument('--ra', type=float, required=True, help='Right ascension of cutout centre in degrees.')
+    required_args.add_argument('--dec', type=float, required=True, help='Declination of cutout centre in degrees.')
+    required_args.add_argument('--mode', type=str, required=True, default='jpeg', choices=['jpeg', 'fits', 'both'], help='Image type to retrieve. Can be "jpeg", "fits" or "both" to retrieve either a JPEG image, FITS file or both. Default value is jpeg.')
 
     optional_args = parser.add_argument_group('Optional arguments')
     optional_args.add_argument('--download_dir', type=str, required=False, default='', dest='ddir', help='Directory to store downloaded files. If not given will download to $PWD.')
@@ -116,7 +116,6 @@ def process_args_download(args):
         from everystamp.downloaders import SkyViewDownloader
         sd = SkyViewDownloader(args.survey)
         sd.download(ra=args.ra, dec=args.dec, size=args.size, ddir=args.ddir)
-
 
 def process_args_plot(args):
     logger.info('Plotting image %s', args.image)

@@ -1,0 +1,13 @@
+README.md
+pyproject.toml
+src/EveryStamp.egg-info/PKG-INFO
+src/EveryStamp.egg-info/SOURCES.txt
+src/EveryStamp.egg-info/dependency_links.txt
+src/EveryStamp.egg-info/entry_points.txt
+src/EveryStamp.egg-info/requires.txt
+src/EveryStamp.egg-info/top_level.txt
+src/everystamp/__init__.py
+src/everystamp/downloaders.py
+src/everystamp/everystamp.py
+src/everystamp/plotters.py
+src/everystamp/tonemapping.py
