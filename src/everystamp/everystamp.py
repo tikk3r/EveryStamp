@@ -143,7 +143,7 @@ def main():
     parser._action_groups.pop()
 
     subparsers = parser.add_subparsers(dest='cmd', description='Description of sub commands.')
-    subparser_dl = subparsers.add_parser('download', description='Download a cutout from a user-specified survey. See everystamp download -h for more information.', help='Download a cutout from a specified survey.')
+    subparser_dl = subparsers.add_parser('download', usage='everystamp download --survey SURVEY --ra RA --dec DEC --mode MODE --size SIZE', description='Download a cutout from a user-specified survey. See everystamp download -h for all available parameters.', help='Download a cutout from a specified survey.')
     add_args_download(subparser_dl)
 
     subparser_plot = subparsers.add_parser('plot', description='Plot a given FITS image. See everystamp plot -h for more information.', help='Plot a user-supplied FITS image.')
