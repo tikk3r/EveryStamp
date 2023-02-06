@@ -22,6 +22,31 @@ import pyvo
 import requests
 import tqdm
 
+import logging
+logging.basicConfig(format='[%(name)s] %(asctime)s - %(levelname)s: %(message)s', level=logging.INFO)
+logger = logging.getLogger('EveryStamp:Downloader')
+
+from astroquery.skyview import SkyView
+from collections.abc import Iterable
+import requests
+
+def flatten(xs):
+    ''' Flatten a nested list, as per the example on https://stackoverflow.com/a/40857703.
+    
+    Args:
+        xs : list
+            Nested list to flatten.
+    
+    Returns:
+        x : list
+            Flattened list.
+    '''
+    for x in xs: 
+        if isinstance(x, Iterable) and not isinstance(x, (str, bytes)): 
+            yield from flatten(x) 
+        else: 
+            yield x 
+
 
 class FileDownloader(object):
     ''' From https://medium.com/better-programming/python-progress-bars-with-tqdm-by-example-ce98dbbc9697

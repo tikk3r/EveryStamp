@@ -4,12 +4,14 @@ __version__ = '1.0.0'
 __author__ = 'Frits Sweijen'
 __license__ = 'GPLv3'
 
+import argparse
 import logging
 logging.basicConfig(format='[%(name)s] %(asctime)s - %(levelname)s: %(message)s', level=logging.INFO)
 logger = logging.getLogger('EveryStamp')
 
 from astroquery.skyview import SkyView
 from collections.abc import Iterable
+import requests
 
 def flatten(xs): 
     for x in xs: 
@@ -19,22 +21,19 @@ def flatten(xs):
             yield x 
 
 
-def main():
-    '''Main entry point if called as a standalone executable.
-    '''
+def add_args_download(parser):
     custom_surveys = ['legacy', 'pan-starrs', 'vlass', 'lolss', 'lotss', 'tgss']
-    skyview_surveys = list(flatten(list(SkyView.survey_dict.values())))
+    try:
+        skyview_surveys = list(flatten(list(SkyView.survey_dict.values())))
+    except requests.exceptions.ConnectionError:
+        logger.warning('Failed to get SkyView surveys. SkyView cutouts will not be available.')
+        skyview_surveys = []
     allowed_surveys = custom_surveys + skyview_surveys
-
-    import argparse
-    parser = argparse.ArgumentParser(description='EveryStamps {:s} by {:s}'.format(__version__, __author__), add_help=True, usage=argparse.SUPPRESS)
-    parser._action_groups.pop()
-
     required_args = parser.add_argument_group('Required arguments')
     required_args.add_argument('--survey', type=str, required=True, choices=allowed_surveys, help='Survey from which to download the cutout.')
     required_args.add_argument('--ra', type=float, required=True, help='Right ascension of cutout centre in degrees.')
     required_args.add_argument('--dec', type=float, required=True, help='Declination of cutout centre in degrees.')
-    required_args.add_argument('--mode', type=str, required=True, default='', choices=['jpeg', 'fits', 'both'], help='Image type to retrieve. Can be "jpeg", "fits" or "both" to retrieve either a JPEG image, FITS file or both. Default value is jpeg.')
+    required_args.add_argument('--mode', type=str, required=True, default='jpeg', choices=['jpeg', 'fits', 'both'], help='Image type to retrieve. Can be "jpeg", "fits" or "both" to retrieve either a JPEG image, FITS file or both. Default value is jpeg.')
 
     optional_args = parser.add_argument_group('Optional arguments')
     optional_args.add_argument('--download_dir', type=str, required=False, default='', dest='ddir', help='Directory to store downloaded files. If not given will download to $PWD.')
@@ -58,7 +57,19 @@ def main():
     lotss_args = parser.add_argument_group('[LoTSS]')
     lotss_args.add_argument('--lotss_release', type=str, required=False, default='dr1', choices=['pdr', 'dr1', 'dr2'], help='Data release to download from.')
 
-    args = parser.parse_args()
+
+def add_args_plot(parser):
+    required_args = parser.add_argument_group('Required arguments')
+    required_args.add_argument('--image', type=str, required=False, help='FITS image to plot.')
+
+    required_args = parser.add_argument_group('Optional arguments')
+    required_args.add_argument('--gamma', type=float, default=1.0, required=False, help='Gamma compress (<1) or expand (>1) an image.')
+    required_args.add_argument('--CLAHE', action='store_true', default=False, required=False, help='Apply contrast-limited adaptive histogram equalisation.')
+    required_args.add_argument('--CLAHE-gridsize', default=5, type=int, required=False, help='Grid size to use for CLAHE.')
+    required_args.add_argument('--CLAHE-cliplim', default=1.0, type=float, required=False, help='Clip limit to use for CLAHE.')
+
+
+def process_args_download(args):
     logger.info('Survey is %s', args.survey)
     if args.survey == 'legacy':
         from everystamp.downloaders import LegacyDownloader
@@ -105,6 +116,45 @@ def main():
         from everystamp.downloaders import SkyViewDownloader
         sd = SkyViewDownloader(args.survey)
         sd.download(ra=args.ra, dec=args.dec, size=args.size, ddir=args.ddir)
+
+def process_args_plot(args):
+    logger.info('Plotting image %s', args.image)
+    from everystamp.plotters import BasicPlot
+    from everystamp.tonemapping import gamma, make_nonnegative
+    import numpy as np
+    bp = BasicPlot(args.image)
+    if args.CLAHE:
+        import cv2
+        bp.data = make_nonnegative(bp.fitsdata)
+        bp.data /= np.nanmax(bp.data)
+        bp.data *= 2**16
+        bp.data = bp.data.astype(np.uint16)
+        clahe = cv2.createCLAHE(clipLimit=args.CLAHE_cliplim, tileGridSize=(args.CLAHE_gridsize, args.CLAHE_gridsize))
+        bp.data = clahe.apply(bp.data)
+    if args.gamma:
+        bp.data = gamma(bp.data, args.gamma)
+    bp.plot2D()
+
+
+def main():
+    '''Main entry point if called as a standalone executable.
+    '''
+    parser = argparse.ArgumentParser(description='EveryStamp {:s} by {:s}'.format(__version__, __author__))
+    parser._action_groups.pop()
+
+    subparsers = parser.add_subparsers(dest='cmd', description='Description of sub commands.')
+    subparser_dl = subparsers.add_parser('download', description='Download a cutout from a user-specified survey. See everystamp download -h for more information.', help='Download a cutout from a specified survey.')
+    add_args_download(subparser_dl)
+
+    subparser_plot = subparsers.add_parser('plot', description='Plot a given FITS image. See everystamp plot -h for more information.', help='Plot a user-supplied FITS image.')
+    add_args_plot(subparser_plot)
+    
+    args = parser.parse_args()
+
+    if args.cmd == 'download':
+        process_args_download(args)
+    if args.cmd == 'plot':
+        process_args_plot(args)
 
 if __name__ == '__main__':
     main()

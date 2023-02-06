@@ -1,0 +1,8 @@
+astropy
+astroquery
+panstamps
+Pillow
+python-casacore
+pyvo
+requests
+tqdm
