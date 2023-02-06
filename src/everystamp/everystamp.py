@@ -57,8 +57,16 @@ def add_args_download(parser):
     lotss_args = parser.add_argument_group('[LoTSS]')
     lotss_args.add_argument('--lotss_release', type=str, required=False, default='dr1', choices=['pdr', 'dr1', 'dr2'], help='Data release to download from.')
 
-def add_args_plotter():
-    pass
+
+def add_args_plot(parser):
+    required_args = parser.add_argument_group('Required arguments')
+    required_args.add_argument('--image', type=str, required=False, help='FITS image to plot.')
+
+    required_args = parser.add_argument_group('Optional arguments')
+    required_args.add_argument('--gamma', type=float, default=1.0, required=False, help='Gamma compress (<1) or expand (>1) an image.')
+    required_args.add_argument('--CLAHE', action='store_true', default=False, required=False, help='Apply contrast-limited adaptive histogram equalisation.')
+    required_args.add_argument('--CLAHE-gridsize', default=5, type=int, required=False, help='Grid size to use for CLAHE.')
+    required_args.add_argument('--CLAHE-cliplim', default=1.0, type=float, required=False, help='Clip limit to use for CLAHE.')
 
 
 def process_args_download(args):
@@ -110,8 +118,23 @@ def process_args_download(args):
         sd.download(ra=args.ra, dec=args.dec, size=args.size, ddir=args.ddir)
 
 
-def process_args_plotter():
-    pass
+def process_args_plot(args):
+    logger.info('Plotting image %s', args.image)
+    from everystamp.plotters import BasicPlot
+    from everystamp.tonemapping import gamma, make_nonnegative
+    import numpy as np
+    bp = BasicPlot(args.image)
+    if args.CLAHE:
+        import cv2
+        bp.data = make_nonnegative(bp.fitsdata)
+        bp.data /= np.nanmax(bp.data)
+        bp.data *= 2**16
+        bp.data = bp.data.astype(np.uint16)
+        clahe = cv2.createCLAHE(clipLimit=args.CLAHE_cliplim, tileGridSize=(args.CLAHE_gridsize, args.CLAHE_gridsize))
+        bp.data = clahe.apply(bp.data)
+    if args.gamma:
+        bp.data = gamma(bp.data, args.gamma)
+    bp.plot2D()
 
 
 def main():
@@ -121,14 +144,18 @@ def main():
     parser._action_groups.pop()
 
     subparsers = parser.add_subparsers(dest='cmd', description='Description of sub commands.')
-    subparser_dl = subparsers.add_parser('download', description='Download a cutout from a user-specified survey. See everystamp download -h for more information.', usage=argparse.SUPPRESS)
-
+    subparser_dl = subparsers.add_parser('download', description='Download a cutout from a user-specified survey. See everystamp download -h for more information.', help='Download a cutout from a specified survey.')
     add_args_download(subparser_dl)
+
+    subparser_plot = subparsers.add_parser('plot', description='Plot a given FITS image. See everystamp plot -h for more information.', help='Plot a user-supplied FITS image.')
+    add_args_plot(subparser_plot)
     
     args = parser.parse_args()
 
     if args.cmd == 'download':
         process_args_download(args)
+    if args.cmd == 'plot':
+        process_args_plot(args)
 
 if __name__ == '__main__':
     main()
