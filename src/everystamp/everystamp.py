@@ -67,6 +67,7 @@ def add_args_plot(parser):
     required_args.add_argument('--CLAHE', action='store_true', default=False, required=False, help='Apply contrast-limited adaptive histogram equalisation.')
     required_args.add_argument('--CLAHE-gridsize', default=5, type=int, required=False, help='Grid size to use for CLAHE.')
     required_args.add_argument('--CLAHE-cliplim', default=1.0, type=float, required=False, help='Clip limit to use for CLAHE.')
+    required_args.add_argument('--hdr-tonemap', default=None, type=str, choices=['fattal'], required=False, help='HDR tonemapping to apply')
 
 
 def process_args_download(args):
@@ -117,12 +118,16 @@ def process_args_download(args):
         sd = SkyViewDownloader(args.survey)
         sd.download(ra=args.ra, dec=args.dec, size=args.size, ddir=args.ddir)
 
+
 def process_args_plot(args):
     logger.info('Plotting image %s', args.image)
     from everystamp.plotters import BasicPlot
     from everystamp.tonemapping import gamma, make_nonnegative
     import numpy as np
     bp = BasicPlot(args.image)
+    if args.hdr_tonemap == 'fattal':
+        from everystamp.tonemapping.hdr import fattal
+        bp.data = fattal(bp.fitsdata)
     if args.CLAHE:
         import cv2
         bp.data = make_nonnegative(bp.fitsdata)
@@ -133,6 +138,7 @@ def process_args_plot(args):
         bp.data = clahe.apply(bp.data)
     if args.gamma:
         bp.data = gamma(bp.data, args.gamma)
+    # bp.savedata(args.image.replace('.fits', '.tonemapped.fits'))
     bp.plot2D()
 
 

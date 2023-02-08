@@ -28,3 +28,6 @@ class BasicPlot():
         ax.set(xlabel='Right ascension', ylabel='Declination')
         plt.colorbar(im)
         fig.savefig(self.fitsimage.replace('fits', 'png'), bbox_inches='tight', dpi=self.dpi)
+
+    def savedata(self, outfile):
+        fits.writeto(data=self.data, header=self.wcs.to_header(), filename=outfile, overwrite=True)
