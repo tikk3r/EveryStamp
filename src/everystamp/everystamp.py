@@ -67,7 +67,7 @@ def add_args_plot(parser):
     required_args.add_argument('--CLAHE', action='store_true', default=False, required=False, help='Apply contrast-limited adaptive histogram equalisation.')
     required_args.add_argument('--CLAHE-gridsize', default=5, type=int, required=False, help='Grid size to use for CLAHE.')
     required_args.add_argument('--CLAHE-cliplim', default=1.0, type=float, required=False, help='Clip limit to use for CLAHE.')
-    required_args.add_argument('--hdr-tonemap', default=None, type=str, choices=['fattal'], required=False, help='HDR tonemapping to apply')
+    required_args.add_argument('--hdr-tonemap', default=None, type=str, choices=['drago', 'fattal'], required=False, help='HDR tonemapping to apply')
 
 
 def process_args_download(args):
@@ -124,10 +124,12 @@ def process_args_plot(args):
     from everystamp.plotters import BasicPlot
     from everystamp.tonemapping import gamma, make_nonnegative
     import numpy as np
+    from everystamp.tonemapping.hdr import fattal,drago
     bp = BasicPlot(args.image)
     if args.hdr_tonemap == 'fattal':
-        from everystamp.tonemapping.hdr import fattal
         bp.data = fattal(bp.fitsdata)
+    if args.hdr_tonemap == 'drago':
+        bp.data = drago(bp.fitsdata)
     if args.CLAHE:
         import cv2
         bp.data = make_nonnegative(bp.fitsdata)

@@ -56,7 +56,7 @@ def _store_tmpfile(data: numpy.ndarray, name: str) -> str:
     Args:
         data : numpy.ndarray
             NumPy array containing the image.
-    
+
     Returns:
         path : str
             Absolute path to the temporary file.
@@ -66,11 +66,39 @@ def _store_tmpfile(data: numpy.ndarray, name: str) -> str:
     return os.path.abspath(name)
 
 
-def fattal(data: numpy.ndarray, alpha: float = None, beta: float = None, colour_saturation: float = None, noise: float = None):
+def drago(data: numpy.ndarray, bias: float = 0.85) -> numpy.ndarray:
     ''' Tonemap the image using gradient domain compression as described in Fattal et al. 2002.
 
     Parameters set to None will take their default values as set in LuminanceHDR.
-    
+
+    Args:
+        data : numpy.ndarray
+            Input data to tonemap.
+        bias : float
+            Bias the logarithmic base towards lower or higher values. Default: 0.85.
+
+    Returns:
+        data_tm : numpy.ndarray
+            Tonemapped data.
+    '''
+    tmpname = _store_tmpfile(data, 'tmp_drago.fits')
+    tmpname_out = tmpname.replace('.fits', '.tonemapped.tiff')
+    cmd = BASECOMMAND + ' -e 0 --tmo drago '
+    if bias is not None:
+        cmd += f'--tmoDrgBias {bias} '
+    cmd += f'-o {tmpname_out} {tmpname}'
+    run_command(cmd.split(' '))
+    data_tm = _load_tonemapped_tmpdata(tmpname_out)
+    os.remove(tmpname)
+    os.remove(tmpname_out)
+    return data_tm
+
+
+def fattal(data: numpy.ndarray, alpha: float = None, beta: float = None, colour_saturation: float = None, noise: float = None) -> numpy.ndarray:
+    ''' Tonemap the image using gradient domain compression as described in Fattal et al. 2002.
+
+    Parameters set to None will take their default values as set in LuminanceHDR.
+
     Args:
         data : numpy.ndarray
             Input data to tonemap.
@@ -89,19 +117,17 @@ def fattal(data: numpy.ndarray, alpha: float = None, beta: float = None, colour_
     '''
     tmpname = _store_tmpfile(data, 'tmp_fattal.fits')
     tmpname_out = tmpname.replace('.fits', '.tonemapped.tiff')
-    cmd = [BASECOMMAND, '-e', '0', '--tmo', 'fattal']
+    cmd = BASECOMMAND + ' -e 0 --tmo fattal '
     if alpha is not None:
-        cmd.append(f'--tmoFatAlpha {alpha}')
+        cmd += f'--tmoFatAlpha {alpha} '
     if beta is not None:
-        cmd.append(f'--tmoFatBeta {beta}')
+        cmd += f'--tmoFatBeta {beta} '
     if colour_saturation is not None:
-        cmd.append(f'--tmoFatAlpha {colour_saturation}')
+        cmd += f'--tmoFatAlpha {colour_saturation} '
     if noise is not None:
-        cmd.append(f'--tmoFatAlpha {noise}')
-    cmd.append('-o')
-    cmd.append(tmpname_out)
-    cmd.append(tmpname)
-    run_command(cmd)
+        cmd += f'--tmoFatAlpha {noise} '
+    cmd += f'-o {tmpname_out} {tmpname}'
+    run_command(cmd.split(' '))
     data_tm = _load_tonemapped_tmpdata(tmpname_out)
     os.remove(tmpname)
     os.remove(tmpname_out)
