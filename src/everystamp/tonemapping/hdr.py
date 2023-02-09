@@ -1,10 +1,11 @@
 '''Sub-module containing wrappers to LuminosityHDR's HDR tonemapping programs.'''
+from typing import Union
+
 import os
 import subprocess
 
 from astropy.io import fits
 from skimage import io
-from typing import Union
 import numpy
 
 BASECOMMAND = 'luminance-hdr-cli'
