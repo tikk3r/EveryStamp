@@ -1,4 +1,8 @@
+astropy
 astroquery
+matplotlib
 panstamps
+Pillow
 pyvo
+scikit-image
 tqdm
