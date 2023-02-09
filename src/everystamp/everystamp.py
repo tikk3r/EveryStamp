@@ -8,10 +8,14 @@ import argparse
 import logging
 logging.basicConfig(format='[%(name)s] %(asctime)s - %(levelname)s: %(message)s', level=logging.INFO)
 logger = logging.getLogger('EveryStamp')
+import shutil
 
 from astroquery.skyview import SkyView
 from collections.abc import Iterable
 import requests
+
+# Check if LuminanceHDR is installed.
+HAS_LHDR = shutil.which('luminance-hdr-cli')
 
 def flatten(xs): 
     for x in xs: 
@@ -67,7 +71,20 @@ def add_args_plot(parser):
     required_args.add_argument('--CLAHE', action='store_true', default=False, required=False, help='Apply contrast-limited adaptive histogram equalisation.')
     required_args.add_argument('--CLAHE-gridsize', default=5, type=int, required=False, help='Grid size to use for CLAHE.')
     required_args.add_argument('--CLAHE-cliplim', default=1.0, type=float, required=False, help='Clip limit to use for CLAHE.')
-    required_args.add_argument('--hdr-tonemap', default=None, type=str, choices=['drago', 'fattal'], required=False, help='HDR tonemapping to apply')
+
+    if HAS_LHDR:
+        required_args.add_argument('--hdr-tonemap', default=None, type=str, choices=['drago', 'fattal'], required=False, help='HDR tonemapping to apply')
+
+        hdr_fattal_args = parser.add_argument_group('HDR Tone mapping -- Drago et al. 2003 arguments')
+        hdr_fattal_args.add_argument('--drago-bias', default=0.85, type=float, required=False, help='Bias parameter controlling the exponent base.')
+
+        hdr_fattal_args = parser.add_argument_group('HDR Tone mapping -- Fattal et al. 2002 arguments')
+        hdr_fattal_args.add_argument('--fattal-alpha', default=None, type=float, required=False, help='Controls which gradient magnitude is preserved.')
+        hdr_fattal_args.add_argument('--fattal-beta', default=None, type=float, required=False, help='Controls local detail enhancement.')
+        hdr_fattal_args.add_argument('--fattal-colour_saturation', default=None, type=float, required=False, help='Controls colour saturation.')
+        hdr_fattal_args.add_argument('--fattal-noise', default=None, type=float, required=False, help='Controls when local detail enhancement is reduced.')
+    else:
+        logger.warning('Cannot find luminance-hdr-cli. HDR tone mapping functionality will not be available unless LuminanceHDR is (correctly) installed.')
 
 
 def process_args_download(args):
@@ -126,10 +143,11 @@ def process_args_plot(args):
     import numpy as np
     from everystamp.tonemapping.hdr import fattal,drago
     bp = BasicPlot(args.image)
-    if args.hdr_tonemap == 'fattal':
-        bp.data = fattal(bp.fitsdata)
-    if args.hdr_tonemap == 'drago':
-        bp.data = drago(bp.fitsdata)
+    if HAS_LHDR:
+        if args.hdr_tonemap == 'fattal':
+            bp.data = fattal(bp.fitsdata, alpha=args.fattal_alpha, beta=args.fattal_beta, colour_saturation=args.fattal_colour_saturation, noise=args.fattal_noise)
+        if args.hdr_tonemap == 'drago':
+            bp.data = drago(bp.fitsdata, bias=args.drago_bias)
     if args.CLAHE:
         import cv2
         bp.data = make_nonnegative(bp.fitsdata)
