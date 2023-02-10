@@ -176,9 +176,9 @@ def plot_matrix(data, name):
 np.random.seed(1231292921)
 N = 1024
 x = np.random.rand(N, N)
-# from astropy.io import fits
-# x = fits.getdata('tests_output/LoTSS-DR2_202.4842_47.2306_0.300.fits').squeeze()
-# y = cv2.imread('/home/frits/EveryStamp/tests_output/LoTSS-DR2_202.4842_47.2306_0.300_linear.png')
+from astropy.io import fits
+x = fits.getdata('tests_output/LoTSS-DR2_202.4842_47.2306_0.300.fits').squeeze()
+#y = cv2.imread('/home/frits/EveryStamp/tests_output/LoTSS-DR2_202.4842_47.2306_0.300_linear.png')
 # x = cv2.cvtColor(y, cv2.COLOR_BGR2GRAY).astype(float)
 print(x.shape)
 map_fattal(x, 0.1, 0.85)

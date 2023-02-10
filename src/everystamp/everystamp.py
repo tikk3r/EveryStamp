@@ -194,7 +194,7 @@ def _process_args_plot(args):
         bp.data = clahe.apply(bp.data)
     if args.gamma:
         bp.data = gamma(bp.data, args.gamma)
-    # bp.savedata(args.image.replace('.fits', '.tonemapped.fits'))
+    bp.savedata(args.image.replace('.fits', '.tonemapped.fits'))
     bp.plot2D()
 
 
