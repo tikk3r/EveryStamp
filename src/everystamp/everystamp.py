@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 ''' Python library aiming to provide a wrapper around various astronomical surveys that offer cutouts.'''
-__version__ = '1.0.0'
+__version__ = '1.1.0'
 __author__ = 'Frits Sweijen'
 __license__ = 'GPLv3'
+from typing import Generator
 
 import argparse
 import logging
@@ -17,7 +18,18 @@ import requests
 # Check if LuminanceHDR is installed.
 HAS_LHDR = shutil.which('luminance-hdr-cli')
 
-def flatten(xs): 
+
+def flatten(xs: list) -> Generator:
+    ''' Generator to flatten a list of nested lists.
+    
+    Args:
+        xs : list
+            The list to flatten.
+    
+    Yields:
+        x : iterable
+            An iterable that will generate the flattened list.
+    '''
     for x in xs: 
         if isinstance(x, Iterable) and not isinstance(x, (str, bytes)): 
             yield from flatten(x) 
@@ -25,7 +37,13 @@ def flatten(xs):
             yield x 
 
 
-def add_args_download(parser):
+def _add_args_download(parser):
+    ''' Add arguments to the argparse instance for downloading cutouts.
+    
+    Args:
+        parser : ArgumentParser
+            ArgumentParser instance to which to add entries.
+    '''
     custom_surveys = ['legacy', 'pan-starrs', 'vlass', 'lolss', 'lotss', 'tgss']
     try:
         skyview_surveys = list(flatten(list(SkyView.survey_dict.values())))
@@ -62,7 +80,13 @@ def add_args_download(parser):
     lotss_args.add_argument('--lotss_release', type=str, required=False, default='dr1', choices=['pdr', 'dr1', 'dr2'], help='Data release to download from.')
 
 
-def add_args_plot(parser):
+def _add_args_plot(parser):
+    ''' Add arguments to the argparse instance for plotting images.
+    
+    Args:
+        parser : ArgumentParser
+            ArgumentParser instance to which to add entries.
+    '''
     required_args = parser.add_argument_group('Required arguments')
     required_args.add_argument('--image', type=str, required=False, help='FITS image to plot.')
 
@@ -87,7 +111,13 @@ def add_args_plot(parser):
         logger.warning('Cannot find luminance-hdr-cli. HDR tone mapping functionality will not be available unless LuminanceHDR is (correctly) installed.')
 
 
-def process_args_download(args):
+def _process_args_download(args):
+    ''' Process arguments to the argparse instance for downloading cutouts.
+    
+    Args:
+        parser : ArgumentParser
+            ArgumentParser instance to which to add entries.
+    '''
     logger.info('Survey is %s', args.survey)
     if args.survey == 'legacy':
         from everystamp.downloaders import LegacyDownloader
@@ -136,7 +166,13 @@ def process_args_download(args):
         sd.download(ra=args.ra, dec=args.dec, size=args.size, ddir=args.ddir)
 
 
-def process_args_plot(args):
+def _process_args_plot(args):
+    ''' Process arguments to the argparse instance for plotting images.
+    
+    Args:
+        parser : ArgumentParser
+            ArgumentParser instance to which to add entries.
+    '''
     logger.info('Plotting image %s', args.image)
     from everystamp.plotters import BasicPlot
     from everystamp.tonemapping import gamma, make_nonnegative
@@ -170,17 +206,17 @@ def main():
 
     subparsers = parser.add_subparsers(dest='cmd', description='Description of sub commands.')
     subparser_dl = subparsers.add_parser('download', usage='everystamp download --survey SURVEY --ra RA --dec DEC --mode MODE --size SIZE', description='Download a cutout from a user-specified survey. See everystamp download -h for all available parameters.', help='Download a cutout from a specified survey.')
-    add_args_download(subparser_dl)
+    _add_args_download(subparser_dl)
 
     subparser_plot = subparsers.add_parser('plot', description='Plot a given FITS image. See everystamp plot -h for more information.', help='Plot a user-supplied FITS image.')
-    add_args_plot(subparser_plot)
+    _add_args_plot(subparser_plot)
     
     args = parser.parse_args()
 
     if args.cmd == 'download':
-        process_args_download(args)
+        _process_args_download(args)
     if args.cmd == 'plot':
-        process_args_plot(args)
+        _process_args_plot(args)
 
 if __name__ == '__main__':
     main()
