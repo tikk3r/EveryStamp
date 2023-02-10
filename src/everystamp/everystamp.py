@@ -183,7 +183,7 @@ def _process_args_plot(args):
         if args.hdr_tonemap == 'fattal':
             bp.data = fattal(bp.fitsdata, alpha=args.fattal_alpha, beta=args.fattal_beta, colour_saturation=args.fattal_colour_saturation, noise=args.fattal_noise)
         if args.hdr_tonemap == 'drago':
-            bp.data = drago(bp.fitsdata, bias=args.drago_bias)
+            bp.data = drago(bp.data, bias=args.drago_bias)
     if args.CLAHE:
         import cv2
         bp.data = make_nonnegative(bp.fitsdata)
