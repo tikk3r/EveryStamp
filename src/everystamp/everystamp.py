@@ -177,7 +177,7 @@ def _process_args_plot(args):
     from everystamp.plotters import BasicPlot
     from everystamp.tonemapping import gamma, make_nonnegative
     import numpy as np
-    from everystamp.tonemapping.hdr import fattal,drago
+    from everystamp.tonemapping.lhdr import fattal,drago
     bp = BasicPlot(args.image)
     if HAS_LHDR:
         if args.hdr_tonemap == 'fattal':
