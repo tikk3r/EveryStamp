@@ -1,4 +1,6 @@
 **/*.egg-info
+**/drago.py
+**/fattal.py
 *.png
 *.pyc
 __pycache__

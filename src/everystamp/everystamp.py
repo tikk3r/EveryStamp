@@ -219,5 +219,6 @@ def main():
     if args.cmd == 'plot':
         _process_args_plot(args)
 
+
 if __name__ == '__main__':
     main()

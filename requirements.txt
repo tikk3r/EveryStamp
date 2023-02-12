@@ -4,5 +4,6 @@ matplotlib
 panstamps
 Pillow
 pyvo
+requests
 scikit-image
 tqdm
