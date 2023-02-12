@@ -196,6 +196,7 @@ def _process_args_plot(args):
         bp.data = gamma(bp.data, args.gamma)
     bp.savedata(args.image.replace('.fits', '.tonemapped.fits'))
     bp.plot2D()
+    bp.plot_noaxes()
 
 
 def main():
