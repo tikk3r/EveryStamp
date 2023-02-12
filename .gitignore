@@ -1,6 +1,8 @@
 **/*.egg-info
+*.png
 *.pyc
 __pycache__
 build
 build_local.sh
 tests_output
+tmpenv
