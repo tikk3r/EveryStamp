@@ -1,0 +1,6 @@
+**/*.egg-info
+*.pyc
+__pycache__
+build
+build_local.sh
+tests_output
