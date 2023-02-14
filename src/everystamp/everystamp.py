@@ -62,7 +62,7 @@ def _add_args_download(parser):
     optional_args.add_argument('--size', type=float, required=False, default=0.01, help='Cutout size in degrees.')
 
     legacy_args = parser.add_argument_group('[DESI Legacy Imaging Surveys]')
-    legacy_args.add_argument('--legacy_bands', type=str, required=False, help='Bands to download. Allowed values are g, r and z. Multiple bands can be specified as a single string. In the case of a JPEG image a colour image will be generated. In the case of a FITS image a FITS cube will be downloaded. Default: grz')
+    legacy_args.add_argument('--legacy_bands', default='grz', type=str, required=False, help='Bands to download. Allowed values are g, r and z. Multiple bands can be specified as a single string. In the case of a JPEG image a colour image will be generated. In the case of a FITS image a FITS cube will be downloaded. Default: grz')
     legacy_args.add_argument('--legacy_layer', type=str, required=False, default='ls-dr9', help='Layer to make a cutout from. Default value is ls-dr9. Examples are ls-dr9, sdss or unwise-neo4. See Legacy documentation for all possibilies.')
     legacy_args.add_argument('--legacy_autoscale', required=False, default=False, action='store_true', help='Automatically change the pixel size if the resulting image would exceed the server maximum of 3000x3000 pixels.')
 
@@ -181,9 +181,13 @@ def _process_args_plot(args):
     bp = BasicPlot(args.image)
     if HAS_LHDR:
         if args.hdr_tonemap == 'fattal':
-            bp.data = fattal(bp.fitsdata, alpha=args.fattal_alpha, beta=args.fattal_beta, colour_saturation=args.fattal_colour_saturation, noise=args.fattal_noise)
+            #bp.data = fattal(bp.data, alpha=args.fattal_alpha, beta=args.fattal_beta, colour_saturation=args.fattal_colour_saturation, noise=args.fattal_noise)
+            from everystamp.tonemapping import fattal
+            bp.data = fattal.map_fattal(bp.data, alpha=args.fattal_alpha, beta=0.85)
         if args.hdr_tonemap == 'drago':
+            print('Tonemapping with drago')
             bp.data = drago(bp.data, bias=args.drago_bias)
+        print(bp.data)
     if args.CLAHE:
         import cv2
         bp.data = make_nonnegative(bp.fitsdata)
@@ -211,7 +215,7 @@ def main():
 
     subparser_plot = subparsers.add_parser('plot', description='Plot a given FITS image. See everystamp plot -h for more information.', help='Plot a user-supplied FITS image.')
     _add_args_plot(subparser_plot)
-    
+
     args = parser.parse_args()
 
     if args.cmd == 'download':
