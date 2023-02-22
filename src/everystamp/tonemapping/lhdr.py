@@ -217,11 +217,50 @@ def kimkautz(data, c1: float = None, c2: float = None) -> numpy.ndarray:
     '''
     tmpname = _store_tmpfile(data, 'tmp_kimkautz.fits')
     tmpname_out = tmpname.replace('.fits', '.tonemapped.tiff')
-    cmd = BASECOMMAND + ' -e 0 --tmo ferradans '
+    cmd = BASECOMMAND + ' -e 0 --tmo kimkautz '
     if c1 is not None:
         cmd += f'--tmoKimKautzC1 {c1} '
     if c2 is not None:
         cmd += f'--tmoKimKautzC2 {c2} '
+    cmd += f'-o {tmpname_out} {tmpname}'
+    run_command(cmd.split(' '))
+    data_tm = _load_tonemapped_tmpdata(tmpname_out)
+    os.remove(tmpname)
+    os.remove(tmpname_out)
+    return data_tm
+
+
+def mantiuk06(data, contrast: float = None, saturation: float = None, detail: float = None, contrast_equalisation: bool = False) -> numpy.ndarray:
+    ''' Tonemap the image using the human vision based method described in Mantiuk 2006.
+
+    Parameters set to None will take their default values as set in LuminanceHDR.
+
+    Args:
+        data : numpy.ndarray
+            Input data to tonemap.
+        contrast : float
+            Default is None.
+        saturation : float
+            Default is None.
+        detail : float
+            Default is None.
+        contrast_equalisation : bool
+            Default is True
+
+    Returns:
+        data_tm : numpy.ndarray
+            Tonemapped data.
+    '''
+    tmpname = _store_tmpfile(data, 'tmp_mantiuk06.fits')
+    tmpname_out = tmpname.replace('.fits', '.tonemapped.tiff')
+    cmd = BASECOMMAND + ' -e 0 --tmo mantiuk06 '
+    if contrast is not None:
+        cmd += f'--tmoM06Contrast {contrast} '
+    if saturation is not None:
+        cmd += f'--tmoM06Saturation {saturation} '
+    if detail is not None:
+        cmd += f'--tmoM06Detail {detail} '
+    cmd += f'--tmoM06ContrastEqual {contrast_equalisation} '
     cmd += f'-o {tmpname_out} {tmpname}'
     run_command(cmd.split(' '))
     data_tm = _load_tonemapped_tmpdata(tmpname_out)
