@@ -195,17 +195,27 @@ def _process_args_plot(args):
     from everystamp.plotters import BasicPlot
     from everystamp.tonemapping import gamma, make_nonnegative
     import numpy as np
-    from everystamp.tonemapping.lhdr import fattal,drago
+    from everystamp.tonemapping.lhdr import drago, fattal, ferradans, ferwerda, kimkautz, mantiuk06
     bp = BasicPlot(args.image)
     if HAS_LHDR:
         if args.hdr_tonemap == 'fattal':
-            #bp.data = fattal(bp.data, alpha=args.fattal_alpha, beta=args.fattal_beta, colour_saturation=args.fattal_colour_saturation, noise=args.fattal_noise)
-            from everystamp.tonemapping import fattal
-            bp.data = fattal.map_fattal(bp.data, alpha=args.fattal_alpha, beta=0.85)
+            logger.info('Tonemapping image with fattal')
+            bp.data = fattal(bp.data, alpha=args.fattal_alpha, beta=args.fattal_beta, colour_saturation=args.fattal_colour_saturation, noise=args.fattal_noise)
         if args.hdr_tonemap == 'drago':
-            print('Tonemapping with drago')
+            logger.info('Tonemapping image with drago')
             bp.data = drago(bp.data, bias=args.drago_bias)
-        print(bp.data)
+        if args.hdr_tonemap == 'ferradans':
+            logger.info('Tonemapping image with ferradans')
+            bp.data = ferradans(bp.data, rho=args.ferradans_rho, inv_alpha=args.ferradans_inv_alpha)
+        if args.hdr_tonemap == 'ferwerda':
+            logger.info('Tonemapping image with ferwerda')
+            bp.data = ferwerda(bp.data, multiplier=args.ferwerda_multiplier, luminance_adaptation=args.ferwerda_luminance_adaptation)
+        if args.hdr_tonemap == 'kimkautz':
+            logger.info('Tonemapping image with kimkautz')
+            bp.data = kimkautz(bp.data, c1=args.kimkautz_c1, c2=args.kimkautz_c2)
+        if args.hdr_tonemap == 'mantiuk06':
+            logger.info('Tonemapping image with mantiuk06')
+            bp.data = mantiuk06(bp.data, contrast=args.mantiuk06_contrast, saturation=args.mantiuk06_saturation, detail=args.mantiuk06_detail, contrast_equalisation=args.mantiuk06_contrast_equalisation)
     if args.CLAHE:
         import cv2
         bp.data = make_nonnegative(bp.fitsdata)
