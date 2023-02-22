@@ -186,9 +186,9 @@ def ferwerda(data, multiplier: float = None, luminance_adaptation: float = None)
     tmpname = _store_tmpfile(data, 'tmp_ferradans.fits')
     tmpname_out = tmpname.replace('.fits', '.tonemapped.tiff')
     cmd = BASECOMMAND + ' -e 0 --tmo ferradans '
-    if rho is not None:
+    if multiplier is not None:
         cmd += f'--tmoFerwerdaMul {multiplier} '
-    if inv_alpha is not None:
+    if luminance_adaptation is not None:
         cmd += f'--tmoFerwerdaAdaptLum {luminance_adaptation} '
     cmd += f'-o {tmpname_out} {tmpname}'
     run_command(cmd.split(' '))
@@ -197,3 +197,34 @@ def ferwerda(data, multiplier: float = None, luminance_adaptation: float = None)
     os.remove(tmpname_out)
     return data_tm
 
+
+def kimkautz(data, c1: float = None, c2: float = None) -> numpy.ndarray:
+    ''' Tonemap the image using the human vision based method described in Kim and Kaus 2008.
+
+    Parameters set to None will take their default values as set in LuminanceHDR.
+
+    Args:
+        data : numpy.ndarray
+            Input data to tonemap.
+        c1 : float
+            Default is None.
+        c2 : float
+            Default is None.
+
+    Returns:
+        data_tm : numpy.ndarray
+            Tonemapped data.
+    '''
+    tmpname = _store_tmpfile(data, 'tmp_kimkautz.fits')
+    tmpname_out = tmpname.replace('.fits', '.tonemapped.tiff')
+    cmd = BASECOMMAND + ' -e 0 --tmo ferradans '
+    if c1 is not None:
+        cmd += f'--tmoKimKautzC1 {c1} '
+    if c2 is not None:
+        cmd += f'--tmoKimKautzC2 {c2} '
+    cmd += f'-o {tmpname_out} {tmpname}'
+    run_command(cmd.split(' '))
+    data_tm = _load_tonemapped_tmpdata(tmpname_out)
+    os.remove(tmpname)
+    os.remove(tmpname_out)
+    return data_tm
