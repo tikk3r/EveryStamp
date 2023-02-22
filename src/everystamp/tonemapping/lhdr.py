@@ -89,8 +89,8 @@ def drago(data: numpy.ndarray, bias: float = 0.85) -> numpy.ndarray:
     cmd += f'-o {tmpname_out} {tmpname}'
     run_command(cmd.split(' '))
     data_tm = _load_tonemapped_tmpdata(tmpname_out)
-    os.remove(tmpname)
-    os.remove(tmpname_out)
+    # os.remove(tmpname)
+    # os.remove(tmpname_out)
     return data_tm
 
 
@@ -132,3 +132,36 @@ def fattal(data: numpy.ndarray, alpha: float = None, beta: float = None, colour_
     os.remove(tmpname)
     os.remove(tmpname_out)
     return data_tm
+
+
+def ferradans(data: numpy.ndarray, rho: float = -2, inv_alpha: float = 5) -> numpy.ndarray:
+    ''' Tonemap the image using the method described in Ferradans et al. 2011.
+
+    Parameters set to None will take their default values as set in LuminanceHDR.
+
+    Args:
+        data : numpy.ndarray
+            Input data to tonemap.
+        rho : float
+            Controls overall lightness. Larger values yield a brighter image. Default is -2.
+        beta : float
+            Controls detail enhancement. Larger values yield more detail enhancement. Default is 5.
+
+    Returns:
+        data_tm : numpy.ndarray
+            Tonemapped data.
+    '''
+    tmpname = _store_tmpfile(data, 'tmp_ferradans.fits')
+    tmpname_out = tmpname.replace('.fits', '.tonemapped.tiff')
+    cmd = BASECOMMAND + ' -e 0 --tmo ferradans '
+    if rho is not None:
+        cmd += f'--tmoFerRho {rho} '
+    if inv_alpha is not None:
+        cmd += f'--tmoFerInvAlpha {inv_alpha} '
+    cmd += f'-o {tmpname_out} {tmpname}'
+    run_command(cmd.split(' '))
+    data_tm = _load_tonemapped_tmpdata(tmpname_out)
+    os.remove(tmpname)
+    os.remove(tmpname_out)
+    return data_tm
+
