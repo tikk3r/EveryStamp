@@ -165,3 +165,35 @@ def ferradans(data: numpy.ndarray, rho: float = -2, inv_alpha: float = 5) -> num
     os.remove(tmpname_out)
     return data_tm
 
+
+def ferwerda(data, multiplier: float = None, luminance_adaptation: float = None) -> numpy.ndarray:
+    ''' Tonemap the image using the method described in Ferwerda et al. 1996.
+
+    Parameters set to None will take their default values as set in LuminanceHDR.
+
+    Args:
+        data : numpy.ndarray
+            Input data to tonemap.
+        multiplier : float
+            Default is None.
+        luminance_adaptation : float
+            Default is None.
+
+    Returns:
+        data_tm : numpy.ndarray
+            Tonemapped data.
+    '''
+    tmpname = _store_tmpfile(data, 'tmp_ferradans.fits')
+    tmpname_out = tmpname.replace('.fits', '.tonemapped.tiff')
+    cmd = BASECOMMAND + ' -e 0 --tmo ferradans '
+    if rho is not None:
+        cmd += f'--tmoFerwerdaMul {multiplier} '
+    if inv_alpha is not None:
+        cmd += f'--tmoFerwerdaAdaptLum {luminance_adaptation} '
+    cmd += f'-o {tmpname_out} {tmpname}'
+    run_command(cmd.split(' '))
+    data_tm = _load_tonemapped_tmpdata(tmpname_out)
+    os.remove(tmpname)
+    os.remove(tmpname_out)
+    return data_tm
+
