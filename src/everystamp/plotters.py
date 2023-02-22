@@ -26,8 +26,13 @@ class BasicPlot():
         self.data = self.fitsdata
         self.wcs = WCS(fits.getheader(fitsname)).celestial
 
-    def plot2D(self):
-        ''' Save a 2D plot of the loaded FITS file.'''
+    def plot2D(self, plot_colourbar=False):
+        ''' Save a 2D plot of the loaded FITS file.
+
+        Args:
+            plot_colourbar : bool
+                Add a colour bar to the plot.
+        '''
         figsize = [self.fitsdata.shape[0] // self.dpi, self.fitsdata.shape[1] // self.dpi]
         if figsize[0] < 12:
             figsize[0] = 12
@@ -40,7 +45,8 @@ class BasicPlot():
         else:
             ax.imshow(self.fitsdata, origin='lower', interpolation='none')
         ax.set(xlabel='Right ascension', ylabel='Declination')
-        plt.colorbar(im)
+        if plot_colourbar:
+            plt.colorbar(im)
         fig.savefig(self.fitsimage.replace('fits', 'png'), bbox_inches='tight', dpi=self.dpi)
 
     def plot_noaxes(self):

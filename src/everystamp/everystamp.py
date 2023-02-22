@@ -97,7 +97,7 @@ def _add_args_plot(parser):
     required_args.add_argument('--CLAHE-cliplim', default=1.0, type=float, required=False, help='Clip limit to use for CLAHE.')
 
     if HAS_LHDR:
-        required_args.add_argument('--hdr-tonemap', default=None, type=str, choices=['drago', 'fattal'], required=False, help='HDR tonemapping to apply')
+        required_args.add_argument('--hdr-tonemap', default=None, type=str, choices=['drago', 'fattal', 'ferradans', 'ferwerda', 'kimkautz', 'mantiuk06'], required=False, help='HDR tonemapping to apply')
 
         hdr_fattal_args = parser.add_argument_group('HDR Tone mapping -- Drago et al. 2003 arguments')
         hdr_fattal_args.add_argument('--drago-bias', default=0.85, type=float, required=False, help='Bias parameter controlling the exponent base.')
@@ -107,6 +107,24 @@ def _add_args_plot(parser):
         hdr_fattal_args.add_argument('--fattal-beta', default=None, type=float, required=False, help='Controls local detail enhancement.')
         hdr_fattal_args.add_argument('--fattal-colour_saturation', default=None, type=float, required=False, help='Controls colour saturation.')
         hdr_fattal_args.add_argument('--fattal-noise', default=None, type=float, required=False, help='Controls when local detail enhancement is reduced.')
+
+        hdr_ferradans_args = parser.add_argument_group('HDR Tone mapping -- Ferradans et al. 2011 arguments')
+        hdr_ferradans_args.add_argument('--ferradans-rho', default=-2, type=float, required=False, help='Controls overall lightness.')
+        hdr_ferradans_args.add_argument('--ferradans-inverse_alpha', default=5, type=float, required=False, help='Controls local detail enhancement.')
+
+        hdr_ferwerda_args = parser.add_argument_group('HDR Tone mapping -- Ferwerda et al. 1996 arguments')
+        hdr_ferwerda_args.add_argument('--ferwerda-multiplier', default=None, type=float, required=False, help='Ferwerda multiplier factor.')
+        hdr_ferwerda_args.add_argument('--ferwerda-luminance_adaptation', default=None, type=float, required=False, help='Ferwerda adaptive luminance factor.')
+
+        hdr_kimkautz_args = parser.add_argument_group('HDR Tone mapping -- Kim and Kautz 2008 arguments')
+        hdr_kimkautz_args.add_argument('--kimkautz-c1', default=None, type=float, required=False, help='Kim and Kautz c1 factor.')
+        hdr_kimkautz_args.add_argument('--kimkautz-c2', default=None, type=float, required=False, help='Kim and Kautz c2 factor.')
+
+        hdr_mantiuk06_args = parser.add_argument_group('HDR Tone mapping -- Mantiuk et al. 2006 arguments')
+        hdr_mantiuk06_args.add_argument('--mantiuk06-contrast', default=None, type=float, required=False, help='Contrast factor.')
+        hdr_mantiuk06_args.add_argument('--mantiuk06-saturation', default=None, type=float, required=False, help='Saturation factor.')
+        hdr_mantiuk06_args.add_argument('--mantiuk06-detail', default=None, type=float, required=False, help='Detail factor.')
+        hdr_mantiuk06_args.add_argument('--mantiuk06-contrast_equalisation', default=True, type=bool, required=False, help='Equalise contrast?')
     else:
         logger.warning('Cannot find luminance-hdr-cli. HDR tone mapping functionality will not be available unless LuminanceHDR is (correctly) installed.')
 

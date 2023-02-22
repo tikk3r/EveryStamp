@@ -183,7 +183,7 @@ def ferwerda(data, multiplier: float = None, luminance_adaptation: float = None)
         data_tm : numpy.ndarray
             Tonemapped data.
     '''
-    tmpname = _store_tmpfile(data, 'tmp_ferradans.fits')
+    tmpname = _store_tmpfile(data, 'tmp_ferwerda.fits')
     tmpname_out = tmpname.replace('.fits', '.tonemapped.tiff')
     cmd = BASECOMMAND + ' -e 0 --tmo ferradans '
     if multiplier is not None:
