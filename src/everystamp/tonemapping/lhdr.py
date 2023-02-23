@@ -461,3 +461,45 @@ def reinhard05(data, brightness: float = None, chroma: float = None, lightness: 
     os.remove(tmpname_out)
     return data_tm
 
+
+def pattanaik(data, multiplier: float = None, local_tonemap: bool = True, auto_lum: bool = True, cone_level: float = None, rod_level: float = None) -> numpy.ndarray:
+    ''' Tonemap the image using the human vision based method described in Pattanaik et al. 2000 and Pattanaik et al. 2002.
+
+    Parameters set to None will take their default values as set in LuminanceHDR.
+
+    Args:
+        data : numpy.ndarray
+            Input data to tonemap.
+        multiplier : float
+            Default: None.
+        local_tonemap : bool
+            Default: True.
+        auto_lum : bool
+            Default: True.
+        cone_level : float
+            Default: None.
+        rod_level : float
+            Default: None.
+
+    Returns:
+        data_tm : numpy.ndarray
+            Tonemapped data.
+    '''
+    tmpname = _store_tmpfile(data, 'tmp_pattanaik.fits')
+    tmpname_out = tmpname.replace('.fits', '.tonemapped.tiff')
+    cmd = BASECOMMAND + ' -e 0 --tmo pattanaik '
+    if multiplier is not None:
+        cmd += f'--tmoPatMultiplier {multiplier} '
+    if cone_level is not None:
+        cmd += f'--tmoPatCone {cone_level} '
+    if rod_level is not None:
+        cmd += f'--tmoPatCone {rod_level} '
+    cmd += f'--tmoPatLocal {local_tonemap} '
+    cmd += f'--tmoPatAutoLum {auto_lum} '
+    cmd += f'-o {tmpname_out} {tmpname}'
+    run_command(cmd.split(' '))
+    data_tm = _load_tonemapped_tmpdata(tmpname_out)
+    os.remove(tmpname)
+    os.remove(tmpname_out)
+    return data_tm
+

@@ -150,10 +150,17 @@ def _add_args_plot(parser):
         hdr_reinhard05_args.add_argument('--reinhard05-chroma', default=None, type=float, required=False, help='Chroma.')
         hdr_reinhard05_args.add_argument('--reinhard05-lightness', default=None, type=float, required=False, help='Lightness.')
 
-        hdr_ashikmin_args = parser.add_argument_group('HDR Tone mapping -- Reinhard et al. 2005 arguments')
+        hdr_ashikmin_args = parser.add_argument_group('HDR Tone mapping -- Ashikmin et al. 2002 arguments')
         hdr_ashikmin_args.add_argument('--ashikmin-eq2', default=True, type=bool, required=False, help='Equation 2?')
         hdr_ashikmin_args.add_argument('--ashikmin-simple', default=True, type=bool, required=False, help='Simple?')
         hdr_ashikmin_args.add_argument('--ashikmin-local_threshold', default=None, type=float, required=False, help='Local threshold.')
+
+        hdr_pattanaik_args = parser.add_argument_group('HDR Tone mapping -- Pattanaik arguments')
+        hdr_pattanaik_args.add_argument('--pattanaik-multiplier', default=None, type=float, required=False, help='Multiplier.')
+        hdr_pattanaik_args.add_argument('--pattanaik-local_tonemap', default=True, type=bool, required=False, help='Multiplier.')
+        hdr_pattanaik_args.add_argument('--pattanaik-auto_lum', default=True, type=bool, required=False, help='Automatic luminance?')
+        hdr_pattanaik_args.add_argument('--pattanaik-cone_level', default=None, type=float, required=False, help='Cone level.')
+        hdr_pattanaik_args.add_argument('--pattanaik-rod_level', default=None, type=float, required=False, help='Rod level.')
     else:
         logger.warning('Cannot find luminance-hdr-cli. HDR tone mapping functionality will not be available unless LuminanceHDR is (correctly) installed.')
 
@@ -224,7 +231,7 @@ def _process_args_plot(args):
     from everystamp.plotters import BasicPlot
     from everystamp.tonemapping import gamma, make_nonnegative
     import numpy as np
-    from everystamp.tonemapping.lhdr import ashikmin, drago, duran, fattal, ferradans, ferwerda, kimkautz, mantiuk06, mantiuk08, reinhard02, reinhard05
+    from everystamp.tonemapping.lhdr import ashikmin, drago, duran, fattal, ferradans, ferwerda, kimkautz, mantiuk06, mantiuk08, reinhard02, reinhard05, pattanaik
     bp = BasicPlot(args.image)
     if HAS_LHDR:
         if args.hdr_tonemap == 'ashikmin':
@@ -254,6 +261,9 @@ def _process_args_plot(args):
         if args.hdr_tonemap == 'duran':
             logger.info('Tonemapping image with duran')
             bp.data = duran(bp.data, sigma_spatial=args.duran_sigma_spatial, sigma_range=args.duran_sigma_range, base_contrast=args.duran_base_contrast)
+        if args.hdr_tonemap == 'pattanaik':
+            logger.info('Tonemapping image with pattanaik')
+            bp.data = pattanaik(bp.data, multiplier=args.pattanaik_multiplier, local_tonemap=args.pattanaik_local_tonemap, auto_lum=args.pattanaik_auto_lum, cone_level=args.pattanaik_cone_level, rod_level=args.pattanaik_rod_level)
         if args.hdr_tonemap == 'reinhard02':
             logger.info('Tonemapping image with reinhard02')
             bp.data = reinhard02(bp.data, key=args.reinhard02_key, phi=args.reinhard02_phi, use_scales=args.reinhard02_use_scales, range=args.reinhard02_range, low=args.reinhard02_low, high=args.reinhard02_high)
