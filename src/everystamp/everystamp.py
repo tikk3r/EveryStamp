@@ -144,6 +144,11 @@ def _add_args_plot(parser):
         hdr_reinhard02_args.add_argument('--reinhard02-range', default=None, type=float, required=False, help='Range.')
         hdr_reinhard02_args.add_argument('--reinhard02-low', default=None, type=float, required=False, help='Low.')
         hdr_reinhard02_args.add_argument('--reinhard02-high', default=None, type=float, required=False, help='High.')
+
+        hdr_reinhard05_args = parser.add_argument_group('HDR Tone mapping -- Reinhard et al. 2005 arguments')
+        hdr_reinhard05_args.add_argument('--reinhard05-brightness', default=None, type=float, required=False, help='Brightness.')
+        hdr_reinhard05_args.add_argument('--reinhard05-chroma', default=None, type=float, required=False, help='Chroma.')
+        hdr_reinhard05_args.add_argument('--reinhard05-lightness', default=None, type=float, required=False, help='Lightness.')
     else:
         logger.warning('Cannot find luminance-hdr-cli. HDR tone mapping functionality will not be available unless LuminanceHDR is (correctly) installed.')
 
@@ -214,7 +219,7 @@ def _process_args_plot(args):
     from everystamp.plotters import BasicPlot
     from everystamp.tonemapping import gamma, make_nonnegative
     import numpy as np
-    from everystamp.tonemapping.lhdr import drago, duran, fattal, ferradans, ferwerda, kimkautz, mantiuk06, mantiuk08, reinhard02
+    from everystamp.tonemapping.lhdr import drago, duran, fattal, ferradans, ferwerda, kimkautz, mantiuk06, mantiuk08, reinhard02, reinhard05
     bp = BasicPlot(args.image)
     if HAS_LHDR:
         if args.hdr_tonemap == 'fattal':
@@ -244,6 +249,9 @@ def _process_args_plot(args):
         if args.hdr_tonemap == 'reinhard02':
             logger.info('Tonemapping image with reinhard02')
             bp.data = reinhard02(bp.data, key=args.reinhard02_key, phi=args.reinhard02_phi, use_scales=args.reinhard02_use_scales, range=args.reinhard02_range, low=args.reinhard02_low, high=args.reinhard02_high)
+        if args.hdr_tonemap == 'reinhard05':
+            logger.info('Tonemapping image with reinhard05')
+            bp.data = reinhard05(bp.data, brightness=args.reinhard05_brightness, chroma=args.reinhard05_chroma, lightness=args.reinhard05_lightness)
     if args.CLAHE:
         import cv2
         bp.data = make_nonnegative(bp.fitsdata)

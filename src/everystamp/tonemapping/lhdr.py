@@ -390,3 +390,40 @@ def reinhard02(data, key: float = None, phi: float = None, use_scales: bool = Tr
     os.remove(tmpname)
     os.remove(tmpname_out)
     return data_tm
+
+
+def reinhard05(data, brightness: float = None, chroma: float = None, lightness: float = None) -> numpy.ndarray:
+    ''' Tonemap the image using the human vision based method described in Reinhard 2005.
+
+    Parameters set to None will take their default values as set in LuminanceHDR.
+
+    Args:
+        data : numpy.ndarray
+            Input data to tonemap.
+        brightness : float
+            Default: None.
+        chroma : float
+            Default: None.
+        lightness : float
+            Default: None.
+
+    Returns:
+        data_tm : numpy.ndarray
+            Tonemapped data.
+    '''
+    tmpname = _store_tmpfile(data, 'tmp_reinhard05.fits')
+    tmpname_out = tmpname.replace('.fits', '.tonemapped.tiff')
+    cmd = BASECOMMAND + ' -e 0 --tmo reinhard05 '
+    if brightness is not None:
+        cmd += f'--tmoR05Brightness {brightness} '
+    if chroma is not None:
+        cmd += f'--tmoR05Chroma {chroma} '
+    if lightness is not None:
+        cmd += f'--tmoR05Lightness {lightness} '
+    cmd += f'-o {tmpname_out} {tmpname}'
+    run_command(cmd.split(' '))
+    data_tm = _load_tonemapped_tmpdata(tmpname_out)
+    os.remove(tmpname)
+    os.remove(tmpname_out)
+    return data_tm
+
