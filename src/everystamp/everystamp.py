@@ -125,6 +125,17 @@ def _add_args_plot(parser):
         hdr_mantiuk06_args.add_argument('--mantiuk06-saturation', default=None, type=float, required=False, help='Saturation factor.')
         hdr_mantiuk06_args.add_argument('--mantiuk06-detail', default=None, type=float, required=False, help='Detail factor.')
         hdr_mantiuk06_args.add_argument('--mantiuk06-contrast_equalisation', default=True, type=bool, required=False, help='Equalise contrast?')
+
+        hdr_mantiuk08_args = parser.add_argument_group('HDR Tone mapping -- Mantiuk et al. 2008 arguments')
+        hdr_mantiuk08_args.add_argument('--mantiuk08-contrast_enhancement', default=None, type=float, required=False, help='Contrast enhancement factor.')
+        hdr_mantiuk08_args.add_argument('--mantiuk08-colour_saturation', default=None, type=float, required=False, help='Colour saturation factor.')
+        hdr_mantiuk08_args.add_argument('--mantiuk08-luminance_level', default=True, type=float, required=False, help='Luminance level.')
+        hdr_mantiuk08_args.add_argument('--mantiuk08-set_luminance', default=True, type=bool, required=False, help='Set luminance level?')
+
+        hdr_duran_args = parser.add_argument_group('HDR Tone mapping -- Durand and Dorsey et al. 2002 arguments')
+        hdr_duran_args.add_argument('--duran-sigma_spatial', default=None, type=float, required=False, help='Spatial kernel size.')
+        hdr_duran_args.add_argument('--duran-sigma_range', default=None, type=float, required=False, help='Range kernel size.')
+        hdr_duran_args.add_argument('--duran-base_contrast', default=None, type=float, required=False, help='Base contrast.')
     else:
         logger.warning('Cannot find luminance-hdr-cli. HDR tone mapping functionality will not be available unless LuminanceHDR is (correctly) installed.')
 
@@ -195,7 +206,7 @@ def _process_args_plot(args):
     from everystamp.plotters import BasicPlot
     from everystamp.tonemapping import gamma, make_nonnegative
     import numpy as np
-    from everystamp.tonemapping.lhdr import drago, fattal, ferradans, ferwerda, kimkautz, mantiuk06
+    from everystamp.tonemapping.lhdr import drago, duran, fattal, ferradans, ferwerda, kimkautz, mantiuk06, mantiuk08
     bp = BasicPlot(args.image)
     if HAS_LHDR:
         if args.hdr_tonemap == 'fattal':
@@ -216,6 +227,12 @@ def _process_args_plot(args):
         if args.hdr_tonemap == 'mantiuk06':
             logger.info('Tonemapping image with mantiuk06')
             bp.data = mantiuk06(bp.data, contrast=args.mantiuk06_contrast, saturation=args.mantiuk06_saturation, detail=args.mantiuk06_detail, contrast_equalisation=args.mantiuk06_contrast_equalisation)
+        if args.hdr_tonemap == 'mantiuk08':
+            logger.info('Tonemapping image with mantiuk08')
+            bp.data = mantiuk08(bp.data, contrast_enhancement=args.mantiuk08_saturation, colour_saturation=args.mantiuk08_colour_saturation, luminance_level=args.mantiuk08_luminance_level, set_luminance=args.mantiuk08_set_luminance)
+        if args.hdr_tonemap == 'duran':
+            logger.info('Tonemapping image with duran')
+            bp.data = duran(bp.data, sigma_spatial=args.duran_sigma_spatial, sigma_range=args.duran_sigma_range, base_contrast=args.duran_base_contrast)
     if args.CLAHE:
         import cv2
         bp.data = make_nonnegative(bp.fitsdata)

@@ -94,6 +94,42 @@ def drago(data: numpy.ndarray, bias: float = 0.85) -> numpy.ndarray:
     return data_tm
 
 
+def duran(data: numpy.ndarray, sigma_spatial: float = None, sigma_range: float = None, base_contrast: float = None):
+    ''' Tonemap the image using gradient domain compression as described in Durand and Dorsey et al. 2002.
+
+    Parameters set to None will take their default values as set in LuminanceHDR.
+
+    Args:
+        data : numpy.ndarray
+            Input data to tonemap.
+        sigma_spatial : float
+            Spatial kernal size. Default: None.
+        sigma_range : float
+            Range kernel size. Default: None.
+        base_contrast : float
+            Base contrast. Default: None.
+
+    Returns:
+        data_tm : numpy.ndarray
+            Tonemapped data.
+    '''
+    tmpname = _store_tmpfile(data, 'tmp_durand.fits')
+    tmpname_out = tmpname.replace('.fits', '.tonemapped.tiff')
+    cmd = BASECOMMAND + ' -e 0 --tmo durand '
+    if sigma_spatial is not None:
+        cmd += f'--tmoDurSigmaS {sigma_spatial} '
+    if sigma_range is not None:
+        cmd += f'--tmoDurSigmaR {sigma_range} '
+    if base_contrast is not None:
+        cmd += f'--tmoDurBase {base_contrast} '
+    cmd += f'-o {tmpname_out} {tmpname}'
+    run_command(cmd.split(' '))
+    data_tm = _load_tonemapped_tmpdata(tmpname_out)
+    # os.remove(tmpname)
+    # os.remove(tmpname_out)
+    return data_tm
+
+
 def fattal(data: numpy.ndarray, alpha: float = None, beta: float = None, colour_saturation: float = None, noise: float = None) -> numpy.ndarray:
     ''' Tonemap the image using gradient domain compression as described in Fattal et al. 2002.
 
@@ -245,7 +281,7 @@ def mantiuk06(data, contrast: float = None, saturation: float = None, detail: fl
         detail : float
             Default is None.
         contrast_equalisation : bool
-            Default is True
+            Default is False.
 
     Returns:
         data_tm : numpy.ndarray
@@ -267,3 +303,44 @@ def mantiuk06(data, contrast: float = None, saturation: float = None, detail: fl
     os.remove(tmpname)
     os.remove(tmpname_out)
     return data_tm
+
+
+def mantiuk08(data, contrast_enhancement: float = None, colour_saturation: float = None, luminance_level: float = None, set_luminance: bool = False) -> numpy.ndarray:
+    ''' Tonemap the image using the human vision based method described in Mantiuk 2008.
+
+    Parameters set to None will take their default values as set in LuminanceHDR.
+
+    Args:
+        data : numpy.ndarray
+            Input data to tonemap.
+        contrast_enhancement : float
+            Default is None.
+        colour_saturation : float
+            Default is None.
+        luminance_level : float
+            Used when set_luminance is True. Default is None.
+        set_luminance : bool
+            Default is False
+
+    Returns:
+        data_tm : numpy.ndarray
+            Tonemapped data.
+    '''
+    tmpname = _store_tmpfile(data, 'tmp_mantiuk08.fits')
+    tmpname_out = tmpname.replace('.fits', '.tonemapped.tiff')
+    cmd = BASECOMMAND + ' -e 0 --tmo mantiuk08 '
+    if colour_saturation is not None:
+        cmd += f'--tmoM08ColorSaturation {colour_saturation} '
+    if contrast_enhancement is not None:
+        cmd += f'--tmoM08ContrastEnh {contrast_enhancement} '
+    if luminance_level is not None:
+        cmd += f'--tmoM08LuminanceLvl {luminance_level} '
+    cmd += f'--tmoM08SetLuminance {set_luminance} '
+    cmd += f'-o {tmpname_out} {tmpname}'
+    run_command(cmd.split(' '))
+    data_tm = _load_tonemapped_tmpdata(tmpname_out)
+    os.remove(tmpname)
+    os.remove(tmpname_out)
+    return data_tm
+
+
