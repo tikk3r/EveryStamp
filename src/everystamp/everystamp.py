@@ -136,6 +136,14 @@ def _add_args_plot(parser):
         hdr_duran_args.add_argument('--duran-sigma_spatial', default=None, type=float, required=False, help='Spatial kernel size.')
         hdr_duran_args.add_argument('--duran-sigma_range', default=None, type=float, required=False, help='Range kernel size.')
         hdr_duran_args.add_argument('--duran-base_contrast', default=None, type=float, required=False, help='Base contrast.')
+
+        hdr_reinhard02_args = parser.add_argument_group('HDR Tone mapping -- Reinhard et al. 2002 arguments')
+        hdr_reinhard02_args.add_argument('--reinhard02-key', default=None, type=float, required=False, help='Key.')
+        hdr_reinhard02_args.add_argument('--reinhard02-phi', default=None, type=float, required=False, help='Phi.')
+        hdr_reinhard02_args.add_argument('--reinhard02-use_scales', default=None, type=float, required=False, help='Use scales?')
+        hdr_reinhard02_args.add_argument('--reinhard02-range', default=None, type=float, required=False, help='Range.')
+        hdr_reinhard02_args.add_argument('--reinhard02-low', default=None, type=float, required=False, help='Low.')
+        hdr_reinhard02_args.add_argument('--reinhard02-high', default=None, type=float, required=False, help='High.')
     else:
         logger.warning('Cannot find luminance-hdr-cli. HDR tone mapping functionality will not be available unless LuminanceHDR is (correctly) installed.')
 
@@ -206,7 +214,7 @@ def _process_args_plot(args):
     from everystamp.plotters import BasicPlot
     from everystamp.tonemapping import gamma, make_nonnegative
     import numpy as np
-    from everystamp.tonemapping.lhdr import drago, duran, fattal, ferradans, ferwerda, kimkautz, mantiuk06, mantiuk08
+    from everystamp.tonemapping.lhdr import drago, duran, fattal, ferradans, ferwerda, kimkautz, mantiuk06, mantiuk08, reinhard02
     bp = BasicPlot(args.image)
     if HAS_LHDR:
         if args.hdr_tonemap == 'fattal':
@@ -233,6 +241,9 @@ def _process_args_plot(args):
         if args.hdr_tonemap == 'duran':
             logger.info('Tonemapping image with duran')
             bp.data = duran(bp.data, sigma_spatial=args.duran_sigma_spatial, sigma_range=args.duran_sigma_range, base_contrast=args.duran_base_contrast)
+        if args.hdr_tonemap == 'reinhard02':
+            logger.info('Tonemapping image with reinhard02')
+            bp.data = reinhard02(bp.data, key=args.reinhard02_key, phi=args.reinhard02_phi, use_scales=args.reinhard02_use_scales, range=args.reinhard02_range, low=args.reinhard02_low, high=args.reinhard02_high)
     if args.CLAHE:
         import cv2
         bp.data = make_nonnegative(bp.fitsdata)

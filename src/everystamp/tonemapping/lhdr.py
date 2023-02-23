@@ -344,3 +344,49 @@ def mantiuk08(data, contrast_enhancement: float = None, colour_saturation: float
     return data_tm
 
 
+def reinhard02(data, key: float = None, phi: float = None, use_scales: bool = True, range: float = None, low: float = None, high: float = None) -> numpy.ndarray:
+    ''' Tonemap the image using the human vision based method described in Mantiuk 2008.
+
+    Parameters set to None will take their default values as set in LuminanceHDR.
+
+    Args:
+        data : numpy.ndarray
+            Input data to tonemap.
+        key : float
+            Default: None.
+        phi : float
+            Default: None.
+        use_scales : bool
+            Default: True.
+        range : float
+            Default: None.
+        low : float
+            Default: None.
+        high : float
+            Default: None.
+
+    Returns:
+        data_tm : numpy.ndarray
+            Tonemapped data.
+    '''
+    tmpname = _store_tmpfile(data, 'tmp_reinhard02.fits')
+    tmpname_out = tmpname.replace('.fits', '.tonemapped.tiff')
+    cmd = BASECOMMAND + ' -e 0 --tmo reinhard02 '
+    if key is not None:
+        cmd += f'--tmoR02Key {key} '
+    if phi is not None:
+        cmd += f'--tmoR02Phi {phi} '
+    if use_scales is not None:
+        cmd += f'--tmoR02Scales {use_scales} '
+    if range is not None:
+        cmd += f'--tmoR02Num {range} '
+    if low is not None:
+        cmd += f'--tmoR02Low {low} '
+    if high is not None:
+        cmd += f'--tmoR02High {high} '
+    cmd += f'-o {tmpname_out} {tmpname}'
+    run_command(cmd.split(' '))
+    data_tm = _load_tonemapped_tmpdata(tmpname_out)
+    os.remove(tmpname)
+    os.remove(tmpname_out)
+    return data_tm
