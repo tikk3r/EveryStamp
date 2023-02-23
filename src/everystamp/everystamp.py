@@ -149,6 +149,11 @@ def _add_args_plot(parser):
         hdr_reinhard05_args.add_argument('--reinhard05-brightness', default=None, type=float, required=False, help='Brightness.')
         hdr_reinhard05_args.add_argument('--reinhard05-chroma', default=None, type=float, required=False, help='Chroma.')
         hdr_reinhard05_args.add_argument('--reinhard05-lightness', default=None, type=float, required=False, help='Lightness.')
+
+        hdr_ashikmin_args = parser.add_argument_group('HDR Tone mapping -- Reinhard et al. 2005 arguments')
+        hdr_ashikmin_args.add_argument('--ashikmin-eq2', default=True, type=bool, required=False, help='Equation 2?')
+        hdr_ashikmin_args.add_argument('--ashikmin-simple', default=True, type=bool, required=False, help='Simple?')
+        hdr_ashikmin_args.add_argument('--ashikmin-local_threshold', default=None, type=float, required=False, help='Local threshold.')
     else:
         logger.warning('Cannot find luminance-hdr-cli. HDR tone mapping functionality will not be available unless LuminanceHDR is (correctly) installed.')
 
@@ -219,9 +224,12 @@ def _process_args_plot(args):
     from everystamp.plotters import BasicPlot
     from everystamp.tonemapping import gamma, make_nonnegative
     import numpy as np
-    from everystamp.tonemapping.lhdr import drago, duran, fattal, ferradans, ferwerda, kimkautz, mantiuk06, mantiuk08, reinhard02, reinhard05
+    from everystamp.tonemapping.lhdr import ashikmin, drago, duran, fattal, ferradans, ferwerda, kimkautz, mantiuk06, mantiuk08, reinhard02, reinhard05
     bp = BasicPlot(args.image)
     if HAS_LHDR:
+        if args.hdr_tonemap == 'ashikmin':
+            logger.info('Tonemapping image with ashikmin')
+            bp.data = ashikmin(bp.data, eq2=args.ashikmin_eq2, simple=args.ashikmin_simple, local_threshold=args.ashikmin_local_threshol)
         if args.hdr_tonemap == 'fattal':
             logger.info('Tonemapping image with fattal')
             bp.data = fattal(bp.data, alpha=args.fattal_alpha, beta=args.fattal_beta, colour_saturation=args.fattal_colour_saturation, noise=args.fattal_noise)

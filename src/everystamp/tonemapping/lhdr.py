@@ -66,6 +66,40 @@ def _store_tmpfile(data: numpy.ndarray, name: str) -> str:
     return os.path.abspath(name)
 
 
+def ashikmin(data, eq2: bool = True, simple: float = None, local_threshold: float = None) -> numpy.ndarray:
+    ''' Tonemap the image using the human vision based method described in Ashikmin 2002.
+
+    Parameters set to None will take their default values as set in LuminanceHDR.
+
+    Args:
+        data : numpy.ndarray
+            Input data to tonemap.
+        eq2 : bool
+            Default: True.
+        simple : bool
+            Default: True.
+        local_threshold : float
+            Default: None.
+
+    Returns:
+        data_tm : numpy.ndarray
+            Tonemapped data.
+    '''
+    tmpname = _store_tmpfile(data, 'tmp_ashikmin.fits')
+    tmpname_out = tmpname.replace('.fits', '.tonemapped.tiff')
+    cmd = BASECOMMAND + ' -e 0 --tmo ashikmin '
+    cmd += f'--tmoAshEq2 {eq2} '
+    cmd += f'--tmoAshSimple {simple} '
+    if local_threshold is not None:
+        cmd += f'--tmoAshLocal {local_threshold} '
+    cmd += f'-o {tmpname_out} {tmpname}'
+    run_command(cmd.split(' '))
+    data_tm = _load_tonemapped_tmpdata(tmpname_out)
+    os.remove(tmpname)
+    os.remove(tmpname_out)
+    return data_tm
+
+
 def drago(data: numpy.ndarray, bias: float = 0.85) -> numpy.ndarray:
     ''' Tonemap the image using gradient domain compression as described in Fattal et al. 2002.
 
