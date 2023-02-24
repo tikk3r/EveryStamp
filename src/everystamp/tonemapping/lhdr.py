@@ -1,5 +1,5 @@
 '''Sub-module containing wrappers to LuminosityHDR's HDR tonemapping programs.'''
-from typing import Union
+from typing import Optional, Union
 
 import os
 import subprocess
@@ -66,7 +66,7 @@ def _store_tmpfile(data: numpy.ndarray, name: str) -> str:
     return os.path.abspath(name)
 
 
-def ashikmin(data, eq2: bool = True, simple: float = None, local_threshold: float = None) -> numpy.ndarray:
+def ashikmin(data, eq2: bool = True, simple: Optional[float] = None, local_threshold: Optional[float] = None) -> numpy.ndarray:
     ''' Tonemap the image using the human vision based method described in Ashikmin 2002.
 
     Parameters set to None will take their default values as set in LuminanceHDR.
@@ -128,7 +128,7 @@ def drago(data: numpy.ndarray, bias: float = 0.85) -> numpy.ndarray:
     return data_tm
 
 
-def duran(data: numpy.ndarray, sigma_spatial: float = None, sigma_range: float = None, base_contrast: float = None):
+def duran(data: numpy.ndarray, sigma_spatial: Optional[float] = None, sigma_range: Optional[float] = None, base_contrast: Optional[float] = None):
     ''' Tonemap the image using gradient domain compression as described in Durand and Dorsey et al. 2002.
 
     Parameters set to None will take their default values as set in LuminanceHDR.
@@ -164,7 +164,7 @@ def duran(data: numpy.ndarray, sigma_spatial: float = None, sigma_range: float =
     return data_tm
 
 
-def fattal(data: numpy.ndarray, alpha: float = None, beta: float = None, colour_saturation: float = None, noise: float = None) -> numpy.ndarray:
+def fattal(data: numpy.ndarray, alpha: Optional[float] = None, beta: Optional[float] = None, colour_saturation: Optional[float] = None, noise: Optional[float] = None) -> numpy.ndarray:
     ''' Tonemap the image using gradient domain compression as described in Fattal et al. 2002.
 
     Parameters set to None will take their default values as set in LuminanceHDR.
@@ -236,7 +236,7 @@ def ferradans(data: numpy.ndarray, rho: float = -2, inv_alpha: float = 5) -> num
     return data_tm
 
 
-def ferwerda(data, multiplier: float = None, luminance_adaptation: float = None) -> numpy.ndarray:
+def ferwerda(data, multiplier: Optional[float] = None, luminance_adaptation: Optional[float] = None) -> numpy.ndarray:
     ''' Tonemap the image using the method described in Ferwerda et al. 1996.
 
     Parameters set to None will take their default values as set in LuminanceHDR.
@@ -268,7 +268,7 @@ def ferwerda(data, multiplier: float = None, luminance_adaptation: float = None)
     return data_tm
 
 
-def kimkautz(data, c1: float = None, c2: float = None) -> numpy.ndarray:
+def kimkautz(data, c1: Optional[float] = None, c2: Optional[float] = None) -> numpy.ndarray:
     ''' Tonemap the image using the human vision based method described in Kim and Kaus 2008.
 
     Parameters set to None will take their default values as set in LuminanceHDR.
@@ -300,7 +300,7 @@ def kimkautz(data, c1: float = None, c2: float = None) -> numpy.ndarray:
     return data_tm
 
 
-def mantiuk06(data, contrast: float = None, saturation: float = None, detail: float = None, contrast_equalisation: bool = False) -> numpy.ndarray:
+def mantiuk06(data, contrast: Optional[float] = None, saturation: Optional[float] = None, detail: Optional[float] = None, contrast_equalisation: bool = False) -> numpy.ndarray:
     ''' Tonemap the image using the human vision based method described in Mantiuk 2006.
 
     Parameters set to None will take their default values as set in LuminanceHDR.
@@ -339,7 +339,7 @@ def mantiuk06(data, contrast: float = None, saturation: float = None, detail: fl
     return data_tm
 
 
-def mantiuk08(data, contrast_enhancement: float = None, colour_saturation: float = None, luminance_level: float = None, set_luminance: bool = False) -> numpy.ndarray:
+def mantiuk08(data, contrast_enhancement: Optional[float] = None, colour_saturation: Optional[float] = None, luminance_level: Optional[float] = None, set_luminance: bool = False) -> numpy.ndarray:
     ''' Tonemap the image using the human vision based method described in Mantiuk 2008.
 
     Parameters set to None will take their default values as set in LuminanceHDR.
@@ -378,7 +378,7 @@ def mantiuk08(data, contrast_enhancement: float = None, colour_saturation: float
     return data_tm
 
 
-def reinhard02(data, key: float = None, phi: float = None, use_scales: bool = True, range: float = None, low: float = None, high: float = None) -> numpy.ndarray:
+def reinhard02(data, key: Optional[float] = None, phi: Optional[float] = None, use_scales: bool = True, range: Optional[float] = None, low: Optional[float] = None, high: Optional[float] = None) -> numpy.ndarray:
     ''' Tonemap the image using the human vision based method described in Mantiuk 2008.
 
     Parameters set to None will take their default values as set in LuminanceHDR.
@@ -426,7 +426,7 @@ def reinhard02(data, key: float = None, phi: float = None, use_scales: bool = Tr
     return data_tm
 
 
-def reinhard05(data, brightness: float = None, chroma: float = None, lightness: float = None) -> numpy.ndarray:
+def reinhard05(data, brightness: Optional[float] = None, chroma: Optional[float] = None, lightness: Optional[float] = None) -> numpy.ndarray:
     ''' Tonemap the image using the human vision based method described in Reinhard 2005.
 
     Parameters set to None will take their default values as set in LuminanceHDR.
@@ -462,7 +462,7 @@ def reinhard05(data, brightness: float = None, chroma: float = None, lightness: 
     return data_tm
 
 
-def pattanaik(data, multiplier: float = None, local_tonemap: bool = True, auto_lum: bool = True, cone_level: float = None, rod_level: float = None) -> numpy.ndarray:
+def pattanaik(data, multiplier: Optional[float] = None, local_tonemap: bool = True, auto_lum: bool = True, cone_level: Optional[float] = None, rod_level: Optional[float] = None) -> numpy.ndarray:
     ''' Tonemap the image using the human vision based method described in Pattanaik et al. 2000 and Pattanaik et al. 2002.
 
     Parameters set to None will take their default values as set in LuminanceHDR.

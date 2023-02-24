@@ -11,7 +11,7 @@ logging.basicConfig(format='[%(name)s] %(asctime)s - %(levelname)s: %(message)s'
 logger = logging.getLogger('EveryStamp')
 import shutil
 
-from astroquery.skyview import SkyView
+from astroquery.skyview import SkyView #type: ignore
 from collections.abc import Iterable
 import requests
 
@@ -19,7 +19,7 @@ import requests
 HAS_LHDR = shutil.which('luminance-hdr-cli')
 
 
-def flatten(xs: list) -> Generator:
+def flatten(xs: Iterable) -> Generator:
     ''' Generator to flatten a list of nested lists.
     
     Args:
@@ -271,7 +271,7 @@ def _process_args_plot(args):
             logger.info('Tonemapping image with reinhard05')
             bp.data = reinhard05(bp.data, brightness=args.reinhard05_brightness, chroma=args.reinhard05_chroma, lightness=args.reinhard05_lightness)
     if args.CLAHE:
-        import cv2
+        import cv2 #type: ignore
         bp.data = make_nonnegative(bp.fitsdata)
         bp.data /= np.nanmax(bp.data)
         bp.data *= 2**16
