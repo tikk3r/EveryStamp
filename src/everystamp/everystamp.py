@@ -21,11 +21,11 @@ HAS_LHDR = shutil.which('luminance-hdr-cli')
 
 def flatten(xs: Iterable) -> Generator:
     ''' Generator to flatten a list of nested lists.
-    
+
     Args:
         xs : list
             The list to flatten.
-    
+
     Yields:
         x : iterable
             An iterable that will generate the flattened list.
@@ -91,21 +91,21 @@ def _add_args_plot(parser):
     required_args.add_argument('--image', type=str, required=False, help='FITS image to plot.')
 
     required_args = parser.add_argument_group('Optional arguments')
-    required_args.add_argument('--gamma', type=float, default=1.0, required=False, help='Gamma compress (<1) or expand (>1) an image.')
+    required_args.add_argument('--gamma', type=float, default=1.0, required=False, help='Gamma compress (<1) or expand (>1) an image after tone mapping.')
     required_args.add_argument('--CLAHE', action='store_true', default=False, required=False, help='Apply contrast-limited adaptive histogram equalisation.')
     required_args.add_argument('--CLAHE-gridsize', default=5, type=int, required=False, help='Grid size to use for CLAHE.')
     required_args.add_argument('--CLAHE-cliplim', default=1.0, type=float, required=False, help='Clip limit to use for CLAHE.')
 
     if HAS_LHDR:
         required_args.add_argument('--hdr-tonemap', default=None, type=str, choices=['ashikmin', 'drago', 'duran', 'fattal', 'ferradans', 'ferwerda', 'kimkautz', 'lischinski', 'mantiuk06', 'mantiuk08', 'pattanaik', 'reinhard02', 'reinhard05', 'vanhateren'], required=False, help='HDR tonemapping to apply')
-        
+
         hdr_ashikmin_args = parser.add_argument_group('HDR Tone mapping -- Ashikmin et al. 2002 arguments')
         hdr_ashikmin_args.add_argument('--ashikmin-eq2', default=True, type=bool, required=False, help='Equation 2?')
         hdr_ashikmin_args.add_argument('--ashikmin-simple', default=True, type=bool, required=False, help='Simple?')
         hdr_ashikmin_args.add_argument('--ashikmin-local_threshold', default=None, type=float, required=False, help='Local threshold.')
 
-        hdr_fattal_args = parser.add_argument_group('HDR Tone mapping -- Drago et al. 2003 arguments')
-        hdr_fattal_args.add_argument('--drago-bias', default=0.85, type=float, required=False, help='Bias parameter controlling the exponent base.')
+        hdr_drago_args = parser.add_argument_group('HDR Tone mapping -- Drago et al. 2003 arguments')
+        hdr_drago_args.add_argument('--drago-bias', default=0.85, type=float, required=False, help='Bias parameter controlling the exponent base.')
 
         hdr_fattal_args = parser.add_argument_group('HDR Tone mapping -- Fattal et al. 2002 arguments')
         hdr_fattal_args.add_argument('--fattal-alpha', default=None, type=float, required=False, help='Controls which gradient magnitude is preserved.')
@@ -123,7 +123,7 @@ def _add_args_plot(parser):
 
         hdr_hateren_args = parser.add_argument_group('HDR Tone mapping -- van Hateren 2006 arguments')
         hdr_hateren_args.add_argument('--vanhateren-pupil_area', default=None, type=float, required=False, help='Pupil area.')
-        
+
         hdr_kimkautz_args = parser.add_argument_group('HDR Tone mapping -- Kim and Kautz 2008 arguments')
         hdr_kimkautz_args.add_argument('--kimkautz-c1', default=None, type=float, required=False, help='Kim and Kautz c1 factor.')
         hdr_kimkautz_args.add_argument('--kimkautz-c2', default=None, type=float, required=False, help='Kim and Kautz c2 factor.')
