@@ -98,6 +98,11 @@ def _add_args_plot(parser):
 
     if HAS_LHDR:
         required_args.add_argument('--hdr-tonemap', default=None, type=str, choices=['ashikmin', 'drago', 'duran', 'fattal', 'ferradans', 'ferwerda', 'kimkautz', 'lischinski', 'mantiuk06', 'mantiuk08', 'pattanaik', 'reinhard02', 'reinhard05', 'vanhateren'], required=False, help='HDR tonemapping to apply')
+        
+        hdr_ashikmin_args = parser.add_argument_group('HDR Tone mapping -- Ashikmin et al. 2002 arguments')
+        hdr_ashikmin_args.add_argument('--ashikmin-eq2', default=True, type=bool, required=False, help='Equation 2?')
+        hdr_ashikmin_args.add_argument('--ashikmin-simple', default=True, type=bool, required=False, help='Simple?')
+        hdr_ashikmin_args.add_argument('--ashikmin-local_threshold', default=None, type=float, required=False, help='Local threshold.')
 
         hdr_fattal_args = parser.add_argument_group('HDR Tone mapping -- Drago et al. 2003 arguments')
         hdr_fattal_args.add_argument('--drago-bias', default=0.85, type=float, required=False, help='Bias parameter controlling the exponent base.')
@@ -116,9 +121,15 @@ def _add_args_plot(parser):
         hdr_ferwerda_args.add_argument('--ferwerda-multiplier', default=None, type=float, required=False, help='Ferwerda multiplier factor.')
         hdr_ferwerda_args.add_argument('--ferwerda-luminance_adaptation', default=None, type=float, required=False, help='Ferwerda adaptive luminance factor.')
 
+        hdr_hateren_args = parser.add_argument_group('HDR Tone mapping -- van Hateren 2006 arguments')
+        hdr_hateren_args.add_argument('--vanhateren-pupil_area', default=None, type=float, required=False, help='Pupil area.')
+        
         hdr_kimkautz_args = parser.add_argument_group('HDR Tone mapping -- Kim and Kautz 2008 arguments')
         hdr_kimkautz_args.add_argument('--kimkautz-c1', default=None, type=float, required=False, help='Kim and Kautz c1 factor.')
         hdr_kimkautz_args.add_argument('--kimkautz-c2', default=None, type=float, required=False, help='Kim and Kautz c2 factor.')
+
+        hdr_lischinski_args = parser.add_argument_group('HDR Tone mapping -- Lischinski 2006 arguments')
+        hdr_lischinski_args.add_argument('--lischinski-alpha', default=None, type=float, required=False, help='Alpha.')
 
         hdr_mantiuk06_args = parser.add_argument_group('HDR Tone mapping -- Mantiuk et al. 2006 arguments')
         hdr_mantiuk06_args.add_argument('--mantiuk06-contrast', default=None, type=float, required=False, help='Contrast factor.')
@@ -150,23 +161,12 @@ def _add_args_plot(parser):
         hdr_reinhard05_args.add_argument('--reinhard05-chroma', default=None, type=float, required=False, help='Chroma.')
         hdr_reinhard05_args.add_argument('--reinhard05-lightness', default=None, type=float, required=False, help='Lightness.')
 
-        hdr_ashikmin_args = parser.add_argument_group('HDR Tone mapping -- Ashikmin et al. 2002 arguments')
-        hdr_ashikmin_args.add_argument('--ashikmin-eq2', default=True, type=bool, required=False, help='Equation 2?')
-        hdr_ashikmin_args.add_argument('--ashikmin-simple', default=True, type=bool, required=False, help='Simple?')
-        hdr_ashikmin_args.add_argument('--ashikmin-local_threshold', default=None, type=float, required=False, help='Local threshold.')
-
         hdr_pattanaik_args = parser.add_argument_group('HDR Tone mapping -- Pattanaik arguments')
         hdr_pattanaik_args.add_argument('--pattanaik-multiplier', default=None, type=float, required=False, help='Multiplier.')
         hdr_pattanaik_args.add_argument('--pattanaik-local_tonemap', default=True, type=bool, required=False, help='Multiplier.')
         hdr_pattanaik_args.add_argument('--pattanaik-auto_lum', default=True, type=bool, required=False, help='Automatic luminance?')
         hdr_pattanaik_args.add_argument('--pattanaik-cone_level', default=None, type=float, required=False, help='Cone level.')
         hdr_pattanaik_args.add_argument('--pattanaik-rod_level', default=None, type=float, required=False, help='Rod level.')
-
-        hdr_hateren_args = parser.add_argument_group('HDR Tone mapping -- van Hateren 2006 arguments')
-        hdr_hateren_args.add_argument('--vanhateren-pupil_area', default=None, type=float, required=False, help='Pupil area.')
-
-        hdr_lischinski_args = parser.add_argument_group('HDR Tone mapping -- Lischinski 2006 arguments')
-        hdr_lischinski_args.add_argument('--lischinski-alpha', default=None, type=float, required=False, help='Alpha.')
     else:
         logger.warning('Cannot find luminance-hdr-cli. HDR tone mapping functionality will not be available unless LuminanceHDR is (correctly) installed.')
 
@@ -237,7 +237,7 @@ def _process_args_plot(args):
     from everystamp.plotters import BasicPlot
     from everystamp.tonemapping import gamma, make_nonnegative
     import numpy as np
-    from everystamp.tonemapping.lhdr import ashikmin, drago, duran, fattal, ferradans, ferwerda, kimkautz, lischinski, mantiuk06, mantiuk08, reinhard02, reinhard05, pattanaik
+    from everystamp.tonemapping.lhdr import ashikmin, drago, duran, fattal, ferradans, ferwerda, kimkautz, lischinski, mantiuk06, mantiuk08, reinhard02, reinhard05, pattanaik, vanhateren
     bp = BasicPlot(args.image)
     if HAS_LHDR:
         if args.hdr_tonemap == 'ashikmin':
