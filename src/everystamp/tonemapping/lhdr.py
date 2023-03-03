@@ -503,3 +503,30 @@ def pattanaik(data, multiplier: Optional[float] = None, local_tonemap: bool = Tr
     os.remove(tmpname_out)
     return data_tm
 
+
+def vanhateren(data, pupil_area: Optional[float] = None):
+    ''' Tonemap the image using the method described in van Hateren 2006.
+
+    Parameters set to None will take their default values as set in LuminanceHDR.
+
+    Args:
+        data : numpy.ndarray
+            Input data to tonemap.
+        pupil_area : float
+            Default: None.
+
+    Returns:
+        data_tm : numpy.ndarray
+            Tonemapped data.
+    '''
+    tmpname = _store_tmpfile(data, 'tmp_vanhateren.fits')
+    tmpname_out = tmpname.replace('.fits', '.tonemapped.tiff')
+    cmd = BASECOMMAND + ' -e 0 --tmo vanhateren '
+    if pupil_area is not None:
+        cmd += f'--tmoVanHaterenPupilArea {pupil_area} '
+    cmd += f'-o {tmpname_out} {tmpname}'
+    run_command(cmd.split(' '))
+    data_tm = _load_tonemapped_tmpdata(tmpname_out)
+    os.remove(tmpname)
+    os.remove(tmpname_out)
+    return data_tm

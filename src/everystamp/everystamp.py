@@ -97,7 +97,7 @@ def _add_args_plot(parser):
     required_args.add_argument('--CLAHE-cliplim', default=1.0, type=float, required=False, help='Clip limit to use for CLAHE.')
 
     if HAS_LHDR:
-        required_args.add_argument('--hdr-tonemap', default=None, type=str, choices=['drago', 'fattal', 'ferradans', 'ferwerda', 'kimkautz', 'mantiuk06'], required=False, help='HDR tonemapping to apply')
+        required_args.add_argument('--hdr-tonemap', default=None, type=str, choices=['ashikmin', 'drago', 'duran', 'fattal', 'ferradans', 'ferwerda', 'kimkautz', 'mantiuk06', 'mantiuk08', 'pattanaik', 'reinhard02', 'reinhard05', 'vanhateren'], required=False, help='HDR tonemapping to apply')
 
         hdr_fattal_args = parser.add_argument_group('HDR Tone mapping -- Drago et al. 2003 arguments')
         hdr_fattal_args.add_argument('--drago-bias', default=0.85, type=float, required=False, help='Bias parameter controlling the exponent base.')
@@ -161,6 +161,9 @@ def _add_args_plot(parser):
         hdr_pattanaik_args.add_argument('--pattanaik-auto_lum', default=True, type=bool, required=False, help='Automatic luminance?')
         hdr_pattanaik_args.add_argument('--pattanaik-cone_level', default=None, type=float, required=False, help='Cone level.')
         hdr_pattanaik_args.add_argument('--pattanaik-rod_level', default=None, type=float, required=False, help='Rod level.')
+
+        hdr_pattanaik_args = parser.add_argument_group('HDR Tone mapping -- van Hateren 2006 arguments')
+        hdr_pattanaik_args.add_argument('--vanhateren-pupil_area', default=None, type=float, required=False, help='Pupil area.')
     else:
         logger.warning('Cannot find luminance-hdr-cli. HDR tone mapping functionality will not be available unless LuminanceHDR is (correctly) installed.')
 
@@ -270,6 +273,9 @@ def _process_args_plot(args):
         if args.hdr_tonemap == 'reinhard05':
             logger.info('Tonemapping image with reinhard05')
             bp.data = reinhard05(bp.data, brightness=args.reinhard05_brightness, chroma=args.reinhard05_chroma, lightness=args.reinhard05_lightness)
+        if args.hdr_tonemap == 'vanhateren':
+            logger.info('Tonemapping with vanhateren')
+            bp.data = vanhateren(bp.data, pupil_area=args.vanhateren_pupil_area)
     if args.CLAHE:
         import cv2 #type: ignore
         bp.data = make_nonnegative(bp.fitsdata)
