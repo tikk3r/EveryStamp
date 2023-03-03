@@ -28,13 +28,13 @@ everystamp download --survey vlass --ra 165.345 --dec 65.567 --size 0.1 --downlo
 # Plotting tests
 #
 printf "\nTesting basic plotting"
-everystamp plot tests_output/LoTSS-DR2_202.4842_47.2306_0.300.fits
+everystamp plot --image tests_output/LoTSS-DR2_202.4842_47.2306_0.300.fits
 
 printf "\nTesting CLAHE"
-everystamp plot tests_output/LoTSS-DR2_202.4842_47.2306_0.300.fits --CLAHE --CLAHE-gridsize 21 --CLAHE-cliplim 1
+everystamp plot --image tests_output/LoTSS-DR2_202.4842_47.2306_0.300.fits --CLAHE --CLAHE-gridsize 21 --CLAHE-cliplim 1
 
 printf "\nTesting gamma"
-everystamp plot tests_output/LoTSS-DR2_202.4842_47.2306_0.300.fits --gamm 2.2
+everystamp plot --image tests_output/LoTSS-DR2_202.4842_47.2306_0.300.fits --gamma 2.2
 
 printf "\nTesting HDR tonemapping"
 everystamp plot --image tests_output/LoTSS-DR2_202.4842_47.2306_0.300.fits --hdr-tonemap ashikmin
