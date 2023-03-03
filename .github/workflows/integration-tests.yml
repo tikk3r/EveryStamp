@@ -27,6 +27,7 @@ jobs:
     - name: Check dependency installation
       run: |
         sudo apt-get update
+        sudo apt remove -y shim-signed grub-efi-amd64-bin –allow-remove-essential
         sudo apt-get upgrade -y
         sudo apt-get install libboost-python-dev casacore-dev libcfitsio-dev wcslib-dev luminance-hdr
         python -m pip install --upgrade pip setuptools wheel
