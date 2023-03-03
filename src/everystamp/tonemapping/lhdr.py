@@ -300,6 +300,34 @@ def kimkautz(data, c1: Optional[float] = None, c2: Optional[float] = None) -> nu
     return data_tm
 
 
+def lischinski(data, alpha: Optional[float] = None):
+    ''' Tonemap the image using the method described in Lischinski et al. 2006.
+
+    Parameters set to None will take their default values as set in LuminanceHDR.
+
+    Args:
+        data : numpy.ndarray
+            Input data to tonemap.
+        alpha : float
+            Default: None.
+
+    Returns:
+        data_tm : numpy.ndarray
+            Tonemapped data.
+    '''
+    tmpname = _store_tmpfile(data, 'tmp_lischinski.fits')
+    tmpname_out = tmpname.replace('.fits', '.tonemapped.tiff')
+    cmd = BASECOMMAND + ' -e 0 --tmo lischinski '
+    if alpha is not None:
+        cmd += f'--tmoLischinskiAlpha {alpha} '
+    cmd += f'-o {tmpname_out} {tmpname}'
+    run_command(cmd.split(' '))
+    data_tm = _load_tonemapped_tmpdata(tmpname_out)
+    os.remove(tmpname)
+    os.remove(tmpname_out)
+    return data_tm
+
+
 def mantiuk06(data, contrast: Optional[float] = None, saturation: Optional[float] = None, detail: Optional[float] = None, contrast_equalisation: bool = False) -> numpy.ndarray:
     ''' Tonemap the image using the human vision based method described in Mantiuk 2006.
 
