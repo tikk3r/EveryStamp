@@ -1,0 +1,10 @@
+**/*.egg-info
+**/drago.py
+**/fattal.py
+*.png
+*.pyc
+__pycache__
+build
+build_local.sh
+tests_output
+tmpenv

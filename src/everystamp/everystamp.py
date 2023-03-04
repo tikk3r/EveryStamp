@@ -1,19 +1,35 @@
 #!/usr/bin/env python
 ''' Python library aiming to provide a wrapper around various astronomical surveys that offer cutouts.'''
-__version__ = '1.0.0'
+__version__ = '1.1.0'
 __author__ = 'Frits Sweijen'
 __license__ = 'GPLv3'
+from typing import Generator
 
 import argparse
 import logging
 logging.basicConfig(format='[%(name)s] %(asctime)s - %(levelname)s: %(message)s', level=logging.INFO)
 logger = logging.getLogger('EveryStamp')
+import shutil
 
-from astroquery.skyview import SkyView
+from astroquery.skyview import SkyView #type: ignore
 from collections.abc import Iterable
 import requests
 
-def flatten(xs): 
+# Check if LuminanceHDR is installed.
+HAS_LHDR = shutil.which('luminance-hdr-cli')
+
+
+def flatten(xs: Iterable) -> Generator:
+    ''' Generator to flatten a list of nested lists.
+
+    Args:
+        xs : list
+            The list to flatten.
+
+    Yields:
+        x : iterable
+            An iterable that will generate the flattened list.
+    '''
     for x in xs: 
         if isinstance(x, Iterable) and not isinstance(x, (str, bytes)): 
             yield from flatten(x) 
@@ -21,7 +37,13 @@ def flatten(xs):
             yield x 
 
 
-def add_args_download(parser):
+def _add_args_download(parser):
+    ''' Add arguments to the argparse instance for downloading cutouts.
+    
+    Args:
+        parser : ArgumentParser
+            ArgumentParser instance to which to add entries.
+    '''
     custom_surveys = ['legacy', 'pan-starrs', 'vlass', 'lolss', 'lotss', 'tgss']
     try:
         skyview_surveys = list(flatten(list(SkyView.survey_dict.values())))
@@ -40,7 +62,7 @@ def add_args_download(parser):
     optional_args.add_argument('--size', type=float, required=False, default=0.01, help='Cutout size in degrees.')
 
     legacy_args = parser.add_argument_group('[DESI Legacy Imaging Surveys]')
-    legacy_args.add_argument('--legacy_bands', type=str, required=False, help='Bands to download. Allowed values are g, r and z. Multiple bands can be specified as a single string. In the case of a JPEG image a colour image will be generated. In the case of a FITS image a FITS cube will be downloaded. Default: grz')
+    legacy_args.add_argument('--legacy_bands', default='grz', type=str, required=False, help='Bands to download. Allowed values are g, r and z. Multiple bands can be specified as a single string. In the case of a JPEG image a colour image will be generated. In the case of a FITS image a FITS cube will be downloaded. Default: grz')
     legacy_args.add_argument('--legacy_layer', type=str, required=False, default='ls-dr9', help='Layer to make a cutout from. Default value is ls-dr9. Examples are ls-dr9, sdss or unwise-neo4. See Legacy documentation for all possibilies.')
     legacy_args.add_argument('--legacy_autoscale', required=False, default=False, action='store_true', help='Automatically change the pixel size if the resulting image would exceed the server maximum of 3000x3000 pixels.')
 
@@ -58,18 +80,104 @@ def add_args_download(parser):
     lotss_args.add_argument('--lotss_release', type=str, required=False, default='dr1', choices=['pdr', 'dr1', 'dr2'], help='Data release to download from.')
 
 
-def add_args_plot(parser):
+def _add_args_plot(parser):
+    ''' Add arguments to the argparse instance for plotting images.
+    
+    Args:
+        parser : ArgumentParser
+            ArgumentParser instance to which to add entries.
+    '''
     required_args = parser.add_argument_group('Required arguments')
     required_args.add_argument('--image', type=str, required=False, help='FITS image to plot.')
 
     required_args = parser.add_argument_group('Optional arguments')
-    required_args.add_argument('--gamma', type=float, default=1.0, required=False, help='Gamma compress (<1) or expand (>1) an image.')
+    required_args.add_argument('--gamma', type=float, default=1.0, required=False, help='Gamma compress (<1) or expand (>1) an image after tone mapping.')
     required_args.add_argument('--CLAHE', action='store_true', default=False, required=False, help='Apply contrast-limited adaptive histogram equalisation.')
     required_args.add_argument('--CLAHE-gridsize', default=5, type=int, required=False, help='Grid size to use for CLAHE.')
     required_args.add_argument('--CLAHE-cliplim', default=1.0, type=float, required=False, help='Clip limit to use for CLAHE.')
 
+    if HAS_LHDR:
+        required_args.add_argument('--hdr-tonemap', default=None, type=str, choices=['ashikmin', 'drago', 'duran', 'fattal', 'ferradans', 'ferwerda', 'kimkautz', 'lischinski', 'mantiuk06', 'mantiuk08', 'pattanaik', 'reinhard02', 'reinhard05', 'vanhateren'], required=False, help='HDR tonemapping to apply')
 
-def process_args_download(args):
+        hdr_ashikmin_args = parser.add_argument_group('HDR Tone mapping -- Ashikmin et al. 2002 arguments')
+        hdr_ashikmin_args.add_argument('--ashikmin-eq2', default=True, type=bool, required=False, help='Equation 2?')
+        hdr_ashikmin_args.add_argument('--ashikmin-simple', default=True, type=bool, required=False, help='Simple?')
+        hdr_ashikmin_args.add_argument('--ashikmin-local_threshold', default=None, type=float, required=False, help='Local threshold.')
+
+        hdr_drago_args = parser.add_argument_group('HDR Tone mapping -- Drago et al. 2003 arguments')
+        hdr_drago_args.add_argument('--drago-bias', default=0.85, type=float, required=False, help='Bias parameter controlling the exponent base.')
+
+        hdr_fattal_args = parser.add_argument_group('HDR Tone mapping -- Fattal et al. 2002 arguments')
+        hdr_fattal_args.add_argument('--fattal-alpha', default=None, type=float, required=False, help='Controls which gradient magnitude is preserved.')
+        hdr_fattal_args.add_argument('--fattal-beta', default=None, type=float, required=False, help='Controls local detail enhancement.')
+        hdr_fattal_args.add_argument('--fattal-colour_saturation', default=None, type=float, required=False, help='Controls colour saturation.')
+        hdr_fattal_args.add_argument('--fattal-noise', default=None, type=float, required=False, help='Controls when local detail enhancement is reduced.')
+
+        hdr_ferradans_args = parser.add_argument_group('HDR Tone mapping -- Ferradans et al. 2011 arguments')
+        hdr_ferradans_args.add_argument('--ferradans-rho', default=-2, type=float, required=False, help='Controls overall lightness.')
+        hdr_ferradans_args.add_argument('--ferradans-inverse_alpha', default=5, type=float, required=False, help='Controls local detail enhancement.')
+
+        hdr_ferwerda_args = parser.add_argument_group('HDR Tone mapping -- Ferwerda et al. 1996 arguments')
+        hdr_ferwerda_args.add_argument('--ferwerda-multiplier', default=None, type=float, required=False, help='Ferwerda multiplier factor.')
+        hdr_ferwerda_args.add_argument('--ferwerda-luminance_adaptation', default=None, type=float, required=False, help='Ferwerda adaptive luminance factor.')
+
+        hdr_hateren_args = parser.add_argument_group('HDR Tone mapping -- van Hateren 2006 arguments')
+        hdr_hateren_args.add_argument('--vanhateren-pupil_area', default=None, type=float, required=False, help='Pupil area.')
+
+        hdr_kimkautz_args = parser.add_argument_group('HDR Tone mapping -- Kim and Kautz 2008 arguments')
+        hdr_kimkautz_args.add_argument('--kimkautz-c1', default=None, type=float, required=False, help='Kim and Kautz c1 factor.')
+        hdr_kimkautz_args.add_argument('--kimkautz-c2', default=None, type=float, required=False, help='Kim and Kautz c2 factor.')
+
+        hdr_lischinski_args = parser.add_argument_group('HDR Tone mapping -- Lischinski 2006 arguments')
+        hdr_lischinski_args.add_argument('--lischinski-alpha', default=None, type=float, required=False, help='Alpha.')
+
+        hdr_mantiuk06_args = parser.add_argument_group('HDR Tone mapping -- Mantiuk et al. 2006 arguments')
+        hdr_mantiuk06_args.add_argument('--mantiuk06-contrast', default=None, type=float, required=False, help='Contrast factor.')
+        hdr_mantiuk06_args.add_argument('--mantiuk06-saturation', default=None, type=float, required=False, help='Saturation factor.')
+        hdr_mantiuk06_args.add_argument('--mantiuk06-detail', default=None, type=float, required=False, help='Detail factor.')
+        hdr_mantiuk06_args.add_argument('--mantiuk06-contrast_equalisation', default=True, type=bool, required=False, help='Equalise contrast?')
+
+        hdr_mantiuk08_args = parser.add_argument_group('HDR Tone mapping -- Mantiuk et al. 2008 arguments')
+        hdr_mantiuk08_args.add_argument('--mantiuk08-contrast_enhancement', default=None, type=float, required=False, help='Contrast enhancement factor.')
+        hdr_mantiuk08_args.add_argument('--mantiuk08-colour_saturation', default=None, type=float, required=False, help='Colour saturation factor.')
+        hdr_mantiuk08_args.add_argument('--mantiuk08-luminance_level', default=True, type=float, required=False, help='Luminance level.')
+        hdr_mantiuk08_args.add_argument('--mantiuk08-set_luminance', default=True, type=bool, required=False, help='Set luminance level?')
+
+        hdr_duran_args = parser.add_argument_group('HDR Tone mapping -- Durand and Dorsey et al. 2002 arguments')
+        hdr_duran_args.add_argument('--duran-sigma_spatial', default=None, type=float, required=False, help='Spatial kernel size.')
+        hdr_duran_args.add_argument('--duran-sigma_range', default=None, type=float, required=False, help='Range kernel size.')
+        hdr_duran_args.add_argument('--duran-base_contrast', default=None, type=float, required=False, help='Base contrast.')
+
+        hdr_reinhard02_args = parser.add_argument_group('HDR Tone mapping -- Reinhard et al. 2002 arguments')
+        hdr_reinhard02_args.add_argument('--reinhard02-key', default=None, type=float, required=False, help='Key.')
+        hdr_reinhard02_args.add_argument('--reinhard02-phi', default=None, type=float, required=False, help='Phi.')
+        hdr_reinhard02_args.add_argument('--reinhard02-use_scales', default=None, type=float, required=False, help='Use scales?')
+        hdr_reinhard02_args.add_argument('--reinhard02-range', default=None, type=float, required=False, help='Range.')
+        hdr_reinhard02_args.add_argument('--reinhard02-low', default=None, type=float, required=False, help='Low.')
+        hdr_reinhard02_args.add_argument('--reinhard02-high', default=None, type=float, required=False, help='High.')
+
+        hdr_reinhard05_args = parser.add_argument_group('HDR Tone mapping -- Reinhard et al. 2005 arguments')
+        hdr_reinhard05_args.add_argument('--reinhard05-brightness', default=None, type=float, required=False, help='Brightness.')
+        hdr_reinhard05_args.add_argument('--reinhard05-chroma', default=None, type=float, required=False, help='Chroma.')
+        hdr_reinhard05_args.add_argument('--reinhard05-lightness', default=None, type=float, required=False, help='Lightness.')
+
+        hdr_pattanaik_args = parser.add_argument_group('HDR Tone mapping -- Pattanaik arguments')
+        hdr_pattanaik_args.add_argument('--pattanaik-multiplier', default=None, type=float, required=False, help='Multiplier.')
+        hdr_pattanaik_args.add_argument('--pattanaik-local_tonemap', default=True, type=bool, required=False, help='Multiplier.')
+        hdr_pattanaik_args.add_argument('--pattanaik-auto_lum', default=True, type=bool, required=False, help='Automatic luminance?')
+        hdr_pattanaik_args.add_argument('--pattanaik-cone_level', default=None, type=float, required=False, help='Cone level.')
+        hdr_pattanaik_args.add_argument('--pattanaik-rod_level', default=None, type=float, required=False, help='Rod level.')
+    else:
+        logger.warning('Cannot find luminance-hdr-cli. HDR tone mapping functionality will not be available unless LuminanceHDR is (correctly) installed.')
+
+
+def _process_args_download(args):
+    ''' Process arguments to the argparse instance for downloading cutouts.
+    
+    Args:
+        parser : ArgumentParser
+            ArgumentParser instance to which to add entries.
+    '''
     logger.info('Survey is %s', args.survey)
     if args.survey == 'legacy':
         from everystamp.downloaders import LegacyDownloader
@@ -117,14 +225,65 @@ def process_args_download(args):
         sd = SkyViewDownloader(args.survey)
         sd.download(ra=args.ra, dec=args.dec, size=args.size, ddir=args.ddir)
 
-def process_args_plot(args):
+
+def _process_args_plot(args):
+    ''' Process arguments to the argparse instance for plotting images.
+    
+    Args:
+        parser : ArgumentParser
+            ArgumentParser instance to which to add entries.
+    '''
     logger.info('Plotting image %s', args.image)
     from everystamp.plotters import BasicPlot
     from everystamp.tonemapping import gamma, make_nonnegative
     import numpy as np
+    from everystamp.tonemapping.lhdr import ashikmin, drago, duran, fattal, ferradans, ferwerda, kimkautz, lischinski, mantiuk06, mantiuk08, reinhard02, reinhard05, pattanaik, vanhateren
     bp = BasicPlot(args.image)
+    if HAS_LHDR:
+        if args.hdr_tonemap == 'ashikmin':
+            logger.info('Tonemapping image with ashikmin')
+            bp.data = ashikmin(bp.data, eq2=args.ashikmin_eq2, simple=args.ashikmin_simple, local_threshold=args.ashikmin_local_threshol)
+        if args.hdr_tonemap == 'fattal':
+            logger.info('Tonemapping image with fattal')
+            bp.data = fattal(bp.data, alpha=args.fattal_alpha, beta=args.fattal_beta, colour_saturation=args.fattal_colour_saturation, noise=args.fattal_noise)
+        if args.hdr_tonemap == 'drago':
+            logger.info('Tonemapping image with drago')
+            bp.data = drago(bp.data, bias=args.drago_bias)
+        if args.hdr_tonemap == 'ferradans':
+            logger.info('Tonemapping image with ferradans')
+            bp.data = ferradans(bp.data, rho=args.ferradans_rho, inv_alpha=args.ferradans_inv_alpha)
+        if args.hdr_tonemap == 'ferwerda':
+            logger.info('Tonemapping image with ferwerda')
+            bp.data = ferwerda(bp.data, multiplier=args.ferwerda_multiplier, luminance_adaptation=args.ferwerda_luminance_adaptation)
+        if args.hdr_tonemap == 'kimkautz':
+            logger.info('Tonemapping image with kimkautz')
+            bp.data = kimkautz(bp.data, c1=args.kimkautz_c1, c2=args.kimkautz_c2)
+        if args.hdr_tonemap == 'lischinski':
+            logger.info('Tonemapping with lischinski')
+            bp.data = lischinski(bp.data, alpha=args.lischinski_alpha)
+        if args.hdr_tonemap == 'mantiuk06':
+            logger.info('Tonemapping image with mantiuk06')
+            bp.data = mantiuk06(bp.data, contrast=args.mantiuk06_contrast, saturation=args.mantiuk06_saturation, detail=args.mantiuk06_detail, contrast_equalisation=args.mantiuk06_contrast_equalisation)
+        if args.hdr_tonemap == 'mantiuk08':
+            logger.info('Tonemapping image with mantiuk08')
+            bp.data = mantiuk08(bp.data, contrast_enhancement=args.mantiuk08_saturation, colour_saturation=args.mantiuk08_colour_saturation, luminance_level=args.mantiuk08_luminance_level, set_luminance=args.mantiuk08_set_luminance)
+        if args.hdr_tonemap == 'duran':
+            logger.info('Tonemapping image with duran')
+            bp.data = duran(bp.data, sigma_spatial=args.duran_sigma_spatial, sigma_range=args.duran_sigma_range, base_contrast=args.duran_base_contrast)
+        if args.hdr_tonemap == 'pattanaik':
+            logger.info('Tonemapping image with pattanaik')
+            bp.data = pattanaik(bp.data, multiplier=args.pattanaik_multiplier, local_tonemap=args.pattanaik_local_tonemap, auto_lum=args.pattanaik_auto_lum, cone_level=args.pattanaik_cone_level, rod_level=args.pattanaik_rod_level)
+        if args.hdr_tonemap == 'reinhard02':
+            logger.info('Tonemapping image with reinhard02')
+            bp.data = reinhard02(bp.data, key=args.reinhard02_key, phi=args.reinhard02_phi, use_scales=args.reinhard02_use_scales, range=args.reinhard02_range, low=args.reinhard02_low, high=args.reinhard02_high)
+        if args.hdr_tonemap == 'reinhard05':
+            logger.info('Tonemapping image with reinhard05')
+            bp.data = reinhard05(bp.data, brightness=args.reinhard05_brightness, chroma=args.reinhard05_chroma, lightness=args.reinhard05_lightness)
+        if args.hdr_tonemap == 'vanhateren':
+            logger.info('Tonemapping with vanhateren')
+            bp.data = vanhateren(bp.data, pupil_area=args.vanhateren_pupil_area)
     if args.CLAHE:
-        import cv2
+        import cv2 #type: ignore
         bp.data = make_nonnegative(bp.fitsdata)
         bp.data /= np.nanmax(bp.data)
         bp.data *= 2**16
@@ -133,7 +292,9 @@ def process_args_plot(args):
         bp.data = clahe.apply(bp.data)
     if args.gamma:
         bp.data = gamma(bp.data, args.gamma)
+    bp.savedata(args.image.replace('.fits', '.tonemapped.fits'))
     bp.plot2D()
+    bp.plot_noaxes()
 
 
 def main():
@@ -144,17 +305,18 @@ def main():
 
     subparsers = parser.add_subparsers(dest='cmd', description='Description of sub commands.')
     subparser_dl = subparsers.add_parser('download', usage='everystamp download --survey SURVEY --ra RA --dec DEC --mode MODE --size SIZE', description='Download a cutout from a user-specified survey. See everystamp download -h for all available parameters.', help='Download a cutout from a specified survey.')
-    add_args_download(subparser_dl)
+    _add_args_download(subparser_dl)
 
     subparser_plot = subparsers.add_parser('plot', description='Plot a given FITS image. See everystamp plot -h for more information.', help='Plot a user-supplied FITS image.')
-    add_args_plot(subparser_plot)
-    
+    _add_args_plot(subparser_plot)
+
     args = parser.parse_args()
 
     if args.cmd == 'download':
-        process_args_download(args)
+        _process_args_download(args)
     if args.cmd == 'plot':
-        process_args_plot(args)
+        _process_args_plot(args)
+
 
 if __name__ == '__main__':
     main()

@@ -26,9 +26,12 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Check dependency installation
       run: |
-        sudo apt-get install libboost-python-dev casacore-dev libcfitsio-dev wcslib-dev
+        sudo apt-get update
+        sudo apt remove --allow-remove-essential -y shim-signed grub-efi-amd64-bin
+        sudo apt-get upgrade -y
+        sudo apt-get install libboost-python-dev casacore-dev libcfitsio-dev wcslib-dev luminance-hdr
         python -m pip install --upgrade pip setuptools wheel
-        python -m pip install git+https://github.com/tikk3r/EveryStamp.git
+        python -m pip install .
     - name: Run tests
       run: |
         bash test/run_tests.sh

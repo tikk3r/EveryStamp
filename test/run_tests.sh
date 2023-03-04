@@ -1,5 +1,9 @@
 rm -rf tests_output
 mkdir tests_output
+
+#
+# Download tests
+#
 printf "Testing Legacy download"
 everystamp download --survey legacy --ra 165.345 --dec 65.567 --size 0.1 --mode jpeg --legacy_bands grz --legacy_layer ls-dr9 --legacy_autoscale --download_dir tests_output
 
@@ -19,3 +23,31 @@ everystamp download --survey tgss --ra 165.345 --dec 65.567 --size 0.1 --downloa
 
 printf "\nTesting VLASS download"
 everystamp download --survey vlass --ra 165.345 --dec 65.567 --size 0.1 --download_dir tests_output --mode fits
+
+#
+# Plotting tests
+#
+printf "\nTesting basic plotting"
+everystamp plot --image tests_output/LoTSS-DR2_202.4842_47.2306_0.300.fits
+
+printf "\nTesting CLAHE"
+everystamp plot --image tests_output/LoTSS-DR2_202.4842_47.2306_0.300.fits --CLAHE --CLAHE-gridsize 21 --CLAHE-cliplim 1
+
+printf "\nTesting gamma"
+everystamp plot --image tests_output/LoTSS-DR2_202.4842_47.2306_0.300.fits --gamma 2.2
+
+printf "\nTesting HDR tonemapping"
+everystamp plot --image tests_output/LoTSS-DR2_202.4842_47.2306_0.300.fits --hdr-tonemap ashikmin
+everystamp plot --image tests_output/LoTSS-DR2_202.4842_47.2306_0.300.fits --hdr-tonemap drago
+everystamp plot --image tests_output/LoTSS-DR2_202.4842_47.2306_0.300.fits --hdr-tonemap duran
+everystamp plot --image tests_output/LoTSS-DR2_202.4842_47.2306_0.300.fits --hdr-tonemap fattal
+everystamp plot --image tests_output/LoTSS-DR2_202.4842_47.2306_0.300.fits --hdr-tonemap ferradans
+everystamp plot --image tests_output/LoTSS-DR2_202.4842_47.2306_0.300.fits --hdr-tonemap ferwerda
+everystamp plot --image tests_output/LoTSS-DR2_202.4842_47.2306_0.300.fits --hdr-tonemap vanhateren
+everystamp plot --image tests_output/LoTSS-DR2_202.4842_47.2306_0.300.fits --hdr-tonemap kimkautz
+everystamp plot --image tests_output/LoTSS-DR2_202.4842_47.2306_0.300.fits --hdr-tonemap lischinski
+everystamp plot --image tests_output/LoTSS-DR2_202.4842_47.2306_0.300.fits --hdr-tonemap mantiuk06
+everystamp plot --image tests_output/LoTSS-DR2_202.4842_47.2306_0.300.fits --hdr-tonemap mantiuk08
+everystamp plot --image tests_output/LoTSS-DR2_202.4842_47.2306_0.300.fits --hdr-tonemap reinhard02
+everystamp plot --image tests_output/LoTSS-DR2_202.4842_47.2306_0.300.fits --hdr-tonemap reinhard05
+everystamp plot --image tests_output/LoTSS-DR2_202.4842_47.2306_0.300.fits --hdr-tonemap pattanaik
