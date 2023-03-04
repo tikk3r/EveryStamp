@@ -1,0 +1,1520 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>everystamp.tonemapping.lhdr API documentation</title>
+<meta name="description" content="Sub-module containing wrappers to LuminosityHDR&#39;s HDR tonemapping programs." />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>everystamp.tonemapping.lhdr</code></h1>
+</header>
+<section id="section-intro">
+<p>Sub-module containing wrappers to LuminosityHDR's HDR tonemapping programs.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#39;&#39;&#39;Sub-module containing wrappers to LuminosityHDR&#39;s HDR tonemapping programs.&#39;&#39;&#39;
+from typing import Optional, Union
+
+import os
+import subprocess
+
+from astropy.io import fits
+from skimage import io
+import numpy
+
+BASECOMMAND = &#39;luminance-hdr-cli&#39;
+
+
+def run_command(cmd: Union[list, str]) -&gt; None:
+    &#39;&#39;&#39; Run a command through subprocess.
+    
+    Args:
+        cmd : list
+            List of arguments building up the command or a string of the full command.
+    
+    Returns:
+        None
+    &#39;&#39;&#39;
+    print(&#39;Running command:&#39;, &#39; &#39;.join(cmd))
+    try:
+        if type(cmd) is list:
+            subprocess.run(cmd)
+        elif type(cmd) is str:
+            subprocess.run(cmd.split(&#39; &#39;))
+        else:
+            raise ValueError(&#39;Malformed command: &#39;, cmd)
+    except subprocess.CalledProcessError as e:
+        print(&#34;Tone mapping failed with error code&#34;, e.returncode)
+        print(e.output)
+
+
+def _load_tonemapped_tmpdata(name: str, as_gray: bool = True) -&gt; numpy.ndarray:
+    &#39;&#39;&#39; Load the tonemapped output of LuminanceHDR ad return it as an array.
+    
+    Args:
+        name : str
+            File path to the data to load.
+        as_gray : bool
+            Treat the image as gray scale or not. Default: True.
+            
+    Returns:
+        data : numpy.ndarray
+            NumPy array containing the image.
+    &#39;&#39;&#39;
+    return io.imread(name, as_gray=as_gray)
+
+
+def _store_tmpfile(data: numpy.ndarray, name: str) -&gt; str:
+    &#39;&#39;&#39; Store the data to tonemap to a temporary FITS file to pass to LuminanceHDR.
+    
+    Args:
+        data : numpy.ndarray
+            NumPy array containing the image.
+
+    Returns:
+        path : str
+            Absolute path to the temporary file.
+    &#39;&#39;&#39;
+    fits.writeto(data=data, filename=name, overwrite=True)
+    #img.save(name, compression=None, x_resolution=data.shape[0], y_resolution=data.shape[1])
+    return os.path.abspath(name)
+
+
+def ashikmin(data, eq2: bool = True, simple: Optional[float] = None, local_threshold: Optional[float] = None) -&gt; numpy.ndarray:
+    &#39;&#39;&#39; Tonemap the image using the human vision based method described in Ashikmin 2002.
+
+    Parameters set to None will take their default values as set in LuminanceHDR.
+
+    Args:
+        data : numpy.ndarray
+            Input data to tonemap.
+        eq2 : bool
+            Default: True.
+        simple : bool
+            Default: True.
+        local_threshold : float
+            Default: None.
+
+    Returns:
+        data_tm : numpy.ndarray
+            Tonemapped data.
+    &#39;&#39;&#39;
+    tmpname = _store_tmpfile(data, &#39;tmp_ashikmin.fits&#39;)
+    tmpname_out = tmpname.replace(&#39;.fits&#39;, &#39;.tonemapped.tiff&#39;)
+    cmd = BASECOMMAND + &#39; -e 0 --tmo ashikmin &#39;
+    cmd += f&#39;--tmoAshEq2 {eq2} &#39;
+    cmd += f&#39;--tmoAshSimple {simple} &#39;
+    if local_threshold is not None:
+        cmd += f&#39;--tmoAshLocal {local_threshold} &#39;
+    cmd += f&#39;-o {tmpname_out} {tmpname}&#39;
+    run_command(cmd.split(&#39; &#39;))
+    data_tm = _load_tonemapped_tmpdata(tmpname_out)
+    os.remove(tmpname)
+    os.remove(tmpname_out)
+    return data_tm
+
+
+def drago(data: numpy.ndarray, bias: float = 0.85) -&gt; numpy.ndarray:
+    &#39;&#39;&#39; Tonemap the image using gradient domain compression as described in Fattal et al. 2002.
+
+    Parameters set to None will take their default values as set in LuminanceHDR.
+
+    Args:
+        data : numpy.ndarray
+            Input data to tonemap.
+        bias : float
+            Bias the logarithmic base towards lower or higher values. Default: 0.85.
+
+    Returns:
+        data_tm : numpy.ndarray
+            Tonemapped data.
+    &#39;&#39;&#39;
+    tmpname = _store_tmpfile(data, &#39;tmp_drago.fits&#39;)
+    tmpname_out = tmpname.replace(&#39;.fits&#39;, &#39;.tonemapped.tiff&#39;)
+    cmd = BASECOMMAND + &#39; -e 0 --tmo drago &#39;
+    if bias is not None:
+        cmd += f&#39;--tmoDrgBias {bias} &#39;
+    cmd += f&#39;-o {tmpname_out} {tmpname}&#39;
+    run_command(cmd.split(&#39; &#39;))
+    data_tm = _load_tonemapped_tmpdata(tmpname_out)
+    # os.remove(tmpname)
+    # os.remove(tmpname_out)
+    return data_tm
+
+
+def duran(data: numpy.ndarray, sigma_spatial: Optional[float] = None, sigma_range: Optional[float] = None, base_contrast: Optional[float] = None):
+    &#39;&#39;&#39; Tonemap the image using gradient domain compression as described in Durand and Dorsey et al. 2002.
+
+    Parameters set to None will take their default values as set in LuminanceHDR.
+
+    Args:
+        data : numpy.ndarray
+            Input data to tonemap.
+        sigma_spatial : float
+            Spatial kernal size. Default: None.
+        sigma_range : float
+            Range kernel size. Default: None.
+        base_contrast : float
+            Base contrast. Default: None.
+
+    Returns:
+        data_tm : numpy.ndarray
+            Tonemapped data.
+    &#39;&#39;&#39;
+    tmpname = _store_tmpfile(data, &#39;tmp_durand.fits&#39;)
+    tmpname_out = tmpname.replace(&#39;.fits&#39;, &#39;.tonemapped.tiff&#39;)
+    cmd = BASECOMMAND + &#39; -e 0 --tmo durand &#39;
+    if sigma_spatial is not None:
+        cmd += f&#39;--tmoDurSigmaS {sigma_spatial} &#39;
+    if sigma_range is not None:
+        cmd += f&#39;--tmoDurSigmaR {sigma_range} &#39;
+    if base_contrast is not None:
+        cmd += f&#39;--tmoDurBase {base_contrast} &#39;
+    cmd += f&#39;-o {tmpname_out} {tmpname}&#39;
+    run_command(cmd.split(&#39; &#39;))
+    data_tm = _load_tonemapped_tmpdata(tmpname_out)
+    # os.remove(tmpname)
+    # os.remove(tmpname_out)
+    return data_tm
+
+
+def fattal(data: numpy.ndarray, alpha: Optional[float] = None, beta: Optional[float] = None, colour_saturation: Optional[float] = None, noise: Optional[float] = None) -&gt; numpy.ndarray:
+    &#39;&#39;&#39; Tonemap the image using gradient domain compression as described in Fattal et al. 2002.
+
+    Parameters set to None will take their default values as set in LuminanceHDR.
+
+    Args:
+        data : numpy.ndarray
+            Input data to tonemap.
+        alpha : float
+            Controls which gradient magnitude is preserved when beta is 1. Default is None.
+        beta : float
+            Controls local detail enhancement.
+        colour_saturation : float
+            Controls colour saturation.
+        noise : float
+            Controls the threshold for what is seen as noise, where detail enhancement is reduced.
+
+    Returns:
+        data_tm : numpy.ndarray
+            Tonemapped data.
+    &#39;&#39;&#39;
+    tmpname = _store_tmpfile(data, &#39;tmp_fattal.fits&#39;)
+    tmpname_out = tmpname.replace(&#39;.fits&#39;, &#39;.tonemapped.tiff&#39;)
+    cmd = BASECOMMAND + &#39; -e 0 --tmo fattal &#39;
+    if alpha is not None:
+        cmd += f&#39;--tmoFatAlpha {alpha} &#39;
+    if beta is not None:
+        cmd += f&#39;--tmoFatBeta {beta} &#39;
+    if colour_saturation is not None:
+        cmd += f&#39;--tmoFatAlpha {colour_saturation} &#39;
+    if noise is not None:
+        cmd += f&#39;--tmoFatAlpha {noise} &#39;
+    cmd += f&#39;-o {tmpname_out} {tmpname}&#39;
+    run_command(cmd.split(&#39; &#39;))
+    data_tm = _load_tonemapped_tmpdata(tmpname_out)
+    os.remove(tmpname)
+    os.remove(tmpname_out)
+    return data_tm
+
+
+def ferradans(data: numpy.ndarray, rho: float = -2, inv_alpha: float = 5) -&gt; numpy.ndarray:
+    &#39;&#39;&#39; Tonemap the image using the method described in Ferradans et al. 2011.
+
+    Parameters set to None will take their default values as set in LuminanceHDR.
+
+    Args:
+        data : numpy.ndarray
+            Input data to tonemap.
+        rho : float
+            Controls overall lightness. Larger values yield a brighter image. Default is -2.
+        beta : float
+            Controls detail enhancement. Larger values yield more detail enhancement. Default is 5.
+
+    Returns:
+        data_tm : numpy.ndarray
+            Tonemapped data.
+    &#39;&#39;&#39;
+    tmpname = _store_tmpfile(data, &#39;tmp_ferradans.fits&#39;)
+    tmpname_out = tmpname.replace(&#39;.fits&#39;, &#39;.tonemapped.tiff&#39;)
+    cmd = BASECOMMAND + &#39; -e 0 --tmo ferradans &#39;
+    if rho is not None:
+        cmd += f&#39;--tmoFerRho {rho} &#39;
+    if inv_alpha is not None:
+        cmd += f&#39;--tmoFerInvAlpha {inv_alpha} &#39;
+    cmd += f&#39;-o {tmpname_out} {tmpname}&#39;
+    run_command(cmd.split(&#39; &#39;))
+    data_tm = _load_tonemapped_tmpdata(tmpname_out)
+    os.remove(tmpname)
+    os.remove(tmpname_out)
+    return data_tm
+
+
+def ferwerda(data, multiplier: Optional[float] = None, luminance_adaptation: Optional[float] = None) -&gt; numpy.ndarray:
+    &#39;&#39;&#39; Tonemap the image using the method described in Ferwerda et al. 1996.
+
+    Parameters set to None will take their default values as set in LuminanceHDR.
+
+    Args:
+        data : numpy.ndarray
+            Input data to tonemap.
+        multiplier : float
+            Default is None.
+        luminance_adaptation : float
+            Default is None.
+
+    Returns:
+        data_tm : numpy.ndarray
+            Tonemapped data.
+    &#39;&#39;&#39;
+    tmpname = _store_tmpfile(data, &#39;tmp_ferwerda.fits&#39;)
+    tmpname_out = tmpname.replace(&#39;.fits&#39;, &#39;.tonemapped.tiff&#39;)
+    cmd = BASECOMMAND + &#39; -e 0 --tmo ferradans &#39;
+    if multiplier is not None:
+        cmd += f&#39;--tmoFerwerdaMul {multiplier} &#39;
+    if luminance_adaptation is not None:
+        cmd += f&#39;--tmoFerwerdaAdaptLum {luminance_adaptation} &#39;
+    cmd += f&#39;-o {tmpname_out} {tmpname}&#39;
+    run_command(cmd.split(&#39; &#39;))
+    data_tm = _load_tonemapped_tmpdata(tmpname_out)
+    os.remove(tmpname)
+    os.remove(tmpname_out)
+    return data_tm
+
+
+def kimkautz(data, c1: Optional[float] = None, c2: Optional[float] = None) -&gt; numpy.ndarray:
+    &#39;&#39;&#39; Tonemap the image using the human vision based method described in Kim and Kaus 2008.
+
+    Parameters set to None will take their default values as set in LuminanceHDR.
+
+    Args:
+        data : numpy.ndarray
+            Input data to tonemap.
+        c1 : float
+            Default is None.
+        c2 : float
+            Default is None.
+
+    Returns:
+        data_tm : numpy.ndarray
+            Tonemapped data.
+    &#39;&#39;&#39;
+    tmpname = _store_tmpfile(data, &#39;tmp_kimkautz.fits&#39;)
+    tmpname_out = tmpname.replace(&#39;.fits&#39;, &#39;.tonemapped.tiff&#39;)
+    cmd = BASECOMMAND + &#39; -e 0 --tmo kimkautz &#39;
+    if c1 is not None:
+        cmd += f&#39;--tmoKimKautzC1 {c1} &#39;
+    if c2 is not None:
+        cmd += f&#39;--tmoKimKautzC2 {c2} &#39;
+    cmd += f&#39;-o {tmpname_out} {tmpname}&#39;
+    run_command(cmd.split(&#39; &#39;))
+    data_tm = _load_tonemapped_tmpdata(tmpname_out)
+    os.remove(tmpname)
+    os.remove(tmpname_out)
+    return data_tm
+
+
+def lischinski(data, alpha: Optional[float] = None):
+    &#39;&#39;&#39; Tonemap the image using the method described in Lischinski et al. 2006.
+
+    Parameters set to None will take their default values as set in LuminanceHDR.
+
+    Args:
+        data : numpy.ndarray
+            Input data to tonemap.
+        alpha : float
+            Default: None.
+
+    Returns:
+        data_tm : numpy.ndarray
+            Tonemapped data.
+    &#39;&#39;&#39;
+    tmpname = _store_tmpfile(data, &#39;tmp_lischinski.fits&#39;)
+    tmpname_out = tmpname.replace(&#39;.fits&#39;, &#39;.tonemapped.tiff&#39;)
+    cmd = BASECOMMAND + &#39; -e 0 --tmo lischinski &#39;
+    if alpha is not None:
+        cmd += f&#39;--tmoLischinskiAlpha {alpha} &#39;
+    cmd += f&#39;-o {tmpname_out} {tmpname}&#39;
+    run_command(cmd.split(&#39; &#39;))
+    data_tm = _load_tonemapped_tmpdata(tmpname_out)
+    os.remove(tmpname)
+    os.remove(tmpname_out)
+    return data_tm
+
+
+def mantiuk06(data, contrast: Optional[float] = None, saturation: Optional[float] = None, detail: Optional[float] = None, contrast_equalisation: bool = False) -&gt; numpy.ndarray:
+    &#39;&#39;&#39; Tonemap the image using the human vision based method described in Mantiuk 2006.
+
+    Parameters set to None will take their default values as set in LuminanceHDR.
+
+    Args:
+        data : numpy.ndarray
+            Input data to tonemap.
+        contrast : float
+            Default is None.
+        saturation : float
+            Default is None.
+        detail : float
+            Default is None.
+        contrast_equalisation : bool
+            Default is False.
+
+    Returns:
+        data_tm : numpy.ndarray
+            Tonemapped data.
+    &#39;&#39;&#39;
+    tmpname = _store_tmpfile(data, &#39;tmp_mantiuk06.fits&#39;)
+    tmpname_out = tmpname.replace(&#39;.fits&#39;, &#39;.tonemapped.tiff&#39;)
+    cmd = BASECOMMAND + &#39; -e 0 --tmo mantiuk06 &#39;
+    if contrast is not None:
+        cmd += f&#39;--tmoM06Contrast {contrast} &#39;
+    if saturation is not None:
+        cmd += f&#39;--tmoM06Saturation {saturation} &#39;
+    if detail is not None:
+        cmd += f&#39;--tmoM06Detail {detail} &#39;
+    cmd += f&#39;--tmoM06ContrastEqual {contrast_equalisation} &#39;
+    cmd += f&#39;-o {tmpname_out} {tmpname}&#39;
+    run_command(cmd.split(&#39; &#39;))
+    data_tm = _load_tonemapped_tmpdata(tmpname_out)
+    os.remove(tmpname)
+    os.remove(tmpname_out)
+    return data_tm
+
+
+def mantiuk08(data, contrast_enhancement: Optional[float] = None, colour_saturation: Optional[float] = None, luminance_level: Optional[float] = None, set_luminance: bool = False) -&gt; numpy.ndarray:
+    &#39;&#39;&#39; Tonemap the image using the human vision based method described in Mantiuk 2008.
+
+    Parameters set to None will take their default values as set in LuminanceHDR.
+
+    Args:
+        data : numpy.ndarray
+            Input data to tonemap.
+        contrast_enhancement : float
+            Default is None.
+        colour_saturation : float
+            Default is None.
+        luminance_level : float
+            Used when set_luminance is True. Default is None.
+        set_luminance : bool
+            Default is False
+
+    Returns:
+        data_tm : numpy.ndarray
+            Tonemapped data.
+    &#39;&#39;&#39;
+    tmpname = _store_tmpfile(data, &#39;tmp_mantiuk08.fits&#39;)
+    tmpname_out = tmpname.replace(&#39;.fits&#39;, &#39;.tonemapped.tiff&#39;)
+    cmd = BASECOMMAND + &#39; -e 0 --tmo mantiuk08 &#39;
+    if colour_saturation is not None:
+        cmd += f&#39;--tmoM08ColorSaturation {colour_saturation} &#39;
+    if contrast_enhancement is not None:
+        cmd += f&#39;--tmoM08ContrastEnh {contrast_enhancement} &#39;
+    if luminance_level is not None:
+        cmd += f&#39;--tmoM08LuminanceLvl {luminance_level} &#39;
+    cmd += f&#39;--tmoM08SetLuminance {set_luminance} &#39;
+    cmd += f&#39;-o {tmpname_out} {tmpname}&#39;
+    run_command(cmd.split(&#39; &#39;))
+    data_tm = _load_tonemapped_tmpdata(tmpname_out)
+    os.remove(tmpname)
+    os.remove(tmpname_out)
+    return data_tm
+
+
+def reinhard02(data, key: Optional[float] = None, phi: Optional[float] = None, use_scales: bool = True, range: Optional[float] = None, low: Optional[float] = None, high: Optional[float] = None) -&gt; numpy.ndarray:
+    &#39;&#39;&#39; Tonemap the image using the human vision based method described in Mantiuk 2008.
+
+    Parameters set to None will take their default values as set in LuminanceHDR.
+
+    Args:
+        data : numpy.ndarray
+            Input data to tonemap.
+        key : float
+            Default: None.
+        phi : float
+            Default: None.
+        use_scales : bool
+            Default: True.
+        range : float
+            Default: None.
+        low : float
+            Default: None.
+        high : float
+            Default: None.
+
+    Returns:
+        data_tm : numpy.ndarray
+            Tonemapped data.
+    &#39;&#39;&#39;
+    tmpname = _store_tmpfile(data, &#39;tmp_reinhard02.fits&#39;)
+    tmpname_out = tmpname.replace(&#39;.fits&#39;, &#39;.tonemapped.tiff&#39;)
+    cmd = BASECOMMAND + &#39; -e 0 --tmo reinhard02 &#39;
+    if key is not None:
+        cmd += f&#39;--tmoR02Key {key} &#39;
+    if phi is not None:
+        cmd += f&#39;--tmoR02Phi {phi} &#39;
+    if use_scales is not None:
+        cmd += f&#39;--tmoR02Scales {use_scales} &#39;
+    if range is not None:
+        cmd += f&#39;--tmoR02Num {range} &#39;
+    if low is not None:
+        cmd += f&#39;--tmoR02Low {low} &#39;
+    if high is not None:
+        cmd += f&#39;--tmoR02High {high} &#39;
+    cmd += f&#39;-o {tmpname_out} {tmpname}&#39;
+    run_command(cmd.split(&#39; &#39;))
+    data_tm = _load_tonemapped_tmpdata(tmpname_out)
+    os.remove(tmpname)
+    os.remove(tmpname_out)
+    return data_tm
+
+
+def reinhard05(data, brightness: Optional[float] = None, chroma: Optional[float] = None, lightness: Optional[float] = None) -&gt; numpy.ndarray:
+    &#39;&#39;&#39; Tonemap the image using the human vision based method described in Reinhard 2005.
+
+    Parameters set to None will take their default values as set in LuminanceHDR.
+
+    Args:
+        data : numpy.ndarray
+            Input data to tonemap.
+        brightness : float
+            Default: None.
+        chroma : float
+            Default: None.
+        lightness : float
+            Default: None.
+
+    Returns:
+        data_tm : numpy.ndarray
+            Tonemapped data.
+    &#39;&#39;&#39;
+    tmpname = _store_tmpfile(data, &#39;tmp_reinhard05.fits&#39;)
+    tmpname_out = tmpname.replace(&#39;.fits&#39;, &#39;.tonemapped.tiff&#39;)
+    cmd = BASECOMMAND + &#39; -e 0 --tmo reinhard05 &#39;
+    if brightness is not None:
+        cmd += f&#39;--tmoR05Brightness {brightness} &#39;
+    if chroma is not None:
+        cmd += f&#39;--tmoR05Chroma {chroma} &#39;
+    if lightness is not None:
+        cmd += f&#39;--tmoR05Lightness {lightness} &#39;
+    cmd += f&#39;-o {tmpname_out} {tmpname}&#39;
+    run_command(cmd.split(&#39; &#39;))
+    data_tm = _load_tonemapped_tmpdata(tmpname_out)
+    os.remove(tmpname)
+    os.remove(tmpname_out)
+    return data_tm
+
+
+def pattanaik(data, multiplier: Optional[float] = None, local_tonemap: bool = True, auto_lum: bool = True, cone_level: Optional[float] = None, rod_level: Optional[float] = None) -&gt; numpy.ndarray:
+    &#39;&#39;&#39; Tonemap the image using the human vision based method described in Pattanaik et al. 2000 and Pattanaik et al. 2002.
+
+    Parameters set to None will take their default values as set in LuminanceHDR.
+
+    Args:
+        data : numpy.ndarray
+            Input data to tonemap.
+        multiplier : float
+            Default: None.
+        local_tonemap : bool
+            Default: True.
+        auto_lum : bool
+            Default: True.
+        cone_level : float
+            Default: None.
+        rod_level : float
+            Default: None.
+
+    Returns:
+        data_tm : numpy.ndarray
+            Tonemapped data.
+    &#39;&#39;&#39;
+    tmpname = _store_tmpfile(data, &#39;tmp_pattanaik.fits&#39;)
+    tmpname_out = tmpname.replace(&#39;.fits&#39;, &#39;.tonemapped.tiff&#39;)
+    cmd = BASECOMMAND + &#39; -e 0 --tmo pattanaik &#39;
+    if multiplier is not None:
+        cmd += f&#39;--tmoPatMultiplier {multiplier} &#39;
+    if cone_level is not None:
+        cmd += f&#39;--tmoPatCone {cone_level} &#39;
+    if rod_level is not None:
+        cmd += f&#39;--tmoPatCone {rod_level} &#39;
+    cmd += f&#39;--tmoPatLocal {local_tonemap} &#39;
+    cmd += f&#39;--tmoPatAutoLum {auto_lum} &#39;
+    cmd += f&#39;-o {tmpname_out} {tmpname}&#39;
+    run_command(cmd.split(&#39; &#39;))
+    data_tm = _load_tonemapped_tmpdata(tmpname_out)
+    os.remove(tmpname)
+    os.remove(tmpname_out)
+    return data_tm
+
+
+def vanhateren(data, pupil_area: Optional[float] = None):
+    &#39;&#39;&#39; Tonemap the image using the method described in van Hateren 2006.
+
+    Parameters set to None will take their default values as set in LuminanceHDR.
+
+    Args:
+        data : numpy.ndarray
+            Input data to tonemap.
+        pupil_area : float
+            Default: None.
+
+    Returns:
+        data_tm : numpy.ndarray
+            Tonemapped data.
+    &#39;&#39;&#39;
+    tmpname = _store_tmpfile(data, &#39;tmp_vanhateren.fits&#39;)
+    tmpname_out = tmpname.replace(&#39;.fits&#39;, &#39;.tonemapped.tiff&#39;)
+    cmd = BASECOMMAND + &#39; -e 0 --tmo vanhateren &#39;
+    if pupil_area is not None:
+        cmd += f&#39;--tmoVanHaterenPupilArea {pupil_area} &#39;
+    cmd += f&#39;-o {tmpname_out} {tmpname}&#39;
+    run_command(cmd.split(&#39; &#39;))
+    data_tm = _load_tonemapped_tmpdata(tmpname_out)
+    os.remove(tmpname)
+    os.remove(tmpname_out)
+    return data_tm</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="everystamp.tonemapping.lhdr.ashikmin"><code class="name flex">
+<span>def <span class="ident">ashikmin</span></span>(<span>data, eq2: bool = True, simple: Optional[float] = None, local_threshold: Optional[float] = None) ‑> numpy.ndarray</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Tonemap the image using the human vision based method described in Ashikmin 2002.</p>
+<p>Parameters set to None will take their default values as set in LuminanceHDR.</p>
+<h2 id="args">Args</h2>
+<p>data : numpy.ndarray
+Input data to tonemap.
+eq2 : bool
+Default: True.
+simple : bool
+Default: True.
+local_threshold : float
+Default: None.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>data_tm </code></dt>
+<dd>numpy.ndarray
+Tonemapped data.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def ashikmin(data, eq2: bool = True, simple: Optional[float] = None, local_threshold: Optional[float] = None) -&gt; numpy.ndarray:
+    &#39;&#39;&#39; Tonemap the image using the human vision based method described in Ashikmin 2002.
+
+    Parameters set to None will take their default values as set in LuminanceHDR.
+
+    Args:
+        data : numpy.ndarray
+            Input data to tonemap.
+        eq2 : bool
+            Default: True.
+        simple : bool
+            Default: True.
+        local_threshold : float
+            Default: None.
+
+    Returns:
+        data_tm : numpy.ndarray
+            Tonemapped data.
+    &#39;&#39;&#39;
+    tmpname = _store_tmpfile(data, &#39;tmp_ashikmin.fits&#39;)
+    tmpname_out = tmpname.replace(&#39;.fits&#39;, &#39;.tonemapped.tiff&#39;)
+    cmd = BASECOMMAND + &#39; -e 0 --tmo ashikmin &#39;
+    cmd += f&#39;--tmoAshEq2 {eq2} &#39;
+    cmd += f&#39;--tmoAshSimple {simple} &#39;
+    if local_threshold is not None:
+        cmd += f&#39;--tmoAshLocal {local_threshold} &#39;
+    cmd += f&#39;-o {tmpname_out} {tmpname}&#39;
+    run_command(cmd.split(&#39; &#39;))
+    data_tm = _load_tonemapped_tmpdata(tmpname_out)
+    os.remove(tmpname)
+    os.remove(tmpname_out)
+    return data_tm</code></pre>
+</details>
+</dd>
+<dt id="everystamp.tonemapping.lhdr.drago"><code class="name flex">
+<span>def <span class="ident">drago</span></span>(<span>data: numpy.ndarray, bias: float = 0.85) ‑> numpy.ndarray</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Tonemap the image using gradient domain compression as described in Fattal et al. 2002.</p>
+<p>Parameters set to None will take their default values as set in LuminanceHDR.</p>
+<h2 id="args">Args</h2>
+<p>data : numpy.ndarray
+Input data to tonemap.
+bias : float
+Bias the logarithmic base towards lower or higher values. Default: 0.85.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>data_tm </code></dt>
+<dd>numpy.ndarray
+Tonemapped data.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def drago(data: numpy.ndarray, bias: float = 0.85) -&gt; numpy.ndarray:
+    &#39;&#39;&#39; Tonemap the image using gradient domain compression as described in Fattal et al. 2002.
+
+    Parameters set to None will take their default values as set in LuminanceHDR.
+
+    Args:
+        data : numpy.ndarray
+            Input data to tonemap.
+        bias : float
+            Bias the logarithmic base towards lower or higher values. Default: 0.85.
+
+    Returns:
+        data_tm : numpy.ndarray
+            Tonemapped data.
+    &#39;&#39;&#39;
+    tmpname = _store_tmpfile(data, &#39;tmp_drago.fits&#39;)
+    tmpname_out = tmpname.replace(&#39;.fits&#39;, &#39;.tonemapped.tiff&#39;)
+    cmd = BASECOMMAND + &#39; -e 0 --tmo drago &#39;
+    if bias is not None:
+        cmd += f&#39;--tmoDrgBias {bias} &#39;
+    cmd += f&#39;-o {tmpname_out} {tmpname}&#39;
+    run_command(cmd.split(&#39; &#39;))
+    data_tm = _load_tonemapped_tmpdata(tmpname_out)
+    # os.remove(tmpname)
+    # os.remove(tmpname_out)
+    return data_tm</code></pre>
+</details>
+</dd>
+<dt id="everystamp.tonemapping.lhdr.duran"><code class="name flex">
+<span>def <span class="ident">duran</span></span>(<span>data: numpy.ndarray, sigma_spatial: Optional[float] = None, sigma_range: Optional[float] = None, base_contrast: Optional[float] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Tonemap the image using gradient domain compression as described in Durand and Dorsey et al. 2002.</p>
+<p>Parameters set to None will take their default values as set in LuminanceHDR.</p>
+<h2 id="args">Args</h2>
+<p>data : numpy.ndarray
+Input data to tonemap.
+sigma_spatial : float
+Spatial kernal size. Default: None.
+sigma_range : float
+Range kernel size. Default: None.
+base_contrast : float
+Base contrast. Default: None.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>data_tm </code></dt>
+<dd>numpy.ndarray
+Tonemapped data.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def duran(data: numpy.ndarray, sigma_spatial: Optional[float] = None, sigma_range: Optional[float] = None, base_contrast: Optional[float] = None):
+    &#39;&#39;&#39; Tonemap the image using gradient domain compression as described in Durand and Dorsey et al. 2002.
+
+    Parameters set to None will take their default values as set in LuminanceHDR.
+
+    Args:
+        data : numpy.ndarray
+            Input data to tonemap.
+        sigma_spatial : float
+            Spatial kernal size. Default: None.
+        sigma_range : float
+            Range kernel size. Default: None.
+        base_contrast : float
+            Base contrast. Default: None.
+
+    Returns:
+        data_tm : numpy.ndarray
+            Tonemapped data.
+    &#39;&#39;&#39;
+    tmpname = _store_tmpfile(data, &#39;tmp_durand.fits&#39;)
+    tmpname_out = tmpname.replace(&#39;.fits&#39;, &#39;.tonemapped.tiff&#39;)
+    cmd = BASECOMMAND + &#39; -e 0 --tmo durand &#39;
+    if sigma_spatial is not None:
+        cmd += f&#39;--tmoDurSigmaS {sigma_spatial} &#39;
+    if sigma_range is not None:
+        cmd += f&#39;--tmoDurSigmaR {sigma_range} &#39;
+    if base_contrast is not None:
+        cmd += f&#39;--tmoDurBase {base_contrast} &#39;
+    cmd += f&#39;-o {tmpname_out} {tmpname}&#39;
+    run_command(cmd.split(&#39; &#39;))
+    data_tm = _load_tonemapped_tmpdata(tmpname_out)
+    # os.remove(tmpname)
+    # os.remove(tmpname_out)
+    return data_tm</code></pre>
+</details>
+</dd>
+<dt id="everystamp.tonemapping.lhdr.fattal"><code class="name flex">
+<span>def <span class="ident">fattal</span></span>(<span>data: numpy.ndarray, alpha: Optional[float] = None, beta: Optional[float] = None, colour_saturation: Optional[float] = None, noise: Optional[float] = None) ‑> numpy.ndarray</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Tonemap the image using gradient domain compression as described in Fattal et al. 2002.</p>
+<p>Parameters set to None will take their default values as set in LuminanceHDR.</p>
+<h2 id="args">Args</h2>
+<p>data : numpy.ndarray
+Input data to tonemap.
+alpha : float
+Controls which gradient magnitude is preserved when beta is 1. Default is None.
+beta : float
+Controls local detail enhancement.
+colour_saturation : float
+Controls colour saturation.
+noise : float
+Controls the threshold for what is seen as noise, where detail enhancement is reduced.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>data_tm </code></dt>
+<dd>numpy.ndarray
+Tonemapped data.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def fattal(data: numpy.ndarray, alpha: Optional[float] = None, beta: Optional[float] = None, colour_saturation: Optional[float] = None, noise: Optional[float] = None) -&gt; numpy.ndarray:
+    &#39;&#39;&#39; Tonemap the image using gradient domain compression as described in Fattal et al. 2002.
+
+    Parameters set to None will take their default values as set in LuminanceHDR.
+
+    Args:
+        data : numpy.ndarray
+            Input data to tonemap.
+        alpha : float
+            Controls which gradient magnitude is preserved when beta is 1. Default is None.
+        beta : float
+            Controls local detail enhancement.
+        colour_saturation : float
+            Controls colour saturation.
+        noise : float
+            Controls the threshold for what is seen as noise, where detail enhancement is reduced.
+
+    Returns:
+        data_tm : numpy.ndarray
+            Tonemapped data.
+    &#39;&#39;&#39;
+    tmpname = _store_tmpfile(data, &#39;tmp_fattal.fits&#39;)
+    tmpname_out = tmpname.replace(&#39;.fits&#39;, &#39;.tonemapped.tiff&#39;)
+    cmd = BASECOMMAND + &#39; -e 0 --tmo fattal &#39;
+    if alpha is not None:
+        cmd += f&#39;--tmoFatAlpha {alpha} &#39;
+    if beta is not None:
+        cmd += f&#39;--tmoFatBeta {beta} &#39;
+    if colour_saturation is not None:
+        cmd += f&#39;--tmoFatAlpha {colour_saturation} &#39;
+    if noise is not None:
+        cmd += f&#39;--tmoFatAlpha {noise} &#39;
+    cmd += f&#39;-o {tmpname_out} {tmpname}&#39;
+    run_command(cmd.split(&#39; &#39;))
+    data_tm = _load_tonemapped_tmpdata(tmpname_out)
+    os.remove(tmpname)
+    os.remove(tmpname_out)
+    return data_tm</code></pre>
+</details>
+</dd>
+<dt id="everystamp.tonemapping.lhdr.ferradans"><code class="name flex">
+<span>def <span class="ident">ferradans</span></span>(<span>data: numpy.ndarray, rho: float = -2, inv_alpha: float = 5) ‑> numpy.ndarray</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Tonemap the image using the method described in Ferradans et al. 2011.</p>
+<p>Parameters set to None will take their default values as set in LuminanceHDR.</p>
+<h2 id="args">Args</h2>
+<p>data : numpy.ndarray
+Input data to tonemap.
+rho : float
+Controls overall lightness. Larger values yield a brighter image. Default is -2.
+beta : float
+Controls detail enhancement. Larger values yield more detail enhancement. Default is 5.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>data_tm </code></dt>
+<dd>numpy.ndarray
+Tonemapped data.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def ferradans(data: numpy.ndarray, rho: float = -2, inv_alpha: float = 5) -&gt; numpy.ndarray:
+    &#39;&#39;&#39; Tonemap the image using the method described in Ferradans et al. 2011.
+
+    Parameters set to None will take their default values as set in LuminanceHDR.
+
+    Args:
+        data : numpy.ndarray
+            Input data to tonemap.
+        rho : float
+            Controls overall lightness. Larger values yield a brighter image. Default is -2.
+        beta : float
+            Controls detail enhancement. Larger values yield more detail enhancement. Default is 5.
+
+    Returns:
+        data_tm : numpy.ndarray
+            Tonemapped data.
+    &#39;&#39;&#39;
+    tmpname = _store_tmpfile(data, &#39;tmp_ferradans.fits&#39;)
+    tmpname_out = tmpname.replace(&#39;.fits&#39;, &#39;.tonemapped.tiff&#39;)
+    cmd = BASECOMMAND + &#39; -e 0 --tmo ferradans &#39;
+    if rho is not None:
+        cmd += f&#39;--tmoFerRho {rho} &#39;
+    if inv_alpha is not None:
+        cmd += f&#39;--tmoFerInvAlpha {inv_alpha} &#39;
+    cmd += f&#39;-o {tmpname_out} {tmpname}&#39;
+    run_command(cmd.split(&#39; &#39;))
+    data_tm = _load_tonemapped_tmpdata(tmpname_out)
+    os.remove(tmpname)
+    os.remove(tmpname_out)
+    return data_tm</code></pre>
+</details>
+</dd>
+<dt id="everystamp.tonemapping.lhdr.ferwerda"><code class="name flex">
+<span>def <span class="ident">ferwerda</span></span>(<span>data, multiplier: Optional[float] = None, luminance_adaptation: Optional[float] = None) ‑> numpy.ndarray</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Tonemap the image using the method described in Ferwerda et al. 1996.</p>
+<p>Parameters set to None will take their default values as set in LuminanceHDR.</p>
+<h2 id="args">Args</h2>
+<p>data : numpy.ndarray
+Input data to tonemap.
+multiplier : float
+Default is None.
+luminance_adaptation : float
+Default is None.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>data_tm </code></dt>
+<dd>numpy.ndarray
+Tonemapped data.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def ferwerda(data, multiplier: Optional[float] = None, luminance_adaptation: Optional[float] = None) -&gt; numpy.ndarray:
+    &#39;&#39;&#39; Tonemap the image using the method described in Ferwerda et al. 1996.
+
+    Parameters set to None will take their default values as set in LuminanceHDR.
+
+    Args:
+        data : numpy.ndarray
+            Input data to tonemap.
+        multiplier : float
+            Default is None.
+        luminance_adaptation : float
+            Default is None.
+
+    Returns:
+        data_tm : numpy.ndarray
+            Tonemapped data.
+    &#39;&#39;&#39;
+    tmpname = _store_tmpfile(data, &#39;tmp_ferwerda.fits&#39;)
+    tmpname_out = tmpname.replace(&#39;.fits&#39;, &#39;.tonemapped.tiff&#39;)
+    cmd = BASECOMMAND + &#39; -e 0 --tmo ferradans &#39;
+    if multiplier is not None:
+        cmd += f&#39;--tmoFerwerdaMul {multiplier} &#39;
+    if luminance_adaptation is not None:
+        cmd += f&#39;--tmoFerwerdaAdaptLum {luminance_adaptation} &#39;
+    cmd += f&#39;-o {tmpname_out} {tmpname}&#39;
+    run_command(cmd.split(&#39; &#39;))
+    data_tm = _load_tonemapped_tmpdata(tmpname_out)
+    os.remove(tmpname)
+    os.remove(tmpname_out)
+    return data_tm</code></pre>
+</details>
+</dd>
+<dt id="everystamp.tonemapping.lhdr.kimkautz"><code class="name flex">
+<span>def <span class="ident">kimkautz</span></span>(<span>data, c1: Optional[float] = None, c2: Optional[float] = None) ‑> numpy.ndarray</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Tonemap the image using the human vision based method described in Kim and Kaus 2008.</p>
+<p>Parameters set to None will take their default values as set in LuminanceHDR.</p>
+<h2 id="args">Args</h2>
+<p>data : numpy.ndarray
+Input data to tonemap.
+c1 : float
+Default is None.
+c2 : float
+Default is None.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>data_tm </code></dt>
+<dd>numpy.ndarray
+Tonemapped data.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def kimkautz(data, c1: Optional[float] = None, c2: Optional[float] = None) -&gt; numpy.ndarray:
+    &#39;&#39;&#39; Tonemap the image using the human vision based method described in Kim and Kaus 2008.
+
+    Parameters set to None will take their default values as set in LuminanceHDR.
+
+    Args:
+        data : numpy.ndarray
+            Input data to tonemap.
+        c1 : float
+            Default is None.
+        c2 : float
+            Default is None.
+
+    Returns:
+        data_tm : numpy.ndarray
+            Tonemapped data.
+    &#39;&#39;&#39;
+    tmpname = _store_tmpfile(data, &#39;tmp_kimkautz.fits&#39;)
+    tmpname_out = tmpname.replace(&#39;.fits&#39;, &#39;.tonemapped.tiff&#39;)
+    cmd = BASECOMMAND + &#39; -e 0 --tmo kimkautz &#39;
+    if c1 is not None:
+        cmd += f&#39;--tmoKimKautzC1 {c1} &#39;
+    if c2 is not None:
+        cmd += f&#39;--tmoKimKautzC2 {c2} &#39;
+    cmd += f&#39;-o {tmpname_out} {tmpname}&#39;
+    run_command(cmd.split(&#39; &#39;))
+    data_tm = _load_tonemapped_tmpdata(tmpname_out)
+    os.remove(tmpname)
+    os.remove(tmpname_out)
+    return data_tm</code></pre>
+</details>
+</dd>
+<dt id="everystamp.tonemapping.lhdr.lischinski"><code class="name flex">
+<span>def <span class="ident">lischinski</span></span>(<span>data, alpha: Optional[float] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Tonemap the image using the method described in Lischinski et al. 2006.</p>
+<p>Parameters set to None will take their default values as set in LuminanceHDR.</p>
+<h2 id="args">Args</h2>
+<p>data : numpy.ndarray
+Input data to tonemap.
+alpha : float
+Default: None.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>data_tm </code></dt>
+<dd>numpy.ndarray
+Tonemapped data.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def lischinski(data, alpha: Optional[float] = None):
+    &#39;&#39;&#39; Tonemap the image using the method described in Lischinski et al. 2006.
+
+    Parameters set to None will take their default values as set in LuminanceHDR.
+
+    Args:
+        data : numpy.ndarray
+            Input data to tonemap.
+        alpha : float
+            Default: None.
+
+    Returns:
+        data_tm : numpy.ndarray
+            Tonemapped data.
+    &#39;&#39;&#39;
+    tmpname = _store_tmpfile(data, &#39;tmp_lischinski.fits&#39;)
+    tmpname_out = tmpname.replace(&#39;.fits&#39;, &#39;.tonemapped.tiff&#39;)
+    cmd = BASECOMMAND + &#39; -e 0 --tmo lischinski &#39;
+    if alpha is not None:
+        cmd += f&#39;--tmoLischinskiAlpha {alpha} &#39;
+    cmd += f&#39;-o {tmpname_out} {tmpname}&#39;
+    run_command(cmd.split(&#39; &#39;))
+    data_tm = _load_tonemapped_tmpdata(tmpname_out)
+    os.remove(tmpname)
+    os.remove(tmpname_out)
+    return data_tm</code></pre>
+</details>
+</dd>
+<dt id="everystamp.tonemapping.lhdr.mantiuk06"><code class="name flex">
+<span>def <span class="ident">mantiuk06</span></span>(<span>data, contrast: Optional[float] = None, saturation: Optional[float] = None, detail: Optional[float] = None, contrast_equalisation: bool = False) ‑> numpy.ndarray</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Tonemap the image using the human vision based method described in Mantiuk 2006.</p>
+<p>Parameters set to None will take their default values as set in LuminanceHDR.</p>
+<h2 id="args">Args</h2>
+<p>data : numpy.ndarray
+Input data to tonemap.
+contrast : float
+Default is None.
+saturation : float
+Default is None.
+detail : float
+Default is None.
+contrast_equalisation : bool
+Default is False.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>data_tm </code></dt>
+<dd>numpy.ndarray
+Tonemapped data.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def mantiuk06(data, contrast: Optional[float] = None, saturation: Optional[float] = None, detail: Optional[float] = None, contrast_equalisation: bool = False) -&gt; numpy.ndarray:
+    &#39;&#39;&#39; Tonemap the image using the human vision based method described in Mantiuk 2006.
+
+    Parameters set to None will take their default values as set in LuminanceHDR.
+
+    Args:
+        data : numpy.ndarray
+            Input data to tonemap.
+        contrast : float
+            Default is None.
+        saturation : float
+            Default is None.
+        detail : float
+            Default is None.
+        contrast_equalisation : bool
+            Default is False.
+
+    Returns:
+        data_tm : numpy.ndarray
+            Tonemapped data.
+    &#39;&#39;&#39;
+    tmpname = _store_tmpfile(data, &#39;tmp_mantiuk06.fits&#39;)
+    tmpname_out = tmpname.replace(&#39;.fits&#39;, &#39;.tonemapped.tiff&#39;)
+    cmd = BASECOMMAND + &#39; -e 0 --tmo mantiuk06 &#39;
+    if contrast is not None:
+        cmd += f&#39;--tmoM06Contrast {contrast} &#39;
+    if saturation is not None:
+        cmd += f&#39;--tmoM06Saturation {saturation} &#39;
+    if detail is not None:
+        cmd += f&#39;--tmoM06Detail {detail} &#39;
+    cmd += f&#39;--tmoM06ContrastEqual {contrast_equalisation} &#39;
+    cmd += f&#39;-o {tmpname_out} {tmpname}&#39;
+    run_command(cmd.split(&#39; &#39;))
+    data_tm = _load_tonemapped_tmpdata(tmpname_out)
+    os.remove(tmpname)
+    os.remove(tmpname_out)
+    return data_tm</code></pre>
+</details>
+</dd>
+<dt id="everystamp.tonemapping.lhdr.mantiuk08"><code class="name flex">
+<span>def <span class="ident">mantiuk08</span></span>(<span>data, contrast_enhancement: Optional[float] = None, colour_saturation: Optional[float] = None, luminance_level: Optional[float] = None, set_luminance: bool = False) ‑> numpy.ndarray</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Tonemap the image using the human vision based method described in Mantiuk 2008.</p>
+<p>Parameters set to None will take their default values as set in LuminanceHDR.</p>
+<h2 id="args">Args</h2>
+<p>data : numpy.ndarray
+Input data to tonemap.
+contrast_enhancement : float
+Default is None.
+colour_saturation : float
+Default is None.
+luminance_level : float
+Used when set_luminance is True. Default is None.
+set_luminance : bool
+Default is False</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>data_tm </code></dt>
+<dd>numpy.ndarray
+Tonemapped data.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def mantiuk08(data, contrast_enhancement: Optional[float] = None, colour_saturation: Optional[float] = None, luminance_level: Optional[float] = None, set_luminance: bool = False) -&gt; numpy.ndarray:
+    &#39;&#39;&#39; Tonemap the image using the human vision based method described in Mantiuk 2008.
+
+    Parameters set to None will take their default values as set in LuminanceHDR.
+
+    Args:
+        data : numpy.ndarray
+            Input data to tonemap.
+        contrast_enhancement : float
+            Default is None.
+        colour_saturation : float
+            Default is None.
+        luminance_level : float
+            Used when set_luminance is True. Default is None.
+        set_luminance : bool
+            Default is False
+
+    Returns:
+        data_tm : numpy.ndarray
+            Tonemapped data.
+    &#39;&#39;&#39;
+    tmpname = _store_tmpfile(data, &#39;tmp_mantiuk08.fits&#39;)
+    tmpname_out = tmpname.replace(&#39;.fits&#39;, &#39;.tonemapped.tiff&#39;)
+    cmd = BASECOMMAND + &#39; -e 0 --tmo mantiuk08 &#39;
+    if colour_saturation is not None:
+        cmd += f&#39;--tmoM08ColorSaturation {colour_saturation} &#39;
+    if contrast_enhancement is not None:
+        cmd += f&#39;--tmoM08ContrastEnh {contrast_enhancement} &#39;
+    if luminance_level is not None:
+        cmd += f&#39;--tmoM08LuminanceLvl {luminance_level} &#39;
+    cmd += f&#39;--tmoM08SetLuminance {set_luminance} &#39;
+    cmd += f&#39;-o {tmpname_out} {tmpname}&#39;
+    run_command(cmd.split(&#39; &#39;))
+    data_tm = _load_tonemapped_tmpdata(tmpname_out)
+    os.remove(tmpname)
+    os.remove(tmpname_out)
+    return data_tm</code></pre>
+</details>
+</dd>
+<dt id="everystamp.tonemapping.lhdr.pattanaik"><code class="name flex">
+<span>def <span class="ident">pattanaik</span></span>(<span>data, multiplier: Optional[float] = None, local_tonemap: bool = True, auto_lum: bool = True, cone_level: Optional[float] = None, rod_level: Optional[float] = None) ‑> numpy.ndarray</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Tonemap the image using the human vision based method described in Pattanaik et al. 2000 and Pattanaik et al. 2002.</p>
+<p>Parameters set to None will take their default values as set in LuminanceHDR.</p>
+<h2 id="args">Args</h2>
+<p>data : numpy.ndarray
+Input data to tonemap.
+multiplier : float
+Default: None.
+local_tonemap : bool
+Default: True.
+auto_lum : bool
+Default: True.
+cone_level : float
+Default: None.
+rod_level : float
+Default: None.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>data_tm </code></dt>
+<dd>numpy.ndarray
+Tonemapped data.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def pattanaik(data, multiplier: Optional[float] = None, local_tonemap: bool = True, auto_lum: bool = True, cone_level: Optional[float] = None, rod_level: Optional[float] = None) -&gt; numpy.ndarray:
+    &#39;&#39;&#39; Tonemap the image using the human vision based method described in Pattanaik et al. 2000 and Pattanaik et al. 2002.
+
+    Parameters set to None will take their default values as set in LuminanceHDR.
+
+    Args:
+        data : numpy.ndarray
+            Input data to tonemap.
+        multiplier : float
+            Default: None.
+        local_tonemap : bool
+            Default: True.
+        auto_lum : bool
+            Default: True.
+        cone_level : float
+            Default: None.
+        rod_level : float
+            Default: None.
+
+    Returns:
+        data_tm : numpy.ndarray
+            Tonemapped data.
+    &#39;&#39;&#39;
+    tmpname = _store_tmpfile(data, &#39;tmp_pattanaik.fits&#39;)
+    tmpname_out = tmpname.replace(&#39;.fits&#39;, &#39;.tonemapped.tiff&#39;)
+    cmd = BASECOMMAND + &#39; -e 0 --tmo pattanaik &#39;
+    if multiplier is not None:
+        cmd += f&#39;--tmoPatMultiplier {multiplier} &#39;
+    if cone_level is not None:
+        cmd += f&#39;--tmoPatCone {cone_level} &#39;
+    if rod_level is not None:
+        cmd += f&#39;--tmoPatCone {rod_level} &#39;
+    cmd += f&#39;--tmoPatLocal {local_tonemap} &#39;
+    cmd += f&#39;--tmoPatAutoLum {auto_lum} &#39;
+    cmd += f&#39;-o {tmpname_out} {tmpname}&#39;
+    run_command(cmd.split(&#39; &#39;))
+    data_tm = _load_tonemapped_tmpdata(tmpname_out)
+    os.remove(tmpname)
+    os.remove(tmpname_out)
+    return data_tm</code></pre>
+</details>
+</dd>
+<dt id="everystamp.tonemapping.lhdr.reinhard02"><code class="name flex">
+<span>def <span class="ident">reinhard02</span></span>(<span>data, key: Optional[float] = None, phi: Optional[float] = None, use_scales: bool = True, range: Optional[float] = None, low: Optional[float] = None, high: Optional[float] = None) ‑> numpy.ndarray</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Tonemap the image using the human vision based method described in Mantiuk 2008.</p>
+<p>Parameters set to None will take their default values as set in LuminanceHDR.</p>
+<h2 id="args">Args</h2>
+<p>data : numpy.ndarray
+Input data to tonemap.
+key : float
+Default: None.
+phi : float
+Default: None.
+use_scales : bool
+Default: True.
+range : float
+Default: None.
+low : float
+Default: None.
+high : float
+Default: None.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>data_tm </code></dt>
+<dd>numpy.ndarray
+Tonemapped data.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def reinhard02(data, key: Optional[float] = None, phi: Optional[float] = None, use_scales: bool = True, range: Optional[float] = None, low: Optional[float] = None, high: Optional[float] = None) -&gt; numpy.ndarray:
+    &#39;&#39;&#39; Tonemap the image using the human vision based method described in Mantiuk 2008.
+
+    Parameters set to None will take their default values as set in LuminanceHDR.
+
+    Args:
+        data : numpy.ndarray
+            Input data to tonemap.
+        key : float
+            Default: None.
+        phi : float
+            Default: None.
+        use_scales : bool
+            Default: True.
+        range : float
+            Default: None.
+        low : float
+            Default: None.
+        high : float
+            Default: None.
+
+    Returns:
+        data_tm : numpy.ndarray
+            Tonemapped data.
+    &#39;&#39;&#39;
+    tmpname = _store_tmpfile(data, &#39;tmp_reinhard02.fits&#39;)
+    tmpname_out = tmpname.replace(&#39;.fits&#39;, &#39;.tonemapped.tiff&#39;)
+    cmd = BASECOMMAND + &#39; -e 0 --tmo reinhard02 &#39;
+    if key is not None:
+        cmd += f&#39;--tmoR02Key {key} &#39;
+    if phi is not None:
+        cmd += f&#39;--tmoR02Phi {phi} &#39;
+    if use_scales is not None:
+        cmd += f&#39;--tmoR02Scales {use_scales} &#39;
+    if range is not None:
+        cmd += f&#39;--tmoR02Num {range} &#39;
+    if low is not None:
+        cmd += f&#39;--tmoR02Low {low} &#39;
+    if high is not None:
+        cmd += f&#39;--tmoR02High {high} &#39;
+    cmd += f&#39;-o {tmpname_out} {tmpname}&#39;
+    run_command(cmd.split(&#39; &#39;))
+    data_tm = _load_tonemapped_tmpdata(tmpname_out)
+    os.remove(tmpname)
+    os.remove(tmpname_out)
+    return data_tm</code></pre>
+</details>
+</dd>
+<dt id="everystamp.tonemapping.lhdr.reinhard05"><code class="name flex">
+<span>def <span class="ident">reinhard05</span></span>(<span>data, brightness: Optional[float] = None, chroma: Optional[float] = None, lightness: Optional[float] = None) ‑> numpy.ndarray</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Tonemap the image using the human vision based method described in Reinhard 2005.</p>
+<p>Parameters set to None will take their default values as set in LuminanceHDR.</p>
+<h2 id="args">Args</h2>
+<p>data : numpy.ndarray
+Input data to tonemap.
+brightness : float
+Default: None.
+chroma : float
+Default: None.
+lightness : float
+Default: None.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>data_tm </code></dt>
+<dd>numpy.ndarray
+Tonemapped data.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def reinhard05(data, brightness: Optional[float] = None, chroma: Optional[float] = None, lightness: Optional[float] = None) -&gt; numpy.ndarray:
+    &#39;&#39;&#39; Tonemap the image using the human vision based method described in Reinhard 2005.
+
+    Parameters set to None will take their default values as set in LuminanceHDR.
+
+    Args:
+        data : numpy.ndarray
+            Input data to tonemap.
+        brightness : float
+            Default: None.
+        chroma : float
+            Default: None.
+        lightness : float
+            Default: None.
+
+    Returns:
+        data_tm : numpy.ndarray
+            Tonemapped data.
+    &#39;&#39;&#39;
+    tmpname = _store_tmpfile(data, &#39;tmp_reinhard05.fits&#39;)
+    tmpname_out = tmpname.replace(&#39;.fits&#39;, &#39;.tonemapped.tiff&#39;)
+    cmd = BASECOMMAND + &#39; -e 0 --tmo reinhard05 &#39;
+    if brightness is not None:
+        cmd += f&#39;--tmoR05Brightness {brightness} &#39;
+    if chroma is not None:
+        cmd += f&#39;--tmoR05Chroma {chroma} &#39;
+    if lightness is not None:
+        cmd += f&#39;--tmoR05Lightness {lightness} &#39;
+    cmd += f&#39;-o {tmpname_out} {tmpname}&#39;
+    run_command(cmd.split(&#39; &#39;))
+    data_tm = _load_tonemapped_tmpdata(tmpname_out)
+    os.remove(tmpname)
+    os.remove(tmpname_out)
+    return data_tm</code></pre>
+</details>
+</dd>
+<dt id="everystamp.tonemapping.lhdr.run_command"><code class="name flex">
+<span>def <span class="ident">run_command</span></span>(<span>cmd: Union[list, str]) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Run a command through subprocess.</p>
+<h2 id="args">Args</h2>
+<p>cmd : list
+List of arguments building up the command or a string of the full command.</p>
+<h2 id="returns">Returns</h2>
+<p>None</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def run_command(cmd: Union[list, str]) -&gt; None:
+    &#39;&#39;&#39; Run a command through subprocess.
+    
+    Args:
+        cmd : list
+            List of arguments building up the command or a string of the full command.
+    
+    Returns:
+        None
+    &#39;&#39;&#39;
+    print(&#39;Running command:&#39;, &#39; &#39;.join(cmd))
+    try:
+        if type(cmd) is list:
+            subprocess.run(cmd)
+        elif type(cmd) is str:
+            subprocess.run(cmd.split(&#39; &#39;))
+        else:
+            raise ValueError(&#39;Malformed command: &#39;, cmd)
+    except subprocess.CalledProcessError as e:
+        print(&#34;Tone mapping failed with error code&#34;, e.returncode)
+        print(e.output)</code></pre>
+</details>
+</dd>
+<dt id="everystamp.tonemapping.lhdr.vanhateren"><code class="name flex">
+<span>def <span class="ident">vanhateren</span></span>(<span>data, pupil_area: Optional[float] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Tonemap the image using the method described in van Hateren 2006.</p>
+<p>Parameters set to None will take their default values as set in LuminanceHDR.</p>
+<h2 id="args">Args</h2>
+<p>data : numpy.ndarray
+Input data to tonemap.
+pupil_area : float
+Default: None.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>data_tm </code></dt>
+<dd>numpy.ndarray
+Tonemapped data.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def vanhateren(data, pupil_area: Optional[float] = None):
+    &#39;&#39;&#39; Tonemap the image using the method described in van Hateren 2006.
+
+    Parameters set to None will take their default values as set in LuminanceHDR.
+
+    Args:
+        data : numpy.ndarray
+            Input data to tonemap.
+        pupil_area : float
+            Default: None.
+
+    Returns:
+        data_tm : numpy.ndarray
+            Tonemapped data.
+    &#39;&#39;&#39;
+    tmpname = _store_tmpfile(data, &#39;tmp_vanhateren.fits&#39;)
+    tmpname_out = tmpname.replace(&#39;.fits&#39;, &#39;.tonemapped.tiff&#39;)
+    cmd = BASECOMMAND + &#39; -e 0 --tmo vanhateren &#39;
+    if pupil_area is not None:
+        cmd += f&#39;--tmoVanHaterenPupilArea {pupil_area} &#39;
+    cmd += f&#39;-o {tmpname_out} {tmpname}&#39;
+    run_command(cmd.split(&#39; &#39;))
+    data_tm = _load_tonemapped_tmpdata(tmpname_out)
+    os.remove(tmpname)
+    os.remove(tmpname_out)
+    return data_tm</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="everystamp.tonemapping" href="index.html">everystamp.tonemapping</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="two-column">
+<li><code><a title="everystamp.tonemapping.lhdr.ashikmin" href="#everystamp.tonemapping.lhdr.ashikmin">ashikmin</a></code></li>
+<li><code><a title="everystamp.tonemapping.lhdr.drago" href="#everystamp.tonemapping.lhdr.drago">drago</a></code></li>
+<li><code><a title="everystamp.tonemapping.lhdr.duran" href="#everystamp.tonemapping.lhdr.duran">duran</a></code></li>
+<li><code><a title="everystamp.tonemapping.lhdr.fattal" href="#everystamp.tonemapping.lhdr.fattal">fattal</a></code></li>
+<li><code><a title="everystamp.tonemapping.lhdr.ferradans" href="#everystamp.tonemapping.lhdr.ferradans">ferradans</a></code></li>
+<li><code><a title="everystamp.tonemapping.lhdr.ferwerda" href="#everystamp.tonemapping.lhdr.ferwerda">ferwerda</a></code></li>
+<li><code><a title="everystamp.tonemapping.lhdr.kimkautz" href="#everystamp.tonemapping.lhdr.kimkautz">kimkautz</a></code></li>
+<li><code><a title="everystamp.tonemapping.lhdr.lischinski" href="#everystamp.tonemapping.lhdr.lischinski">lischinski</a></code></li>
+<li><code><a title="everystamp.tonemapping.lhdr.mantiuk06" href="#everystamp.tonemapping.lhdr.mantiuk06">mantiuk06</a></code></li>
+<li><code><a title="everystamp.tonemapping.lhdr.mantiuk08" href="#everystamp.tonemapping.lhdr.mantiuk08">mantiuk08</a></code></li>
+<li><code><a title="everystamp.tonemapping.lhdr.pattanaik" href="#everystamp.tonemapping.lhdr.pattanaik">pattanaik</a></code></li>
+<li><code><a title="everystamp.tonemapping.lhdr.reinhard02" href="#everystamp.tonemapping.lhdr.reinhard02">reinhard02</a></code></li>
+<li><code><a title="everystamp.tonemapping.lhdr.reinhard05" href="#everystamp.tonemapping.lhdr.reinhard05">reinhard05</a></code></li>
+<li><code><a title="everystamp.tonemapping.lhdr.run_command" href="#everystamp.tonemapping.lhdr.run_command">run_command</a></code></li>
+<li><code><a title="everystamp.tonemapping.lhdr.vanhateren" href="#everystamp.tonemapping.lhdr.vanhateren">vanhateren</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>
