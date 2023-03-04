@@ -1,0 +1,17 @@
+title: EveryStamp
+description: For when the stamp needs stamp
+remote_theme: just-the-docs/just-the-docs
+
+url: https://tikk3r.github.io/EveryStamp/
+
+
+callouts:
+  warning:
+    title: Warning
+    color: red
+  important:
+    title: Important
+    color: blue
+
+aux_links:
+  Recipes on GitHub: https://github.com/tikk3r/EveryStamp/
