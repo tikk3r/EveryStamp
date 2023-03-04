@@ -38,25 +38,70 @@ import matplotlib.pyplot as plt
 
 
 class BasicPlot():
+    &#39;&#39;&#39; Creates a basic plot of a FITS file.&#39;&#39;&#39;
     def __init__(self, fitsname):
+        &#39;&#39;&#39; Initialise a basic plotting object for 2D FITS files.
+        
+        Args:
+            fitsname : str
+                Name of the FITS file that will be plotted.
+        &#39;&#39;&#39;
         self.dpi = 300
+        self.figsize = (12, 8)
         self.fitsimage = fitsname
         self.fitsdata = fits.getdata(fitsname).squeeze()
+        if len(self.fitsdata.shape) &gt; 2:
+            raise NotImplementedError(&#39;Supplied FITS file appears to have dimensions besides RA and DEC. BasicPlot only supports 2D FITS files.&#39;)
         self.data = self.fitsdata
         self.wcs = WCS(fits.getheader(fitsname)).celestial
 
-    def plot2D(self):
-        figsize = (self.fitsdata.shape[0] // self.dpi, self.fitsdata.shape[1] // self.dpi)
+    def plot2D(self, plot_colourbar=False):
+        &#39;&#39;&#39; Save a 2D plot of the loaded FITS file.
+
+        Args:
+            plot_colourbar : bool
+                Add a colour bar to the plot.
+        &#39;&#39;&#39;
+        figsize = [self.fitsdata.shape[0] // self.dpi, self.fitsdata.shape[1] // self.dpi]
+        if figsize[0] &lt; 12:
+            figsize[0] = 12
+        if figsize[1] &lt; 8:
+            figsize[1] = 8
         fig = figure(figsize=figsize, dpi=self.dpi)
         ax = fig.add_subplot(111, projection=self.wcs)
         if self.data is not None:
-            print(&#39;bla&#39;)
             im = ax.imshow(self.data, origin=&#39;lower&#39;, interpolation=&#39;none&#39;)
         else:
             ax.imshow(self.fitsdata, origin=&#39;lower&#39;, interpolation=&#39;none&#39;)
         ax.set(xlabel=&#39;Right ascension&#39;, ylabel=&#39;Declination&#39;)
-        plt.colorbar(im)
-        fig.savefig(self.fitsimage.replace(&#39;fits&#39;, &#39;png&#39;), bbox_inches=&#39;tight&#39;, dpi=self.dpi)</code></pre>
+        if plot_colourbar:
+            plt.colorbar(im)
+        fig.savefig(self.fitsimage.replace(&#39;fits&#39;, &#39;png&#39;), bbox_inches=&#39;tight&#39;, dpi=self.dpi)
+
+    def plot_noaxes(self):
+        &#39;&#39;&#39; Save a plot of the FITS image without any axes.&#39;&#39;&#39;
+        figsize = [self.fitsdata.shape[0] // self.dpi, self.fitsdata.shape[1] // self.dpi]
+        fig = figure(figsize=figsize)
+        ax = fig.add_subplot(111)
+        if self.data is not None:
+            ax.imshow(self.data, origin=&#39;lower&#39;, interpolation=&#39;none&#39;)
+        else:
+            ax.imshow(self.fitsdata, origin=&#39;lower&#39;, interpolation=&#39;none&#39;)
+        ax.xaxis.set_visible(False)
+        ax.yaxis.set_visible(False)
+        plt.gca().set_axis_off()
+        plt.subplots_adjust(top=1, bottom=0, right=1, left=0, hspace=0, wspace=0)
+        plt.margins(0, 0)
+        plt.gca().xaxis.set_major_locator(plt.NullLocator())
+        plt.gca().yaxis.set_major_locator(plt.NullLocator())
+        fig.savefig(self.fitsimage.replace(&#39;.fits&#39;, &#39;.noaxes.png&#39;), bbox_inches=&#39;tight&#39;, pad_inches=0, transparent=True, dpi=self.dpi)
+
+    def savedata(self, outfile):
+        &#39;&#39;&#39; Save data of a BasicPlot object to a FITS file with the same WCS information.
+        
+        Any tonemapping applied to the original data will be carried over to the FITS file. Physical units will thus be lost.
+        &#39;&#39;&#39;
+        fits.writeto(data=self.data, header=self.wcs.to_header(), filename=outfile, overwrite=True)</code></pre>
 </details>
 </section>
 <section>
@@ -73,55 +118,163 @@ class BasicPlot():
 <span>(</span><span>fitsname)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Creates a basic plot of a FITS file.</p>
+<p>Initialise a basic plotting object for 2D FITS files.</p>
+<h2 id="args">Args</h2>
+<p>fitsname : str
+Name of the FITS file that will be plotted.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class BasicPlot():
+    &#39;&#39;&#39; Creates a basic plot of a FITS file.&#39;&#39;&#39;
     def __init__(self, fitsname):
+        &#39;&#39;&#39; Initialise a basic plotting object for 2D FITS files.
+        
+        Args:
+            fitsname : str
+                Name of the FITS file that will be plotted.
+        &#39;&#39;&#39;
         self.dpi = 300
+        self.figsize = (12, 8)
         self.fitsimage = fitsname
         self.fitsdata = fits.getdata(fitsname).squeeze()
+        if len(self.fitsdata.shape) &gt; 2:
+            raise NotImplementedError(&#39;Supplied FITS file appears to have dimensions besides RA and DEC. BasicPlot only supports 2D FITS files.&#39;)
         self.data = self.fitsdata
         self.wcs = WCS(fits.getheader(fitsname)).celestial
 
-    def plot2D(self):
-        figsize = (self.fitsdata.shape[0] // self.dpi, self.fitsdata.shape[1] // self.dpi)
+    def plot2D(self, plot_colourbar=False):
+        &#39;&#39;&#39; Save a 2D plot of the loaded FITS file.
+
+        Args:
+            plot_colourbar : bool
+                Add a colour bar to the plot.
+        &#39;&#39;&#39;
+        figsize = [self.fitsdata.shape[0] // self.dpi, self.fitsdata.shape[1] // self.dpi]
+        if figsize[0] &lt; 12:
+            figsize[0] = 12
+        if figsize[1] &lt; 8:
+            figsize[1] = 8
         fig = figure(figsize=figsize, dpi=self.dpi)
         ax = fig.add_subplot(111, projection=self.wcs)
         if self.data is not None:
-            print(&#39;bla&#39;)
             im = ax.imshow(self.data, origin=&#39;lower&#39;, interpolation=&#39;none&#39;)
         else:
             ax.imshow(self.fitsdata, origin=&#39;lower&#39;, interpolation=&#39;none&#39;)
         ax.set(xlabel=&#39;Right ascension&#39;, ylabel=&#39;Declination&#39;)
-        plt.colorbar(im)
-        fig.savefig(self.fitsimage.replace(&#39;fits&#39;, &#39;png&#39;), bbox_inches=&#39;tight&#39;, dpi=self.dpi)</code></pre>
+        if plot_colourbar:
+            plt.colorbar(im)
+        fig.savefig(self.fitsimage.replace(&#39;fits&#39;, &#39;png&#39;), bbox_inches=&#39;tight&#39;, dpi=self.dpi)
+
+    def plot_noaxes(self):
+        &#39;&#39;&#39; Save a plot of the FITS image without any axes.&#39;&#39;&#39;
+        figsize = [self.fitsdata.shape[0] // self.dpi, self.fitsdata.shape[1] // self.dpi]
+        fig = figure(figsize=figsize)
+        ax = fig.add_subplot(111)
+        if self.data is not None:
+            ax.imshow(self.data, origin=&#39;lower&#39;, interpolation=&#39;none&#39;)
+        else:
+            ax.imshow(self.fitsdata, origin=&#39;lower&#39;, interpolation=&#39;none&#39;)
+        ax.xaxis.set_visible(False)
+        ax.yaxis.set_visible(False)
+        plt.gca().set_axis_off()
+        plt.subplots_adjust(top=1, bottom=0, right=1, left=0, hspace=0, wspace=0)
+        plt.margins(0, 0)
+        plt.gca().xaxis.set_major_locator(plt.NullLocator())
+        plt.gca().yaxis.set_major_locator(plt.NullLocator())
+        fig.savefig(self.fitsimage.replace(&#39;.fits&#39;, &#39;.noaxes.png&#39;), bbox_inches=&#39;tight&#39;, pad_inches=0, transparent=True, dpi=self.dpi)
+
+    def savedata(self, outfile):
+        &#39;&#39;&#39; Save data of a BasicPlot object to a FITS file with the same WCS information.
+        
+        Any tonemapping applied to the original data will be carried over to the FITS file. Physical units will thus be lost.
+        &#39;&#39;&#39;
+        fits.writeto(data=self.data, header=self.wcs.to_header(), filename=outfile, overwrite=True)</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
 <dt id="everystamp.plotters.BasicPlot.plot2D"><code class="name flex">
-<span>def <span class="ident">plot2D</span></span>(<span>self)</span>
+<span>def <span class="ident">plot2D</span></span>(<span>self, plot_colourbar=False)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Save a 2D plot of the loaded FITS file.</p>
+<h2 id="args">Args</h2>
+<p>plot_colourbar : bool
+Add a colour bar to the plot.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def plot2D(self):
-    figsize = (self.fitsdata.shape[0] // self.dpi, self.fitsdata.shape[1] // self.dpi)
+<pre><code class="python">def plot2D(self, plot_colourbar=False):
+    &#39;&#39;&#39; Save a 2D plot of the loaded FITS file.
+
+    Args:
+        plot_colourbar : bool
+            Add a colour bar to the plot.
+    &#39;&#39;&#39;
+    figsize = [self.fitsdata.shape[0] // self.dpi, self.fitsdata.shape[1] // self.dpi]
+    if figsize[0] &lt; 12:
+        figsize[0] = 12
+    if figsize[1] &lt; 8:
+        figsize[1] = 8
     fig = figure(figsize=figsize, dpi=self.dpi)
     ax = fig.add_subplot(111, projection=self.wcs)
     if self.data is not None:
-        print(&#39;bla&#39;)
         im = ax.imshow(self.data, origin=&#39;lower&#39;, interpolation=&#39;none&#39;)
     else:
         ax.imshow(self.fitsdata, origin=&#39;lower&#39;, interpolation=&#39;none&#39;)
     ax.set(xlabel=&#39;Right ascension&#39;, ylabel=&#39;Declination&#39;)
-    plt.colorbar(im)
+    if plot_colourbar:
+        plt.colorbar(im)
     fig.savefig(self.fitsimage.replace(&#39;fits&#39;, &#39;png&#39;), bbox_inches=&#39;tight&#39;, dpi=self.dpi)</code></pre>
+</details>
+</dd>
+<dt id="everystamp.plotters.BasicPlot.plot_noaxes"><code class="name flex">
+<span>def <span class="ident">plot_noaxes</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Save a plot of the FITS image without any axes.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def plot_noaxes(self):
+    &#39;&#39;&#39; Save a plot of the FITS image without any axes.&#39;&#39;&#39;
+    figsize = [self.fitsdata.shape[0] // self.dpi, self.fitsdata.shape[1] // self.dpi]
+    fig = figure(figsize=figsize)
+    ax = fig.add_subplot(111)
+    if self.data is not None:
+        ax.imshow(self.data, origin=&#39;lower&#39;, interpolation=&#39;none&#39;)
+    else:
+        ax.imshow(self.fitsdata, origin=&#39;lower&#39;, interpolation=&#39;none&#39;)
+    ax.xaxis.set_visible(False)
+    ax.yaxis.set_visible(False)
+    plt.gca().set_axis_off()
+    plt.subplots_adjust(top=1, bottom=0, right=1, left=0, hspace=0, wspace=0)
+    plt.margins(0, 0)
+    plt.gca().xaxis.set_major_locator(plt.NullLocator())
+    plt.gca().yaxis.set_major_locator(plt.NullLocator())
+    fig.savefig(self.fitsimage.replace(&#39;.fits&#39;, &#39;.noaxes.png&#39;), bbox_inches=&#39;tight&#39;, pad_inches=0, transparent=True, dpi=self.dpi)</code></pre>
+</details>
+</dd>
+<dt id="everystamp.plotters.BasicPlot.savedata"><code class="name flex">
+<span>def <span class="ident">savedata</span></span>(<span>self, outfile)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Save data of a BasicPlot object to a FITS file with the same WCS information.</p>
+<p>Any tonemapping applied to the original data will be carried over to the FITS file. Physical units will thus be lost.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def savedata(self, outfile):
+    &#39;&#39;&#39; Save data of a BasicPlot object to a FITS file with the same WCS information.
+    
+    Any tonemapping applied to the original data will be carried over to the FITS file. Physical units will thus be lost.
+    &#39;&#39;&#39;
+    fits.writeto(data=self.data, header=self.wcs.to_header(), filename=outfile, overwrite=True)</code></pre>
 </details>
 </dd>
 </dl>
@@ -146,6 +299,8 @@ class BasicPlot():
 <h4><code><a title="everystamp.plotters.BasicPlot" href="#everystamp.plotters.BasicPlot">BasicPlot</a></code></h4>
 <ul class="">
 <li><code><a title="everystamp.plotters.BasicPlot.plot2D" href="#everystamp.plotters.BasicPlot.plot2D">plot2D</a></code></li>
+<li><code><a title="everystamp.plotters.BasicPlot.plot_noaxes" href="#everystamp.plotters.BasicPlot.plot_noaxes">plot_noaxes</a></code></li>
+<li><code><a title="everystamp.plotters.BasicPlot.savedata" href="#everystamp.plotters.BasicPlot.savedata">savedata</a></code></li>
 </ul>
 </li>
 </ul>
