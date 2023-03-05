@@ -41,7 +41,7 @@ $$
 I_\mathrm{out} = I_\mathrm{in}^{1 / \gamma}
 $$
 
-A value of $\gamma = 2$ results in a square root stretch of the input image.
+A value of \(\gamma = 2\) results in a square root stretch of the input image.
 
 ## Contrast limited adaptive histogram equalisation
 [Contrast limited adaptive histogram equalisation](https://en.wikipedia.org/wiki/Adaptive_histogram_equalization) (CLAHE) tries to improve contrast in the image by applying a local histogram equalisation while simultaneously limiting the contrast enhancement in an attempt to reduce the amplification of noise. It is applied as a second-to-last step, before any gamma correction, and can be enabled by using `--CLAHE`. The `--CLAHE-gridsize` and `--CLAHE-cliplim` control the size of the local region and the amount of contrast enhancement, respectively.
