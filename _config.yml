@@ -16,3 +16,7 @@ callouts:
 
 aux_links:
   Recipes on GitHub: https://github.com/tikk3r/EveryStamp/
+
+markdown: redcarpet
+  redcarpet:
+    extensions: ['smart']
