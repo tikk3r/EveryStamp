@@ -5,7 +5,7 @@ nav_order: 1
 parent: General usage
 ---
 
-Downloading cutouts
+# Downloading cutouts
 {: .no_toc}
 This page gives a brief overview of how to download cutouts with EveryStamp and which surveys are supported.
 

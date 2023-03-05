@@ -19,3 +19,5 @@ aux_links:
 
 kramdown:
   gfm_quirks: [paragraph_end, no_auto_typographic]
+
+latex: mathjax
