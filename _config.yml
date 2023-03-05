@@ -18,4 +18,4 @@ aux_links:
   Recipes on GitHub: https://github.com/tikk3r/EveryStamp/
 
 kramdown:
-  mdash: --
+  gfm_quirks: [paragraph_end, no_auto_typographic]
