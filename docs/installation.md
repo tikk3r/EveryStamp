@@ -27,3 +27,6 @@ To manually install EveryStamp from source:
 > cd EveryStamp
 >
 > pip install .
+
+## Installing Luminance HDR
+For high dynamic range tonemapping functionality [Luminance HDR](https://github.com/LuminanceHDR/LuminanceHDR) must be installed separately. Installing EveryStamp will _not_ install LuminanceHDR.
