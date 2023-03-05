@@ -5,9 +5,9 @@ nav_order: 1
 parent: General usage
 ---
 
-# Installation
+Downloading cutouts
 {: .no_toc}
-This page describes basic usage of the LOFAR containers. For more detailed information about Apptainer in general, see the [Apptainer documentation](https://apptainer.org/docs/user/main/index.html).
+This page gives a brief overview of how to download cutouts with EveryStamp and which surveys are supported.
 
 ## Table of contents
 {: .no_toc .text-delta }
