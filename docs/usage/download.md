@@ -2,6 +2,7 @@
 title: Downloading cutouts
 layout: default
 nav_order: 1
+parent: General usage
 ---
 
 # Installation
