@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ''' Python library aiming to provide a wrapper around various astronomical surveys that offer cutouts.'''
-__version__ = '1.1.0'
+__version__ = '1.2.0'
 __author__ = 'Frits Sweijen'
 __license__ = 'GPLv3'
 from typing import Generator
@@ -14,6 +14,7 @@ import shutil
 
 from astroquery.skyview import SkyView #type: ignore
 from collections.abc import Iterable
+import cv2 #type: ignore
 import requests
 
 # Check if LuminanceHDR is installed.
@@ -238,11 +239,15 @@ def _process_args_plot(args):
             ArgumentParser instance to which to add entries.
     '''
     logger.info('Plotting image %s', args.image)
-    from everystamp.plotters import BasicPlot
+    from everystamp.plotters import BasicFITSPlot, BasicImagePlot
     from everystamp.tonemapping import gamma, make_nonnegative
     import numpy as np
     from everystamp.tonemapping.lhdr import ashikmin, drago, duran, fattal, ferradans, ferwerda, kimkautz, lischinski, mantiuk06, mantiuk08, reinhard02, reinhard05, pattanaik, vanhateren
-    bp = BasicPlot(args.image)
+    if args.image.lower().endswith('fits'):
+        bp = BasicFITSPlot(args.image)
+    else:
+        # Probably an image format.
+        bp = BasicImagePlot(args.image)
     if HAS_LHDR:
         if args.hdr_tonemap == 'ashikmin':
             logger.info('Tonemapping image with ashikmin')
@@ -287,18 +292,37 @@ def _process_args_plot(args):
             logger.info('Tonemapping with vanhateren')
             bp.data = vanhateren(bp.data, pupil_area=args.vanhateren_pupil_area)
     if args.CLAHE:
-        import cv2 #type: ignore
-        bp.data = make_nonnegative(bp.fitsdata)
-        bp.data /= np.nanmax(bp.data)
-        bp.data *= 2**16
-        bp.data = bp.data.astype(np.uint16)
-        clahe = cv2.createCLAHE(clipLimit=args.CLAHE_cliplim, tileGridSize=(args.CLAHE_gridsize, args.CLAHE_gridsize))
-        bp.data = clahe.apply(bp.data)
+        if args.image.lower().endswith('fits'):
+            bp.data = make_nonnegative(bp.fitsdata)
+            bp.data /= np.nanmax(bp.data)
+            bp.data *= 2**16
+            bp.data = bp.data.astype(np.uint16)
+            clahe = cv2.createCLAHE(clipLimit=args.CLAHE_cliplim, tileGridSize=(args.CLAHE_gridsize, args.CLAHE_gridsize))
+            bp.data = clahe.apply(bp.data)
+        else:
+            clahe = cv2.createCLAHE(clipLimit=args.CLAHE_cliplim, tileGridSize=(args.CLAHE_gridsize, args.CLAHE_gridsize))
+            Lab = cv2.cvtColor(bp.data, cv2.COLOR_RGB2Lab)
+            L, a, b = cv2.split(Lab)
+            L_clahe = clahe.apply(L)
+            Lab_clahe = cv2.merge((L_clahe, a, b))
+            # 0 flips vertically, 1 flips horizontally
+            bp.data = cv2.flip(cv2.cvtColor(Lab_clahe, cv2.COLOR_Lab2RGB), 0)
+
     if args.gamma:
-        bp.data = gamma(bp.data, args.gamma)
-    bp.savedata(args.image.replace('.fits', '.tonemapped.fits'))
+        if args.image.lower().endswith('fits'):
+            bp.data = gamma(bp.data, args.gamma)
+        else:
+            clahe = cv2.createCLAHE(clipLimit=args.CLAHE_cliplim, tileGridSize=(args.CLAHE_gridsize, args.CLAHE_gridsize))
+            Lab = cv2.cvtColor(bp.data, cv2.COLOR_RGB2Lab)
+            L, a, b = cv2.split(Lab)
+            L_gamma = gamma(L, args.gamma).astype(np.uint8)
+            Lab_gamma = cv2.merge((L_gamma, a, b))
+            # 0 flips vertically, 1 flips horizontally
+            bp.data = cv2.flip(cv2.cvtColor(Lab_gamma, cv2.COLOR_Lab2RGB), 0)
+    if args.image.lower().endswith('fits'):
+        bp.savedata(args.image.replace('.fits', '.tonemapped.fits'))
+        bp.plot_noaxes()
     bp.plot2D()
-    bp.plot_noaxes()
 
 
 def main():

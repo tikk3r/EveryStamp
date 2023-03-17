@@ -1,22 +1,23 @@
-'''Sub-module for plotting FITS images.'''
+"""Sub-module for plotting FITS images."""
 import os
 
 from astropy.io import fits
 from astropy.wcs import WCS
+from matplotlib.image import imread
 from matplotlib.pyplot import figure, show
 
 import matplotlib.pyplot as plt
 
 
-class BasicPlot():
-    ''' Creates a basic plot of a FITS file.'''
+class BasicFITSPlot():
+    """ Creates a basic plot of a FITS file."""
     def __init__(self, fitsname):
-        ''' Initialise a basic plotting object for 2D FITS files.
+        """ Initialise a basic plotting object for 2D FITS files.
         
         Args:
             fitsname : str
                 Name of the FITS file that will be plotted.
-        '''
+        """
         self.dpi = 300
         self.figsize = (12, 8)
         self.fitsimage = fitsname
@@ -27,12 +28,12 @@ class BasicPlot():
         self.wcs = WCS(fits.getheader(fitsname)).celestial
 
     def plot2D(self, plot_colourbar=False):
-        ''' Save a 2D plot of the loaded FITS file.
+        """ Save a 2D plot of the loaded FITS file.
 
         Args:
             plot_colourbar : bool
                 Add a colour bar to the plot.
-        '''
+        """
         figsize = [self.fitsdata.shape[0] // self.dpi, self.fitsdata.shape[1] // self.dpi]
         if figsize[0] < 12:
             figsize[0] = 12
@@ -50,7 +51,7 @@ class BasicPlot():
         fig.savefig(self.fitsimage.replace('fits', 'png'), bbox_inches='tight', dpi=self.dpi)
 
     def plot_noaxes(self):
-        ''' Save a plot of the FITS image without any axes.'''
+        """ Save a plot of the FITS image without any axes."""
         figsize = [self.fitsdata.shape[0] // self.dpi, self.fitsdata.shape[1] // self.dpi]
         fig = figure(figsize=figsize)
         ax = fig.add_subplot(111)
@@ -68,8 +69,54 @@ class BasicPlot():
         fig.savefig(self.fitsimage.replace('.fits', '.noaxes.png'), bbox_inches='tight', pad_inches=0, transparent=True, dpi=self.dpi)
 
     def savedata(self, outfile):
-        ''' Save data of a BasicPlot object to a FITS file with the same WCS information.
+        """ Save data of a BasicPlot object to a FITS file with the same WCS information.
         
         Any tonemapping applied to the original data will be carried over to the FITS file. Physical units will thus be lost.
-        '''
+        """
         fits.writeto(data=self.data, header=self.wcs.to_header(), filename=outfile, overwrite=True)
+
+
+class BasicImagePlot():
+    """ Creates a basic plot of a FITS file."""
+    def __init__(self, imname):
+        """ Initialise a basic plotting object for 2D FITS files.
+        
+        Args:
+            fitsname : str
+                Name of the FITS file that will be plotted.
+        """
+        self.dpi = 300
+        self.figsize = (12, 8)
+        self.image = imname
+        import cv2
+        self.imdata = cv2.imread(imname)
+        self.data = self.imdata
+
+    def plot2D(self):
+        """ Save a plot of the FITS image without any axes."""
+        figsize = [self.imdata.shape[0] // self.dpi, self.imdata.shape[1] // self.dpi]
+        fig = figure(figsize=figsize)
+        ax = fig.add_subplot(111)
+        if self.data is not None:
+            if self.data.max() > 1:
+                # Probably integer image.
+                ax.imshow(self.data.astype('uint8'), origin='lower', interpolation='none')
+            elif self.data.max() <= 1:
+                # Probably floating point image.
+                ax.imshow(self.data.astype(float), origin='lower', interpolation='none')
+        else:
+            if self.imdata.max() > 1:
+                # Probably integer image.
+                ax.imshow(self.imdata.astype('uint8'), origin='lower', interpolation='none')
+            elif self.imdata.max() <= 1:
+                # Probably floating point image.
+                ax.imshow(self.imdata.astype(float), origin='lower', interpolation='none')
+        ax.xaxis.set_visible(False)
+        ax.yaxis.set_visible(False)
+        plt.gca().set_axis_off()
+        plt.subplots_adjust(top=1, bottom=0, right=1, left=0, hspace=0, wspace=0)
+        plt.margins(0, 0)
+        plt.gca().xaxis.set_major_locator(plt.NullLocator())
+        plt.gca().yaxis.set_major_locator(plt.NullLocator())
+        file_ext = '.' + self.image.split('.')[-1]
+        fig.savefig(self.image.replace(file_ext, '.output.png'), bbox_inches='tight', pad_inches=0, transparent=True, dpi=self.dpi)
