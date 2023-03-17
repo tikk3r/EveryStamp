@@ -9,6 +9,7 @@ import argparse
 import logging
 logging.basicConfig(format='[%(name)s] %(asctime)s - %(levelname)s: %(message)s', level=logging.INFO)
 logger = logging.getLogger('EveryStamp')
+import os
 import shutil
 
 from astroquery.skyview import SkyView #type: ignore
@@ -178,6 +179,9 @@ def _process_args_download(args):
         parser : ArgumentParser
             ArgumentParser instance to which to add entries.
     '''
+    if not os.path.exists(args.ddir):
+        logger.info('Download directory does not exist, creating it')
+        os.mkdir(args.ddir)
     logger.info('Survey is %s', args.survey)
     if args.survey == 'legacy':
         from everystamp.downloaders import LegacyDownloader

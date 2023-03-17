@@ -525,11 +525,10 @@ class HiPSDownloader():
         else:
             self.hips = hips
         if not name:
-            self.name = self.hips
-            self.logger = logging.getLogger('EveryStamp:VODownloader')
+            self.name = self.hips.replace('/', '_')
         else:
             self.name = name
-            self.logger = logging.getLogger('EveryStamp:HiPSDownloader[{:s}]'.format(self.name))
+        self.logger = logging.getLogger('EveryStamp:HiPSDownloader[{:s}]'.format(self.name))
 
     def download(self, ra=0.0, dec=0.0, size=0.1, ddir=os.getcwd(), pixsize=1.0, mode='jpg'):
         ''' Download a cutout from the VLASS survey.
@@ -551,6 +550,9 @@ class HiPSDownloader():
         '''
         imsize = int(size / (pixsize / 3600))
         img = hips2fits.query(hips=self.hips, format=mode, width=imsize, height=imsize, projection='SIN', fov=size*u.deg, ra=ra*u.deg, dec=dec*u.deg)
+        if not os.path.exists(ddir):
+            self.logger.info('Download directory does not exist, creating it')
+            os.mkdir(ddir)
         if mode == 'jpg':
             from PIL import Image
             imdata = Image.fromarray(img)
