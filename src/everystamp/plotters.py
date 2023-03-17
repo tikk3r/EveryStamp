@@ -40,11 +40,17 @@ class BasicFITSPlot():
         if figsize[1] < 8:
             figsize[1] = 8
         fig = figure(figsize=figsize, dpi=self.dpi)
-        ax = fig.add_subplot(111, projection=self.wcs)
+        try:
+            ax = fig.add_subplot(111, projection=self.wcs)
+            origin='lower'
+        except IndexError:
+            print('WCS from FITS header broken or incompatible, ignoring.')
+            origin='upper'
+            ax = fig.add_subplot(111)
         if self.data is not None:
-            im = ax.imshow(self.data, origin='lower', interpolation='none')
+            im = ax.imshow(self.data, origin=origin, interpolation='none')
         else:
-            ax.imshow(self.fitsdata, origin='lower', interpolation='none')
+            ax.imshow(self.fitsdata, origin=origin, interpolation='none')
         ax.set(xlabel='Right ascension', ylabel='Declination')
         if plot_colourbar:
             plt.colorbar(im)
@@ -54,11 +60,17 @@ class BasicFITSPlot():
         """ Save a plot of the FITS image without any axes."""
         figsize = [self.fitsdata.shape[0] // self.dpi, self.fitsdata.shape[1] // self.dpi]
         fig = figure(figsize=figsize)
-        ax = fig.add_subplot(111)
+        try:
+            ax = fig.add_subplot(111, projection=self.wcs)
+            origin='lower'
+        except IndexError:
+            print('WCS from FITS header broken or incompatible, ignoring.')
+            origin='upper'
+            ax = fig.add_subplot(111)
         if self.data is not None:
-            ax.imshow(self.data, origin='lower', interpolation='none')
+            ax.imshow(self.data, origin=origin, interpolation='none')
         else:
-            ax.imshow(self.fitsdata, origin='lower', interpolation='none')
+            ax.imshow(self.fitsdata, origin=origin, interpolation='none')
         ax.xaxis.set_visible(False)
         ax.yaxis.set_visible(False)
         plt.gca().set_axis_off()

@@ -248,7 +248,10 @@ def _process_args_plot(args):
     else:
         # Probably an image format.
         bp = BasicImagePlot(args.image)
-    if HAS_LHDR:
+    if HAS_LHDR and args.hdr_tonemap:
+        Lab = cv2.cvtColor(bp.data, cv2.COLOR_RGB2Lab)
+        L, a, b = cv2.split(Lab)
+        bp.data = L
         if args.hdr_tonemap == 'ashikmin':
             logger.info('Tonemapping image with ashikmin')
             bp.data = ashikmin(bp.data, eq2=args.ashikmin_eq2, simple=args.ashikmin_simple, local_threshold=args.ashikmin_local_threshol)
@@ -291,6 +294,9 @@ def _process_args_plot(args):
         if args.hdr_tonemap == 'vanhateren':
             logger.info('Tonemapping with vanhateren')
             bp.data = vanhateren(bp.data, pupil_area=args.vanhateren_pupil_area)
+        Lab_hdr = cv2.merge((bp.data, a, b))
+        # 0 flips vertically, 1 flips horizontally
+        bp.data = cv2.flip(cv2.cvtColor(Lab_hdr, cv2.COLOR_Lab2RGB), 0)
     if args.CLAHE:
         if args.image.lower().endswith('fits'):
             bp.data = make_nonnegative(bp.fitsdata)
@@ -308,7 +314,7 @@ def _process_args_plot(args):
             # 0 flips vertically, 1 flips horizontally
             bp.data = cv2.flip(cv2.cvtColor(Lab_clahe, cv2.COLOR_Lab2RGB), 0)
 
-    if args.gamma:
+    if args.gamma != 1:
         if args.image.lower().endswith('fits'):
             bp.data = gamma(bp.data, args.gamma)
         else:
