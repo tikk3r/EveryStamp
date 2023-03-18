@@ -112,17 +112,17 @@ class BasicImagePlot():
         if self.data is not None:
             if self.data.max() > 1:
                 # Probably integer image.
-                ax.imshow(self.data.astype('uint8'), origin='lower', interpolation='none')
+                ax.imshow(self.data.astype('uint8'), origin='upper', interpolation='none')
             elif self.data.max() <= 1:
                 # Probably floating point image.
-                ax.imshow(self.data.astype(float), origin='lower', interpolation='none')
+                ax.imshow(self.data.astype(float), origin='upper', interpolation='none')
         else:
             if self.imdata.max() > 1:
                 # Probably integer image.
-                ax.imshow(self.imdata.astype('uint8'), origin='lower', interpolation='none')
+                ax.imshow(self.imdata.astype('uint8'), origin='upper', interpolation='none')
             elif self.imdata.max() <= 1:
                 # Probably floating point image.
-                ax.imshow(self.imdata.astype(float), origin='lower', interpolation='none')
+                ax.imshow(self.imdata.astype(float), origin='upper', interpolation='none')
         ax.xaxis.set_visible(False)
         ax.yaxis.set_visible(False)
         plt.gca().set_axis_off()

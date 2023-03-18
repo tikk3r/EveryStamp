@@ -248,9 +248,9 @@ def _process_args_plot(args):
     else:
         # Probably an image format.
         bp = BasicImagePlot(args.image)
-        Lab = cv2.cvtColor(bp.data.astype('uint8'), cv2.COLOR_RGB2Lab)
-        L, a, b = cv2.split(Lab)
-        bp.data = L
+        # Lab = cv2.cvtColor(bp.data.astype('uint8'), cv2.COLOR_RGB2Lab)
+        # L, a, b = cv2.split(Lab)
+        # bp.data = L
     if HAS_LHDR and args.hdr_tonemap:
         if args.hdr_tonemap == 'ashikmin':
             logger.info('Tonemapping image with ashikmin')
@@ -294,10 +294,10 @@ def _process_args_plot(args):
         if args.hdr_tonemap == 'vanhateren':
             logger.info('Tonemapping with vanhateren')
             bp.data = vanhateren(bp.data, pupil_area=args.vanhateren_pupil_area)
-        if not args.image.lower().endswith('fits'):
-            Lab_hdr = cv2.merge((bp.data, a, b))
-            # 0 flips vertically, 1 flips horizontally
-            bp.data = cv2.flip(cv2.cvtColor(Lab_hdr, cv2.COLOR_Lab2RGB), 0)
+        # if not args.image.lower().endswith('fits'):
+        #     Lab_hdr = cv2.merge((bp.data, a, b))
+        #     # 0 flips vertically, 1 flips horizontally
+        #     bp.data = cv2.flip(cv2.cvtColor(Lab_hdr, cv2.COLOR_Lab2RGB), 0)
     if args.CLAHE:
         if args.image.lower().endswith('fits'):
             bp.data = make_nonnegative(bp.fitsdata)
