@@ -60,7 +60,7 @@ def _add_args_download(parser):
     required_args.add_argument('--mode', type=str, required=True, default='jpeg', choices=['jpeg', 'fits', 'both'], help='Image type to retrieve. Can be "jpeg", "fits" or "both" to retrieve either a JPEG image, FITS file or both. Default value is jpeg.')
 
     optional_args = parser.add_argument_group('Optional arguments')
-    optional_args.add_argument('--download_dir', type=str, required=False, default='', dest='ddir', help='Directory to store downloaded files. If not given will download to $PWD.')
+    optional_args.add_argument('--download_dir', type=str, required=False, default=os.getcwd(), dest='ddir', help='Directory to store downloaded files. If not given will download to $PWD.')
     optional_args.add_argument('--size', type=float, required=False, default=0.01, help='Cutout size in degrees.')
 
     legacy_args = parser.add_argument_group('[DESI Legacy Imaging Surveys]')
@@ -97,6 +97,7 @@ def _add_args_plot(parser):
     required_args.add_argument('--CLAHE', action='store_true', default=False, required=False, help='Apply contrast-limited adaptive histogram equalisation.')
     required_args.add_argument('--CLAHE-gridsize', default=5, type=int, required=False, help='Grid size to use for CLAHE.')
     required_args.add_argument('--CLAHE-cliplim', default=1.0, type=float, required=False, help='Clip limit to use for CLAHE.')
+    required_args.add_argument('--stretch', default=None, type=str, required=False, choices=['log10'], help='Stretch an image with a certian function.')
 
     if HAS_LHDR:
         required_args.add_argument('--hdr-tonemap', default=None, type=str, choices=['ashikmin', 'drago', 'duran', 'fattal', 'ferradans', 'ferwerda', 'kimkautz', 'lischinski', 'mantiuk06', 'mantiuk08', 'pattanaik', 'reinhard02', 'reinhard05', 'vanhateren'], required=False, help='HDR tonemapping to apply')
@@ -324,6 +325,10 @@ def _process_args_plot(args):
             L_gamma = cv2.LUT(L, lookUpTable)
             Lab_gamma = cv2.merge((L_gamma, a, b))
             bp.data = cv2.cvtColor(Lab_gamma, cv2.COLOR_Lab2RGB)
+    
+    if args.stretch:
+        pass
+    
     if args.image.lower().endswith('fits'):
         bp.savedata(args.image.replace('.fits', '.tonemapped.fits'))
         bp.plot_noaxes()
