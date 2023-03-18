@@ -50,7 +50,7 @@ def _load_tonemapped_tmpdata(name: str, as_gray: bool = True) -> numpy.ndarray:
     return io.imread(name, as_gray=as_gray)
 
 
-def _store_tmpfile(data: numpy.ndarray, name: str) -> str:
+def _store_tmpfile(data: numpy.ndarray, name: str, header=None) -> str:
     ''' Store the data to tonemap to a temporary FITS file to pass to LuminanceHDR.
     
     Args:
@@ -61,7 +61,8 @@ def _store_tmpfile(data: numpy.ndarray, name: str) -> str:
         path : str
             Absolute path to the temporary file.
     '''
-    fits.writeto(data=data, filename=name, overwrite=True)
+    # fits.writeto(data=data, filename=name, header=header, overwrite=True)
+    io.imsave(fname=name, arr=data)
     #img.save(name, compression=None, x_resolution=data.shape[0], y_resolution=data.shape[1])
     return os.path.abspath(name)
 
@@ -431,8 +432,8 @@ def reinhard02(data, key: Optional[float] = None, phi: Optional[float] = None, u
         data_tm : numpy.ndarray
             Tonemapped data.
     '''
-    tmpname = _store_tmpfile(data, 'tmp_reinhard02.fits')
-    tmpname_out = tmpname.replace('.fits', '.tonemapped.tiff')
+    tmpname = _store_tmpfile(data, 'tmp_reinhard02.tiff')
+    tmpname_out = tmpname.replace('.tiff', '.tonemapped.tiff')
     cmd = BASECOMMAND + ' -e 0 --tmo reinhard02 '
     if key is not None:
         cmd += f'--tmoR02Key {key} '

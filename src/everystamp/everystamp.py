@@ -180,7 +180,7 @@ def _process_args_download(args):
         parser : ArgumentParser
             ArgumentParser instance to which to add entries.
     '''
-    if not os.path.exists(args.ddir):
+    if ddir and (not os.path.exists(args.ddir)):
         logger.info('Download directory does not exist, creating it')
         os.mkdir(args.ddir)
     logger.info('Survey is %s', args.survey)
@@ -248,10 +248,10 @@ def _process_args_plot(args):
     else:
         # Probably an image format.
         bp = BasicImagePlot(args.image)
-    if HAS_LHDR and args.hdr_tonemap:
-        Lab = cv2.cvtColor(bp.data, cv2.COLOR_RGB2Lab)
+        Lab = cv2.cvtColor(bp.data.astype('uint8'), cv2.COLOR_RGB2Lab)
         L, a, b = cv2.split(Lab)
         bp.data = L
+    if HAS_LHDR and args.hdr_tonemap:
         if args.hdr_tonemap == 'ashikmin':
             logger.info('Tonemapping image with ashikmin')
             bp.data = ashikmin(bp.data, eq2=args.ashikmin_eq2, simple=args.ashikmin_simple, local_threshold=args.ashikmin_local_threshol)
@@ -294,9 +294,10 @@ def _process_args_plot(args):
         if args.hdr_tonemap == 'vanhateren':
             logger.info('Tonemapping with vanhateren')
             bp.data = vanhateren(bp.data, pupil_area=args.vanhateren_pupil_area)
-        Lab_hdr = cv2.merge((bp.data, a, b))
-        # 0 flips vertically, 1 flips horizontally
-        bp.data = cv2.flip(cv2.cvtColor(Lab_hdr, cv2.COLOR_Lab2RGB), 0)
+        if not args.image.lower().endswith('fits'):
+            Lab_hdr = cv2.merge((bp.data, a, b))
+            # 0 flips vertically, 1 flips horizontally
+            bp.data = cv2.flip(cv2.cvtColor(Lab_hdr, cv2.COLOR_Lab2RGB), 0)
     if args.CLAHE:
         if args.image.lower().endswith('fits'):
             bp.data = make_nonnegative(bp.fitsdata)

@@ -289,7 +289,7 @@ class VLASSDownloader(FileDownloader):
         '''
 
         # Obtain the HTML for the given tile
-        if '2.1' in epoch:
+        if '1.' not in epoch:
             self.logger.info(f'Downloading from https://archive-new.nrao.edu/vlass/quicklook/{epoch}/{tilename}')
             urlpath = urlopen(f"https://archive-new.nrao.edu/vlass/quicklook/{epoch}/{tilename}")
         else:
@@ -422,7 +422,7 @@ class VLASSDownloader(FileDownloader):
 
         imname = f"{subtile[:-1]}.I.iter1.image.pbcor.tt0.subim.fits"
         if len(glob.glob(imname)) == 0:
-            if '2.1' in epoch:
+            if '1.' not in epoch:
                 url_get = f"https://archive-new.nrao.edu/vlass/quicklook/{epoch}/{tilename}/{subtile}"
             else:
                 url_get = f"https://archive-new.nrao.edu/vlass/quicklook/{epoch}v2/{tilename}/{subtile}"
@@ -430,7 +430,7 @@ class VLASSDownloader(FileDownloader):
             self.logger.info('Downloading to ' + ddir)
             self.download_file(fname, target_dir=ddir)
             if consider_QA_rejected:
-                if '2.1' in epoch:
+                if '1.' not in epoch:
                     url_get = f"https://archive-new.nrao.edu/vlass/quicklook/{epoch}/QA_REJECTED/{subtile}"
                 else:
                     url_get = f"https://archive-new.nrao.edu/vlass/quicklook/{epoch}v2/QA_REJECTED/{subtile}"
