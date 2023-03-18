@@ -248,9 +248,6 @@ def _process_args_plot(args):
     else:
         # Probably an image format.
         bp = BasicImagePlot(args.image)
-        # Lab = cv2.cvtColor(bp.data.astype('uint8'), cv2.COLOR_RGB2Lab)
-        # L, a, b = cv2.split(Lab)
-        # bp.data = L
     if HAS_LHDR and args.hdr_tonemap:
         if args.hdr_tonemap == 'ashikmin':
             logger.info('Tonemapping image with ashikmin')
@@ -294,10 +291,7 @@ def _process_args_plot(args):
         if args.hdr_tonemap == 'vanhateren':
             logger.info('Tonemapping with vanhateren')
             bp.data = vanhateren(bp.data, pupil_area=args.vanhateren_pupil_area)
-        # if not args.image.lower().endswith('fits'):
-        #     Lab_hdr = cv2.merge((bp.data, a, b))
-        #     # 0 flips vertically, 1 flips horizontally
-        #     bp.data = cv2.flip(cv2.cvtColor(Lab_hdr, cv2.COLOR_Lab2RGB), 0)
+    
     if args.CLAHE:
         if args.image.lower().endswith('fits'):
             bp.data = make_nonnegative(bp.fitsdata)
@@ -312,20 +306,24 @@ def _process_args_plot(args):
             L, a, b = cv2.split(Lab)
             L_clahe = clahe.apply(L)
             Lab_clahe = cv2.merge((L_clahe, a, b))
-            # 0 flips vertically, 1 flips horizontally
-            bp.data = cv2.flip(cv2.cvtColor(Lab_clahe, cv2.COLOR_Lab2RGB), 0)
+            cv2.cvtColor(Lab_clahe, cv2.COLOR_Lab2RGB)
 
     if args.gamma != 1:
+        logger.info('Applying gamma stretch of {:f}'.format(args.gamma))
         if args.image.lower().endswith('fits'):
             bp.data = gamma(bp.data, args.gamma)
         else:
-            clahe = cv2.createCLAHE(clipLimit=args.CLAHE_cliplim, tileGridSize=(args.CLAHE_gridsize, args.CLAHE_gridsize))
-            Lab = cv2.cvtColor(bp.data, cv2.COLOR_RGB2Lab)
+            Lab = cv2.cvtColor(bp.data.astype(np.uint8), cv2.COLOR_RGB2Lab)
             L, a, b = cv2.split(Lab)
-            L_gamma = gamma(L, args.gamma).astype(np.uint8)
+            # L_gamma = gamma(L, args.gamma).astype(np.uint8)
+            # Lab_gamma = cv2.merge((L_gamma, a, b))
+            # bp.data = cv2.cvtColor(Lab_gamma, cv2.COLOR_Lab2RGB)
+            lookUpTable = np.empty((1,256), np.uint8)
+            for i in range(256):
+                lookUpTable[0,i] = np.clip(pow(i / 255.0, args.gamma) * 255.0, 0, 255)
+            L_gamma = cv2.LUT(L, lookUpTable)
             Lab_gamma = cv2.merge((L_gamma, a, b))
-            # 0 flips vertically, 1 flips horizontally
-            bp.data = cv2.flip(cv2.cvtColor(Lab_gamma, cv2.COLOR_Lab2RGB), 0)
+            bp.data = cv2.cvtColor(Lab_gamma, cv2.COLOR_Lab2RGB)
     if args.image.lower().endswith('fits'):
         bp.savedata(args.image.replace('.fits', '.tonemapped.fits'))
         bp.plot_noaxes()

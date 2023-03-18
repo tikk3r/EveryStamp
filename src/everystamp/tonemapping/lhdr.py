@@ -48,7 +48,8 @@ def _load_tonemapped_tmpdata(name: str, as_gray: bool = True) -> numpy.ndarray:
         data : numpy.ndarray
             NumPy array containing the image.
     '''
-    return io.imread(name, as_gray=as_gray)
+    return io.imread(name)
+    # return io.imread(name, as_gray=as_gray)
 
 
 def _store_tmpfile(data: numpy.ndarray, name: str, header=None) -> str:

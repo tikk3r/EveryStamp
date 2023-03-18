@@ -101,7 +101,7 @@ class BasicImagePlot():
         self.figsize = (12, 8)
         self.image = imname
         import cv2
-        self.imdata = cv2.imread(imname)
+        self.imdata = cv2.cvtColor(cv2.imread(imname), cv2.COLOR_BGR2RGB)
         self.data = self.imdata
 
     def plot2D(self):
@@ -110,19 +110,21 @@ class BasicImagePlot():
         fig = figure(figsize=figsize)
         ax = fig.add_subplot(111)
         if self.data is not None:
-            if self.data.max() > 1:
-                # Probably integer image.
-                ax.imshow(self.data.astype('uint8'), origin='upper', interpolation='none')
-            elif self.data.max() <= 1:
-                # Probably floating point image.
-                ax.imshow(self.data.astype(float), origin='upper', interpolation='none')
+            ax.imshow(self.data, origin='upper', interpolation='none')
+            # if self.data.max() > 1:
+            #     # Probably integer image.
+            #     ax.imshow(self.data.astype('uint8'), origin='upper', interpolation='none')
+            # elif self.data.max() <= 1:
+            #     # Probably floating point image.
+            #     ax.imshow(self.data.astype(float), origin='upper', interpolation='none')
         else:
-            if self.imdata.max() > 1:
-                # Probably integer image.
-                ax.imshow(self.imdata.astype('uint8'), origin='upper', interpolation='none')
-            elif self.imdata.max() <= 1:
-                # Probably floating point image.
-                ax.imshow(self.imdata.astype(float), origin='upper', interpolation='none')
+            ax.imshow(self.imdata, origin='upper', interpolation='none')
+            # if self.imdata.max() > 1:
+            #     # Probably integer image.
+            #     ax.imshow(self.imdata.astype('uint8'), origin='upper', interpolation='none')
+            # elif self.imdata.max() <= 1:
+            #     # Probably floating point image.
+            #     ax.imshow(self.imdata.astype(float), origin='upper', interpolation='none')
         ax.xaxis.set_visible(False)
         ax.yaxis.set_visible(False)
         plt.gca().set_axis_off()
