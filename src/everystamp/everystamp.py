@@ -180,7 +180,7 @@ def _process_args_download(args):
         parser : ArgumentParser
             ArgumentParser instance to which to add entries.
     '''
-    if ddir and (not os.path.exists(args.ddir)):
+    if args.ddir and (not os.path.exists(args.ddir)):
         logger.info('Download directory does not exist, creating it')
         os.mkdir(args.ddir)
     logger.info('Survey is %s', args.survey)
