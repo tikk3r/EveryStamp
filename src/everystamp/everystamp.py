@@ -14,6 +14,7 @@ import shutil
 
 from astroquery.skyview import SkyView #type: ignore
 from collections.abc import Iterable
+import astropy.visualization
 import cv2 #type: ignore
 import requests
 
@@ -97,7 +98,7 @@ def _add_args_plot(parser):
     required_args.add_argument('--CLAHE', action='store_true', default=False, required=False, help='Apply contrast-limited adaptive histogram equalisation.')
     required_args.add_argument('--CLAHE-gridsize', default=5, type=int, required=False, help='Grid size to use for CLAHE.')
     required_args.add_argument('--CLAHE-cliplim', default=1.0, type=float, required=False, help='Clip limit to use for CLAHE.')
-    required_args.add_argument('--stretch', default=None, type=str, required=False, choices=['log10'], help='Stretch an image with a certian function.')
+    required_args.add_argument('--stretch', default=None, type=str, required=False, choices=['log', 'sqrt', 'squared', 'asinh', 'sinh'], help='Stretch an image with a certian function.')
 
     if HAS_LHDR:
         required_args.add_argument('--hdr-tonemap', default=None, type=str, choices=['ashikmin', 'drago', 'duran', 'fattal', 'ferradans', 'ferwerda', 'kimkautz', 'lischinski', 'mantiuk06', 'mantiuk08', 'pattanaik', 'reinhard02', 'reinhard05', 'vanhateren'], required=False, help='HDR tonemapping to apply')
@@ -327,7 +328,18 @@ def _process_args_plot(args):
             bp.data = cv2.cvtColor(Lab_gamma, cv2.COLOR_Lab2RGB)
     
     if args.stretch:
-        pass
+        # 'log10', 'sqrt', 'squared', 'asinh', 'sinh'
+        if args.stretch == 'log':
+            stretch = astropy.visualization.LogStretch()
+        elif args.stretch == 'sqrt':
+            stretch = astropy.visualization.SqrtStretch()
+        elif args.stretch == 'squared':
+            stretch = astropy.visualization.SquaredStretch()
+        elif args.stretch == 'asinh':
+            stretch = astropy.visualization.AsinhStretch()
+        elif args.stretch == 'sinh':
+            stretch = astropy.visualization.SinhStretch()
+        bp.data = stretch(bp.data / np.nanmax(bp.data), min)
     
     if args.image.lower().endswith('fits'):
         bp.savedata(args.image.replace('.fits', '.tonemapped.fits'))
