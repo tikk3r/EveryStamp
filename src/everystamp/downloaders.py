@@ -351,7 +351,7 @@ class VLASSDownloader(FileDownloader):
             Name of the output FITS file.
         '''
         # Define output name
-        output_fits = imname.rstrip('.fits') + '_poststamp.fits'
+        output_fits = os.path.join('/'.join(imname.split('/')[:-1]), 'VLASS_{:.6f}_{:.6f}_'.format(c.ra.value, c.dec.value) + imname.split('/')[-1].rstrip('.fits') + '_poststamp.fits')
         
         # Get header info
         hdu_list = fits.open(imname)
