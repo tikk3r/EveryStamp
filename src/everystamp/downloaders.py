@@ -571,7 +571,7 @@ class SkyViewDownloader():
             self.survey = survey
             self.logger = logging.getLogger('EveryStamp:SkyViewDownloader[{:s}]'.format(self.survey))
 
-    def download(self, ra=0.0, dec=0.0, size=0.1, ddir=os.getcwd(), suffix=''):
+    def download(self, ra=0.0, dec=0.0, size=0.1, pixsize=1, ddir=os.getcwd(), suffix=''):
         ''' Download a cutout from the VLASS survey.
 
         Parameters
@@ -582,12 +582,14 @@ class SkyViewDownloader():
             Declination of the coordinate of interest in degrees    .
         size : float
             Size of the area of interest in degrees.
+        pixsize
+            Pixel size to use for the cutout.
         ddir : str
             Location to download the cutout to.
         '''
         c = SkyCoord(ra, dec, unit='deg')
         
         sv = SkyView()
-
-        hdul = sv.get_images(c, self.survey, radius=size * u.deg)
+        pixsize_deg = pixsize / 3600.
+        hdul = sv.get_images(c, self.survey, radius=size * u.deg, pixels=size / pixsize_deg)
         hdul[0].writeto(os.path.join(ddir, '{:s}_{:.4f}_{:.4f}_{:.3f}.fits'.format(self.survey.replace(' ', '_'), ra, dec, size)))            

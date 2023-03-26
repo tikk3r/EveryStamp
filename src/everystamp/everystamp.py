@@ -63,6 +63,7 @@ def _add_args_download(parser):
     optional_args = parser.add_argument_group('Optional arguments')
     optional_args.add_argument('--download_dir', type=str, required=False, default=os.getcwd(), dest='ddir', help='Directory to store downloaded files. If not given will download to $PWD.')
     optional_args.add_argument('--size', type=float, required=False, default=0.01, help='Cutout size in degrees.')
+    optional_args.add_argument('--skyview_pixsize', type=float, required=False, default=1.0, help='Pixel size in arcsec for SkyView cutouts.')
 
     legacy_args = parser.add_argument_group('[DESI Legacy Imaging Surveys]')
     legacy_args.add_argument('--legacy_bands', default='grz', type=str, required=False, help='Bands to download. Allowed values are g, r and z. Multiple bands can be specified as a single string. In the case of a JPEG image a colour image will be generated. In the case of a FITS image a FITS cube will be downloaded. Default: grz')
@@ -99,6 +100,8 @@ def _add_args_plot(parser):
     required_args.add_argument('--CLAHE-gridsize', default=5, type=int, required=False, help='Grid size to use for CLAHE.')
     required_args.add_argument('--CLAHE-cliplim', default=1.0, type=float, required=False, help='Clip limit to use for CLAHE.')
     required_args.add_argument('--stretch', default=None, type=str, required=False, choices=['log', 'sqrt', 'squared', 'asinh', 'sinh'], help='Stretch an image with a certian function.')
+
+    required_args.add_argument('--contour_image', default=None, required=False, help='Plot the given image as contours over the main image.')
 
     if HAS_LHDR:
         required_args.add_argument('--hdr-tonemap', default=None, type=str, choices=['ashikmin', 'drago', 'duran', 'fattal', 'ferradans', 'ferwerda', 'kimkautz', 'lischinski', 'mantiuk06', 'mantiuk08', 'pattanaik', 'reinhard02', 'reinhard05', 'vanhateren'], required=False, help='HDR tonemapping to apply')
@@ -230,7 +233,7 @@ def _process_args_download(args):
             raise ValueError('SkyView download does not support JPEG (yet).')
         from everystamp.downloaders import SkyViewDownloader
         sd = SkyViewDownloader(args.survey)
-        sd.download(ra=args.ra, dec=args.dec, size=args.size, ddir=args.ddir)
+        sd.download(ra=args.ra, dec=args.dec, size=args.size, pixsize=args.skyview_pixsize, ddir=args.ddir)
 
 
 def _process_args_plot(args):
@@ -313,13 +316,10 @@ def _process_args_plot(args):
     if args.gamma != 1:
         logger.info('Applying gamma stretch of {:f}'.format(args.gamma))
         if args.image.lower().endswith('fits'):
-            bp.data = gamma(bp.data, args.gamma)
+            bp.data = gamma(bp.data / np.nanmax(bp.data), args.gamma)
         else:
             Lab = cv2.cvtColor(bp.data.astype(np.uint8), cv2.COLOR_RGB2Lab)
             L, a, b = cv2.split(Lab)
-            # L_gamma = gamma(L, args.gamma).astype(np.uint8)
-            # Lab_gamma = cv2.merge((L_gamma, a, b))
-            # bp.data = cv2.cvtColor(Lab_gamma, cv2.COLOR_Lab2RGB)
             lookUpTable = np.empty((1,256), np.uint8)
             for i in range(256):
                 lookUpTable[0,i] = np.clip(pow(i / 255.0, args.gamma) * 255.0, 0, 255)
@@ -341,10 +341,13 @@ def _process_args_plot(args):
             stretch = astropy.visualization.SinhStretch()
         bp.data = stretch(bp.data / np.nanmax(bp.data), min)
     
+    if args.contour_image:
+        bp.plot2D(contour_image = args.contour_image)
+    else:
+        bp.plot2D()
     if args.image.lower().endswith('fits'):
         bp.savedata(args.image.replace('.fits', '.tonemapped.fits'))
         bp.plot_noaxes()
-    bp.plot2D()
 
 
 def main():
