@@ -593,7 +593,7 @@ class SkyViewDownloader():
         pixsize_deg = pixsize / 3600.
         pixels = size / pixsize_deg
         self.logger.info(f'Requestion a {size} x {size} deg cutout of {pixels} x {pixels} pixels.')
-        hdul = sv.get_images(c, self.survey, radius=size * u.deg, pixels=str(pixels))
+        hdul = sv.get_images(c, self.survey, radius=size * u.deg, pixels=int(pixels))
         if not hdul:
             raise ValueError('SkyView did not return a result. If you requested a cutout with many pixels, try increasing the pixel size through --skyview_pixsize or reduce the cutout area.')
         hdul[0].writeto(os.path.join(ddir, '{:s}_{:.4f}_{:.4f}_{:.3f}.fits'.format(self.survey.replace(' ', '_'), ra, dec, size)))            
