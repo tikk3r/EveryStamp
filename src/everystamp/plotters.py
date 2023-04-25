@@ -29,7 +29,7 @@ class BasicFITSPlot():
         self.data = self.fitsdata
         self.wcs = WCS(fits.getheader(fitsname)).celestial
 
-    def plot2D(self, plot_colourbar=False, contour_image: numpy.ndarray = None, contour_levels: Union[int, list] = 5):
+    def plot2D(self, plot_colourbar=False, contour_image: numpy.ndarray = None, contour_levels: Union[int, list] = 15):
         """ Save a 2D plot of the loaded FITS file.
 
         Args:
@@ -45,32 +45,16 @@ class BasicFITSPlot():
             figsize[0] = 12
         if figsize[1] < 8:
             figsize[1] = 8
-        # fig = figure(figsize=figsize, dpi=self.dpi)
-        # self.fig = fig
-        # try:
-        #     ax = fig.add_subplot(111, projection=self.wcs)
-        #     origin='lower'
-        # except IndexError:
-        #     print('WCS from FITS header broken or incompatible, ignoring.')
-        #     origin='upper'
-        #     ax = fig.add_subplot(111)
-        # if self.data is not None:
-        #     im = ax.imshow(self.data, origin=origin, interpolation='none')
-        # else:
-        #     ax.imshow(self.fitsdata, origin=origin, interpolation='none')
-        # ax.set(xlabel='Right ascension', ylabel='Declination')
         from aplpy import FITSFigure
         hdu = fits.open(self.fitsimage)
         f = FITSFigure(hdu, figsize=figsize)
         f.show_grayscale()
         if contour_image:
                 hdu_c = fits.open(contour_image)
-                f.show_contour(hdu_c)
-            # ax.contour(fits.getdata(contour_image).squeeze(), levels=[0.003, 0.005, 0.01], transform=ax.get_transform(WCS(fits.getheader(contour_image)).celestial))
+                f.show_contour(hdu_c, levels=contour_levels)
         if plot_colourbar:
             plt.colorbar(im)
-        f.savefig(self.fitsimage.replace('fits', 'png'), dpi=self.dpi)
-        # fig.savefig(self.fitsimage.replace('fits', 'png'), bbox_inches='tight', dpi=self.dpi)
+        f.savefig(self.fitsimage.replace('fits', 'png'), bbox_inches='tight', dpi=self.dpi)
 
     def plot_noaxes(self):
         """ Save a plot of the FITS image without any axes."""
