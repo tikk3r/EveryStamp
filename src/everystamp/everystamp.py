@@ -256,7 +256,7 @@ def _process_args_plot(args):
     if HAS_LHDR and args.hdr_tonemap:
         if args.hdr_tonemap == 'ashikmin':
             logger.info('Tonemapping image with ashikmin')
-            bp.data = ashikmin(bp.data, eq2=args.ashikmin_eq2, simple=args.ashikmin_simple, local_threshold=args.ashikmin_local_threshol)
+            bp.data = ashikmin(bp.data, eq2=args.ashikmin_eq2, simple=args.ashikmin_simple, local_threshold=args.ashikmin_local_threshold)
         if args.hdr_tonemap == 'fattal':
             logger.info('Tonemapping image with fattal')
             bp.data = fattal(bp.data, alpha=args.fattal_alpha, beta=args.fattal_beta, colour_saturation=args.fattal_colour_saturation, noise=args.fattal_noise)
