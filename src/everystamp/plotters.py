@@ -29,7 +29,7 @@ class BasicFITSPlot():
         self.data = self.fitsdata
         self.wcs = WCS(fits.getheader(fitsname)).celestial
 
-    def plot2D(self, plot_colourbar=False, contour_image: numpy.ndarray = None, contour_levels: Union[int, list] = 15):
+    def plot2D(self, plot_colourbar=False, contour_image: numpy.ndarray = None, contour_levels: Union[int, list] = 7):
         """ Save a 2D plot of the loaded FITS file.
 
         Args:
@@ -46,15 +46,17 @@ class BasicFITSPlot():
         if figsize[1] < 8:
             figsize[1] = 8
         from aplpy import FITSFigure
-        hdu = fits.open(self.fitsimage)
+        # hdu = fits.open(self.fitsimage)
+        hdu = fits.PrimaryHDU(header=fits.getheader(self.fitsimage), data=self.data)
         f = FITSFigure(hdu, figsize=figsize)
         f.show_grayscale()
         if contour_image:
                 hdu_c = fits.open(contour_image)
-                f.show_contour(hdu_c, levels=contour_levels)
+                # f.show_contour(hdu_c, levels=contour_levels, colors='white', cmap='plasma')
+                f.show_contour(hdu_c, levels=contour_levels, colors='C0')
         if plot_colourbar:
             plt.colorbar(im)
-        f.savefig(self.fitsimage.replace('fits', 'png'), bbox_inches='tight', dpi=self.dpi)
+        f.savefig(self.fitsimage.replace('fits', 'png'), dpi=self.dpi)
 
     def plot_noaxes(self):
         """ Save a plot of the FITS image without any axes."""

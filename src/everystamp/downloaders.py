@@ -146,11 +146,11 @@ class LegacyDownloader(FileDownloader):
             while new_size_pix > 3000:
                 new_pixscale += 0.262
                 new_size_pix = int(size * 3600 / new_pixscale)
-            self.logger.warn('Image size of {:.2f} deg with pixel scale {:.3f} exceeds server limit of 3000 pixels! Automatically adjusting pixel scale to {:.3f} giving {:d} pixels.'.format(size, pixscale, new_pixscale, new_size_pix), Warning, stacklevel=2)
+            self.logger.warn('Image size of {:.2f} deg with pixel scale {:.3f} exceeds server limit of 3000 pixels! Automatically adjusting pixel scale to {:.3f} giving {:d} pixels.'.format(size, pixscale, new_pixscale, new_size_pix), stacklevel=2)
             dlpixscale = new_pixscale
             dlsize_pix = new_size_pix
         elif size_pix > 3000:
-            self.logger.warn('Image size of {:.2f} deg with pixel scale {:.3f} exceeds server limit of 3000 pixels! Image will be truncated! Use --legacy_autoscale or pass autoscale=True to automatically switch pixel scales.'.format(size, pixscale), Warning, stacklevel=2)
+            self.logger.warn('Image size of {:.2f} deg with pixel scale {:.3f} exceeds server limit of 3000 pixels! Image will be truncated! Use --legacy_autoscale or pass autoscale=True to automatically switch pixel scales.'.format(size, pixscale), stacklevel=2)
         return self.url.format(ra=ra, dec=dec, size_pix=dlsize_pix, bands=bands, mode=mode, layer=layer, pixscale=dlpixscale)
 
     def download(self, **kwargs):

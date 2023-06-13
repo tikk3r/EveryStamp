@@ -11,15 +11,18 @@ logging.basicConfig(format='[%(name)s] %(asctime)s - %(levelname)s: %(message)s'
 logger = logging.getLogger('EveryStamp')
 import os
 import shutil
+import subprocess
 
 from astroquery.skyview import SkyView #type: ignore
 from collections.abc import Iterable
+from everystamp.tonemapping import lhdr
 import astropy.visualization
 import cv2 #type: ignore
 import requests
 
 # Check if LuminanceHDR is installed.
-HAS_LHDR = shutil.which('luminance-hdr-cli')
+HAS_LHDR = lhdr.has_luminance_hdr() #True if not subprocess.getstatusoutput('luminance-hdr-cli') else False
+#HAS_LHDR = shutil.which('luminance-hdr-cli')
 
 
 def flatten(xs: Iterable) -> Generator:
@@ -147,7 +150,7 @@ def _add_args_plot(parser):
         hdr_mantiuk08_args = parser.add_argument_group('HDR Tone mapping -- Mantiuk et al. 2008 arguments')
         hdr_mantiuk08_args.add_argument('--mantiuk08-contrast_enhancement', default=None, type=float, required=False, help='Contrast enhancement factor.')
         hdr_mantiuk08_args.add_argument('--mantiuk08-colour_saturation', default=None, type=float, required=False, help='Colour saturation factor.')
-        hdr_mantiuk08_args.add_argument('--mantiuk08-luminance_level', default=True, type=float, required=False, help='Luminance level.')
+        hdr_mantiuk08_args.add_argument('--mantiuk08-luminance_level', default=0.0, type=float, required=False, help='Luminance level.')
         hdr_mantiuk08_args.add_argument('--mantiuk08-set_luminance', default=True, type=bool, required=False, help='Set luminance level?')
 
         hdr_duran_args = parser.add_argument_group('HDR Tone mapping -- Durand and Dorsey et al. 2002 arguments')
@@ -256,7 +259,7 @@ def _process_args_plot(args):
     if HAS_LHDR and args.hdr_tonemap:
         if args.hdr_tonemap == 'ashikmin':
             logger.info('Tonemapping image with ashikmin')
-            bp.data = ashikmin(bp.data, eq2=args.ashikmin_eq2, simple=args.ashikmin_simple, local_threshold=args.ashikmin_local_threshol)
+            bp.data = ashikmin(bp.data, eq2=args.ashikmin_eq2, simple=args.ashikmin_simple, local_threshold=args.ashikmin_local_threshold)
         if args.hdr_tonemap == 'fattal':
             logger.info('Tonemapping image with fattal')
             bp.data = fattal(bp.data, alpha=args.fattal_alpha, beta=args.fattal_beta, colour_saturation=args.fattal_colour_saturation, noise=args.fattal_noise)
@@ -265,7 +268,7 @@ def _process_args_plot(args):
             bp.data = drago(bp.data, bias=args.drago_bias)
         if args.hdr_tonemap == 'ferradans':
             logger.info('Tonemapping image with ferradans')
-            bp.data = ferradans(bp.data, rho=args.ferradans_rho, inv_alpha=args.ferradans_inv_alpha)
+            bp.data = ferradans(bp.data, rho=args.ferradans_rho, inv_alpha=args.ferradans_inverse_alpha)
         if args.hdr_tonemap == 'ferwerda':
             logger.info('Tonemapping image with ferwerda')
             bp.data = ferwerda(bp.data, multiplier=args.ferwerda_multiplier, luminance_adaptation=args.ferwerda_luminance_adaptation)
@@ -280,7 +283,7 @@ def _process_args_plot(args):
             bp.data = mantiuk06(bp.data, contrast=args.mantiuk06_contrast, saturation=args.mantiuk06_saturation, detail=args.mantiuk06_detail, contrast_equalisation=args.mantiuk06_contrast_equalisation)
         if args.hdr_tonemap == 'mantiuk08':
             logger.info('Tonemapping image with mantiuk08')
-            bp.data = mantiuk08(bp.data, contrast_enhancement=args.mantiuk08_saturation, colour_saturation=args.mantiuk08_colour_saturation, luminance_level=args.mantiuk08_luminance_level, set_luminance=args.mantiuk08_set_luminance)
+            bp.data = mantiuk08(bp.data, contrast_enhancement=args.mantiuk08_colour_saturation, colour_saturation=args.mantiuk08_colour_saturation, luminance_level=args.mantiuk08_luminance_level, set_luminance=args.mantiuk08_set_luminance)
         if args.hdr_tonemap == 'duran':
             logger.info('Tonemapping image with duran')
             bp.data = duran(bp.data, sigma_spatial=args.duran_sigma_spatial, sigma_range=args.duran_sigma_range, base_contrast=args.duran_base_contrast)
