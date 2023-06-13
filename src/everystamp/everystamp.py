@@ -181,6 +181,22 @@ def _add_args_plot(parser):
         logger.warning('Cannot find luminance-hdr-cli. HDR tone mapping functionality will not be available unless LuminanceHDR is (correctly) installed.')
 
 
+def _add_args_cutout(parser):
+    ''' Add arguments to the argparse instance for making cutouts.
+    
+    Args:
+        parser : ArgumentParser
+            ArgumentParser instance to which to add entries.
+    '''
+    required_args = parser.add_argument_group('Required arguments')
+    required_args.add_argument('--image', type=str, required=False, help='FITS image to plot.')
+    required_args.add_argument('--ra', type=float, required=True, help='Right ascension of cutout centre in degrees.')
+    required_args.add_argument('--dec', type=float, required=True, help='Declination of cutout centre in degrees.')
+    required_args.add_argument('--size', type=float, required=False, default=0.01, help='Cutout size in degrees.')
+
+    optional_args = parser.add_argument_group('Optional arguments')
+    optional_args.add_argument('--output_dir', type=str, required=False, default=os.getcwd(), dest='ddir', help='Directory to store cutout files. If not given will saved to $PWD.')
+
 def _process_args_download(args):
     ''' Process arguments to the argparse instance for downloading cutouts.
     
@@ -353,6 +369,18 @@ def _process_args_plot(args):
         bp.plot_noaxes()
 
 
+def _process_args_cutout(args):
+    ''' Process arguments to the argparse instance for downloading cutouts.
+    
+    Args:
+        parser : ArgumentParser
+            ArgumentParser instance to which to add entries.
+    '''
+    if args.output_dir and (not os.path.exists(args.output_dir)):
+        logger.info('Download directory does not exist, creating it')
+        os.mkdir(args.output_dir)
+
+
 def main():
     '''Main entry point if called as a standalone executable.
     '''
@@ -366,12 +394,17 @@ def main():
     subparser_plot = subparsers.add_parser('plot', description='Plot a given FITS image. See everystamp plot -h for more information.', help='Plot a user-supplied FITS image.')
     _add_args_plot(subparser_plot)
 
+    subparser_cut = subparsers.add_parser('cutout', description='Trim a given FITS image. See everystamp cutout -h for more information.', help='Cut a user-supplied FITS image to size.')
+    _add_args_cutout(subparser_cut)
+
     args = parser.parse_args()
 
     if args.cmd == 'download':
         _process_args_download(args)
     if args.cmd == 'plot':
         _process_args_plot(args)
+    if args.cmd == 'cutout':
+        _process_args_cutout(args)
 
 
 if __name__ == '__main__':
