@@ -107,12 +107,12 @@ def _add_args_plot(parser):
     required_args.add_argument('--contour_image', default=None, required=False, help='Plot the given image as contours over the main image.')
 
     if HAS_LHDR:
-        required_args.add_argument('--hdr-tonemap', default=None, type=str, choices=['ashikmin', 'drago', 'duran', 'fattal', 'ferradans', 'ferwerda', 'kimkautz', 'lischinski', 'mantiuk06', 'mantiuk08', 'pattanaik', 'reinhard02', 'reinhard05', 'vanhateren'], required=False, help='HDR tonemapping to apply')
+        required_args.add_argument('--hdr-tonemap', default=None, type=str, choices=['ashikhmin', 'drago', 'duran', 'fattal', 'ferradans', 'ferwerda', 'kimkautz', 'lischinski', 'mantiuk06', 'mantiuk08', 'pattanaik', 'reinhard02', 'reinhard05', 'vanhateren'], required=False, help='HDR tonemapping to apply')
 
-        hdr_ashikmin_args = parser.add_argument_group('HDR Tone mapping -- Ashikmin et al. 2002 arguments')
-        hdr_ashikmin_args.add_argument('--ashikmin-eq2', default=True, type=bool, required=False, help='Equation 2?')
-        hdr_ashikmin_args.add_argument('--ashikmin-simple', default=True, type=bool, required=False, help='Simple?')
-        hdr_ashikmin_args.add_argument('--ashikmin-local_threshold', default=None, type=float, required=False, help='Local threshold.')
+        hdr_ashikhmin_args = parser.add_argument_group('HDR Tone mapping -- Ashikhmin et al. 2002 arguments')
+        hdr_ashikhmin_args.add_argument('--ashikhmin-eq2', default=True, type=bool, required=False, help='Equation 2?')
+        hdr_ashikhmin_args.add_argument('--ashikhmin-simple', default=True, type=bool, required=False, help='Simple?')
+        hdr_ashikhmin_args.add_argument('--ashikhmin-local_threshold', default=None, type=float, required=False, help='Local threshold.')
 
         hdr_drago_args = parser.add_argument_group('HDR Tone mapping -- Drago et al. 2003 arguments')
         hdr_drago_args.add_argument('--drago-bias', default=0.85, type=float, required=False, help='Bias parameter controlling the exponent base.')
@@ -250,16 +250,16 @@ def _process_args_plot(args):
     from everystamp.plotters import BasicFITSPlot, BasicImagePlot
     from everystamp.tonemapping import gamma, make_nonnegative
     import numpy as np
-    from everystamp.tonemapping.lhdr import ashikmin, drago, duran, fattal, ferradans, ferwerda, kimkautz, lischinski, mantiuk06, mantiuk08, reinhard02, reinhard05, pattanaik, vanhateren
+    from everystamp.tonemapping.lhdr import ashikhmin, drago, duran, fattal, ferradans, ferwerda, kimkautz, lischinski, mantiuk06, mantiuk08, reinhard02, reinhard05, pattanaik, vanhateren
     if args.image.lower().endswith('fits'):
         bp = BasicFITSPlot(args.image)
     else:
         # Probably an image format.
         bp = BasicImagePlot(args.image)
     if HAS_LHDR and args.hdr_tonemap:
-        if args.hdr_tonemap == 'ashikmin':
-            logger.info('Tonemapping image with ashikmin')
-            bp.data = ashikmin(bp.data, eq2=args.ashikmin_eq2, simple=args.ashikmin_simple, local_threshold=args.ashikmin_local_threshold)
+        if args.hdr_tonemap == 'ashikhmin':
+            logger.info('Tonemapping image with ashikhmin')
+            bp.data = ashikhmin(bp.data, eq2=args.ashikhmin_eq2, simple=args.ashikhmin_simple, local_threshold=args.ashikhmin_local_threshold)
         if args.hdr_tonemap == 'fattal':
             logger.info('Tonemapping image with fattal')
             bp.data = fattal(bp.data, alpha=args.fattal_alpha, beta=args.fattal_beta, colour_saturation=args.fattal_colour_saturation, noise=args.fattal_noise)

@@ -83,7 +83,7 @@ def _store_tmpfile(data: numpy.ndarray, name: str, header=None) -> str:
     return os.path.abspath(name)
 
 
-def ashikmin(data, eq2: bool = True, simple: Optional[float] = None, local_threshold: Optional[float] = None) -> numpy.ndarray:
+def ashikhmin(data, eq2: bool = True, simple: Optional[float] = None, local_threshold: Optional[float] = None) -> numpy.ndarray:
     ''' Tonemap the image using the human vision based method described in Ashikmin 2002.
 
     Parameters set to None will take their default values as set in LuminanceHDR.
