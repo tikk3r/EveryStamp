@@ -1,3 +1,4 @@
+aplpy
 astropy<5
 astroquery
 matplotlib
