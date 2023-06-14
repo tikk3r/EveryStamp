@@ -1,6 +1,7 @@
 astropy<5
 astroquery
 matplotlib
+markupsafe==2.0.1
 panstamps
 Pillow
 pyvo
