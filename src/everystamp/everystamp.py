@@ -13,9 +13,12 @@ import os
 import shutil
 import subprocess
 
+from astropy.coordinates import SkyCoord
 from astroquery.skyview import SkyView #type: ignore
 from collections.abc import Iterable
+from everystamp.cutters import make_cutout_2D
 from everystamp.tonemapping import lhdr
+import astropy.units as units
 import astropy.visualization
 import cv2 #type: ignore
 import requests
@@ -197,7 +200,7 @@ def _add_args_cutout(parser):
     required_args.add_argument('--size', type=float, required=False, default=0.01, help='Cutout size in degrees.')
 
     optional_args = parser.add_argument_group('Optional arguments')
-    optional_args.add_argument('--output_dir', type=str, required=False, default=os.getcwd(), dest='ddir', help='Directory to store cutout files. If not given will saved to $PWD.')
+    optional_args.add_argument('--output-dir', type=str, required=False, default=os.getcwd(), dest='ddir', help='Directory to store cutout files. If not given will saved to $PWD.')
 
 def _process_args_download(args):
     ''' Process arguments to the argparse instance for downloading cutouts.
@@ -381,9 +384,14 @@ def _process_args_cutout(args):
         parser : ArgumentParser
             ArgumentParser instance to which to add entries.
     '''
-    if args.output_dir and (not os.path.exists(args.output_dir)):
+    if args.ddir and (not os.path.exists(args.ddir)):
         logger.info('Download directory does not exist, creating it')
-        os.mkdir(args.output_dir)
+        os.mkdir(args.ddir)
+    c = SkyCoord(args.ra * units.deg, args.dec * units.deg)
+    s = args.size * units.deg
+    out = os.path.join(args.ddir, args.image.replace('.fits', '.cropped.fits'))
+    make_cutout_2D(args.image, pos=c, size=s, outfile=out)
+    
 
 
 def main():
