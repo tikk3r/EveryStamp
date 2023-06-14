@@ -6,7 +6,7 @@ authors = [
 ]
 description = "A Python interface for retrieving FITS or image cutouts from a variety of astronomical surveys."
 requires-python = ">=3.7"
-dependencies = ["astropy<5", "astroquery", "matplotlib", "panstamps", "Pillow", "python-casacore", "opencv-python", "pyvo", "requests", "scikit-image", "tqdm"]
+dependencies = ["astropy<5", "astroquery", "matplotlib", "markupsafe==2.0.1", "panstamps", "Pillow", "python-casacore", "opencv-python", "pyvo", "requests", "scikit-image", "tqdm"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
