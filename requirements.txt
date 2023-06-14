@@ -1,4 +1,4 @@
-aplpy
+aplpy==2.1.0
 astropy<5
 astroquery
 matplotlib
