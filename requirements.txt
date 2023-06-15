@@ -1,8 +1,8 @@
-aplpy==2.1.0
-astropy<5
+aplpy
+astropy
 astroquery
-matplotlib<=3.7.0
-markupsafe==2.0.1
+matplotlib
+markupsafe<=2.0.1
 numpy<1.23
 panstamps
 Pillow
