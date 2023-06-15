@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ''' Python library aiming to provide a wrapper around various astronomical surveys that offer cutouts.'''
-__version__ = '1.2.0'
+__version__ = '1.3.0'
 __author__ = 'Frits Sweijen'
 __license__ = 'GPLv3'
 from typing import Generator
