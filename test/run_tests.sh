@@ -6,6 +6,7 @@ mkdir tests_output
 #
 printf "Testing Legacy download"
 everystamp download --survey legacy --ra 165.345 --dec 65.567 --size 0.1 --mode jpeg --legacy_bands grz --legacy_layer ls-dr9 --legacy_autoscale --download_dir tests_output
+everystamp download --survey legacy --ra 202.4841667 --dec 47.2305556 --size 0.1 --mode fits --legacy_bands z --legacy_layer ls-dr9 --legacy_autoscale --download_dir tests_output
 
 printf "\nTesting LoLSS download"
 everystamp download --survey lolss --ra 202.4841667 --dec 47.2305556 --size 0.1 --mode fits --download_dir tests_output
@@ -36,8 +37,12 @@ everystamp plot --image tests_output/LoTSS-DR2_202.4842_47.2306_0.300.fits --CLA
 printf "\nTesting gamma"
 everystamp plot --image tests_output/LoTSS-DR2_202.4842_47.2306_0.300.fits --gamma 2.2
 
+#
+# Contour plotting tests
+#
+
 printf "\nTesting HDR tonemapping"
-everystamp plot --image tests_output/LoTSS-DR2_202.4842_47.2306_0.300.fits --hdr-tonemap ashikmin
+everystamp plot --image tests_output/LoTSS-DR2_202.4842_47.2306_0.300.fits --hdr-tonemap ashikhmin
 everystamp plot --image tests_output/LoTSS-DR2_202.4842_47.2306_0.300.fits --hdr-tonemap drago
 everystamp plot --image tests_output/LoTSS-DR2_202.4842_47.2306_0.300.fits --hdr-tonemap duran
 everystamp plot --image tests_output/LoTSS-DR2_202.4842_47.2306_0.300.fits --hdr-tonemap fattal

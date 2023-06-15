@@ -7,9 +7,17 @@ import subprocess
 from astropy.io import fits
 from PIL import Image
 from skimage import io
+import cv2
 import numpy
+import imageio
 
 BASECOMMAND = 'luminance-hdr-cli'
+if 'EVERYSTAMP_LUMINANCE_HDR' in os.environ:
+    BASECOMMAND = os.environ['EVERYSTAMP_LUMINANCE_HDR']
+
+def has_luminance_hdr():
+    x = subprocess.run(BASECOMMAND, shell=True, env=dict(os.environ), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    return not x.returncode
 
 
 def run_command(cmd: Union[list, str]) -> None:
@@ -48,7 +56,8 @@ def _load_tonemapped_tmpdata(name: str, as_gray: bool = True) -> numpy.ndarray:
         data : numpy.ndarray
             NumPy array containing the image.
     '''
-    return io.imread(name)
+    # return imageio.imread(name)
+    return io.imread(name, as_gray=as_gray)
     # return io.imread(name, as_gray=as_gray)
 
 
@@ -64,14 +73,17 @@ def _store_tmpfile(data: numpy.ndarray, name: str, header=None) -> str:
             Absolute path to the temporary file.
     '''
     if name.lower().endswith('fits'):
-        fits.writeto(data=data, filename=name, header=header, overwrite=True)
+        print(data.shape)
+        fits.writeto(data=data.squeeze(), filename=name, header=header, overwrite=True)
+    elif name.lower().endswith('exr'):
+        cv2.imwrite(name, data.astype('float32'))
     else:
         im = Image.fromarray(data)
         im.convert(mode='RGB').save(name)
     return os.path.abspath(name)
 
 
-def ashikmin(data, eq2: bool = True, simple: Optional[float] = None, local_threshold: Optional[float] = None) -> numpy.ndarray:
+def ashikhmin(data, eq2: bool = True, simple: Optional[float] = None, local_threshold: Optional[float] = None) -> numpy.ndarray:
     ''' Tonemap the image using the human vision based method described in Ashikmin 2002.
 
     Parameters set to None will take their default values as set in LuminanceHDR.
@@ -90,8 +102,8 @@ def ashikmin(data, eq2: bool = True, simple: Optional[float] = None, local_thres
         data_tm : numpy.ndarray
             Tonemapped data.
     '''
-    tmpname = _store_tmpfile(data, 'tmp_ashikmin.tiff')
-    tmpname_out = tmpname.replace('.tiff', '.tonemapped.tiff')
+    tmpname = _store_tmpfile(data, 'tmp_ashikmin.fits')
+    tmpname_out = tmpname.replace('.fits', '.tonemapped.tiff')
     cmd = BASECOMMAND + ' -e 0 --tmo ashikmin '
     cmd += f'--tmoAshEq2 {eq2} '
     cmd += f'--tmoAshSimple {simple} '
@@ -120,8 +132,8 @@ def drago(data: numpy.ndarray, bias: float = 0.85) -> numpy.ndarray:
         data_tm : numpy.ndarray
             Tonemapped data.
     '''
-    tmpname = _store_tmpfile(data, 'tmp_drago.tiff')
-    tmpname_out = tmpname.replace('.tiff', '.tonemapped.tiff')
+    tmpname = _store_tmpfile(data, 'tmp_drago.fits')
+    tmpname_out = tmpname.replace('.fits', '.tonemapped.tiff')
     cmd = BASECOMMAND + ' -e 0 --tmo drago '
     if bias is not None:
         cmd += f'--tmoDrgBias {bias} '
@@ -152,8 +164,8 @@ def duran(data: numpy.ndarray, sigma_spatial: Optional[float] = None, sigma_rang
         data_tm : numpy.ndarray
             Tonemapped data.
     '''
-    tmpname = _store_tmpfile(data, 'tmp_durand.tiff')
-    tmpname_out = tmpname.replace('.tiff', '.tonemapped.tiff')
+    tmpname = _store_tmpfile(data, 'tmp_durand.fits')
+    tmpname_out = tmpname.replace('.fits', '.tonemapped.tiff')
     cmd = BASECOMMAND + ' -e 0 --tmo durand '
     if sigma_spatial is not None:
         cmd += f'--tmoDurSigmaS {sigma_spatial} '
@@ -190,8 +202,8 @@ def fattal(data: numpy.ndarray, alpha: Optional[float] = None, beta: Optional[fl
         data_tm : numpy.ndarray
             Tonemapped data.
     '''
-    tmpname = _store_tmpfile(data, 'tmp_fattal.tiff')
-    tmpname_out = tmpname.replace('.tiff', '.tonemapped.tiff')
+    tmpname = _store_tmpfile(data, 'tmp_fattal.fits')
+    tmpname_out = tmpname.replace('.fits', '.tonemapped.tiff')
     cmd = BASECOMMAND + ' -e 0 --tmo fattal '
     if alpha is not None:
         cmd += f'--tmoFatAlpha {alpha} '
@@ -226,8 +238,8 @@ def ferradans(data: numpy.ndarray, rho: float = -2, inv_alpha: float = 5) -> num
         data_tm : numpy.ndarray
             Tonemapped data.
     '''
-    tmpname = _store_tmpfile(data, 'tmp_ferradans.tiff')
-    tmpname_out = tmpname.replace('.tiff', '.tonemapped.tiff')
+    tmpname = _store_tmpfile(data, 'tmp_ferradans.fits')
+    tmpname_out = tmpname.replace('.fits', '.tonemapped.tiff')
     cmd = BASECOMMAND + ' -e 0 --tmo ferradans '
     if rho is not None:
         cmd += f'--tmoFerRho {rho} '
@@ -258,8 +270,8 @@ def ferwerda(data, multiplier: Optional[float] = None, luminance_adaptation: Opt
         data_tm : numpy.ndarray
             Tonemapped data.
     '''
-    tmpname = _store_tmpfile(data, 'tmp_ferwerda.tiff')
-    tmpname_out = tmpname.replace('.tiff', '.tonemapped.tiff')
+    tmpname = _store_tmpfile(data, 'tmp_ferwerda.fits')
+    tmpname_out = tmpname.replace('.fits', '.tonemapped.tiff')
     cmd = BASECOMMAND + ' -e 0 --tmo ferradans '
     if multiplier is not None:
         cmd += f'--tmoFerwerdaMul {multiplier} '
@@ -290,8 +302,8 @@ def kimkautz(data, c1: Optional[float] = None, c2: Optional[float] = None) -> nu
         data_tm : numpy.ndarray
             Tonemapped data.
     '''
-    tmpname = _store_tmpfile(data, 'tmp_kimkautz.tiff')
-    tmpname_out = tmpname.replace('.tiff', '.tonemapped.tiff')
+    tmpname = _store_tmpfile(data, 'tmp_kimkautz.fits')
+    tmpname_out = tmpname.replace('.fits', '.tonemapped.tiff')
     cmd = BASECOMMAND + ' -e 0 --tmo kimkautz '
     if c1 is not None:
         cmd += f'--tmoKimKautzC1 {c1} '
@@ -320,8 +332,8 @@ def lischinski(data, alpha: Optional[float] = None):
         data_tm : numpy.ndarray
             Tonemapped data.
     '''
-    tmpname = _store_tmpfile(data, 'tmp_lischinski.tiff')
-    tmpname_out = tmpname.replace('.tiff', '.tonemapped.tiff')
+    tmpname = _store_tmpfile(data, 'tmp_lischinski.fits')
+    tmpname_out = tmpname.replace('.fits', '.tonemapped.tiff')
     cmd = BASECOMMAND + ' -e 0 --tmo lischinski '
     if alpha is not None:
         cmd += f'--tmoLischinskiAlpha {alpha} '
@@ -354,8 +366,8 @@ def mantiuk06(data, contrast: Optional[float] = None, saturation: Optional[float
         data_tm : numpy.ndarray
             Tonemapped data.
     '''
-    tmpname = _store_tmpfile(data, 'tmp_mantiuk06.tiff')
-    tmpname_out = tmpname.replace('.tiff', '.tonemapped.tiff')
+    tmpname = _store_tmpfile(data, 'tmp_mantiuk06.fits')
+    tmpname_out = tmpname.replace('.fits', '.tonemapped.tiff')
     cmd = BASECOMMAND + ' -e 0 --tmo mantiuk06 '
     if contrast is not None:
         cmd += f'--tmoM06Contrast {contrast} '
@@ -393,8 +405,8 @@ def mantiuk08(data, contrast_enhancement: Optional[float] = None, colour_saturat
         data_tm : numpy.ndarray
             Tonemapped data.
     '''
-    tmpname = _store_tmpfile(data, 'tmp_mantiuk08.tiff')
-    tmpname_out = tmpname.replace('.tiff', '.tonemapped.tiff')
+    tmpname = _store_tmpfile(data, 'tmp_mantiuk08.fits')
+    tmpname_out = tmpname.replace('.fits', '.tonemapped.tiff')
     cmd = BASECOMMAND + ' -e 0 --tmo mantiuk08 '
     if colour_saturation is not None:
         cmd += f'--tmoM08ColorSaturation {colour_saturation} '
@@ -406,8 +418,8 @@ def mantiuk08(data, contrast_enhancement: Optional[float] = None, colour_saturat
     cmd += f'-o {tmpname_out} {tmpname}'
     run_command(cmd.split(' '))
     data_tm = _load_tonemapped_tmpdata(tmpname_out)
-    os.remove(tmpname)
-    os.remove(tmpname_out)
+    # os.remove(tmpname)
+    # os.remove(tmpname_out)
     return data_tm
 
 
@@ -436,8 +448,8 @@ def reinhard02(data, key: Optional[float] = None, phi: Optional[float] = None, u
         data_tm : numpy.ndarray
             Tonemapped data.
     '''
-    tmpname = _store_tmpfile(data, 'tmp_reinhard02.tiff')
-    tmpname_out = tmpname.replace('.tiff', '.tonemapped.tiff')
+    tmpname = _store_tmpfile(data, 'tmp_reinhard02.fits')
+    tmpname_out = tmpname.replace('.fits', '.tonemapped.tiff')
     cmd = BASECOMMAND + ' -e 0 --tmo reinhard02 '
     if key is not None:
         cmd += f'--tmoR02Key {key} '
@@ -478,8 +490,8 @@ def reinhard05(data, brightness: Optional[float] = None, chroma: Optional[float]
         data_tm : numpy.ndarray
             Tonemapped data.
     '''
-    tmpname = _store_tmpfile(data, 'tmp_reinhard05.tiff')
-    tmpname_out = tmpname.replace('.tiff', '.tonemapped.tiff')
+    tmpname = _store_tmpfile(data, 'tmp_reinhard05.fits')
+    tmpname_out = tmpname.replace('.fits', '.tonemapped.tiff')
     cmd = BASECOMMAND + ' -e 0 --tmo reinhard05 '
     if brightness is not None:
         cmd += f'--tmoR05Brightness {brightness} '
@@ -518,8 +530,8 @@ def pattanaik(data, multiplier: Optional[float] = None, local_tonemap: bool = Tr
         data_tm : numpy.ndarray
             Tonemapped data.
     '''
-    tmpname = _store_tmpfile(data, 'tmp_pattanaik.tiff')
-    tmpname_out = tmpname.replace('.tiff', '.tonemapped.tiff')
+    tmpname = _store_tmpfile(data, 'tmp_pattanaik.fits')
+    tmpname_out = tmpname.replace('.fits', '.tonemapped.tiff')
     cmd = BASECOMMAND + ' -e 0 --tmo pattanaik '
     if multiplier is not None:
         cmd += f'--tmoPatMultiplier {multiplier} '
@@ -552,8 +564,8 @@ def vanhateren(data, pupil_area: Optional[float] = None):
         data_tm : numpy.ndarray
             Tonemapped data.
     '''
-    tmpname = _store_tmpfile(data, 'tmp_vanhateren.tiff')
-    tmpname_out = tmpname.replace('.tiff', '.tonemapped.tiff')
+    tmpname = _store_tmpfile(data, 'tmp_vanhateren.fits')
+    tmpname_out = tmpname.replace('.fits', '.tonemapped.tiff')
     cmd = BASECOMMAND + ' -e 0 --tmo vanhateren '
     if pupil_area is not None:
         cmd += f'--tmoVanHaterenPupilArea {pupil_area} '
