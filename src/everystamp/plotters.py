@@ -1,6 +1,7 @@
 """Sub-module for plotting FITS images."""
 import os
 
+from aplpy import FITSFigure
 from astropy.io import fits
 from astropy.wcs import WCS
 from matplotlib.image import imread
@@ -28,8 +29,13 @@ class BasicFITSPlot():
             raise NotImplementedError('Supplied FITS file appears to have dimensions besides RA and DEC. BasicPlot only supports 2D FITS files.')
         self.data = self.fitsdata
         self.wcs = WCS(fits.getheader(fitsname)).celestial
+        self.figsize = [self.fitsdata.shape[0] // self.dpi, self.fitsdata.shape[1] // self.dpi]
+        if self.figsize[0] < 12:
+            self.figsize[0] = 12
+        if self.figsize[1] < 8:
+            self.figsize[1] = 8
 
-    def plot2D(self, plot_colourbar=False, contour_image: numpy.ndarray = None, contour_levels: Union[int, list] = 7):
+    def plot2D(self, plot_colourbar=False, contour_image: numpy.ndarray = None, contour_levels: Union[int, list] = 7, cmap_min: float = None, cmap_max: float = None):
         """ Save a 2D plot of the loaded FITS file.
 
         Args:
@@ -40,16 +46,9 @@ class BasicFITSPlot():
             contour_levels:
                 Number of contour levels to draw if an integer or contour levels if a list. Defaults to 5.
         """
-        figsize = [self.fitsdata.shape[0] // self.dpi, self.fitsdata.shape[1] // self.dpi]
-        if figsize[0] < 12:
-            figsize[0] = 12
-        if figsize[1] < 8:
-            figsize[1] = 8
-        from aplpy import FITSFigure
-        # hdu = fits.open(self.fitsimage)
         hdu = fits.PrimaryHDU(header=fits.getheader(self.fitsimage), data=self.data)
-        f = FITSFigure(hdu, figsize=figsize)
-        f.show_grayscale()
+        f = FITSFigure(hdu, figsize=self.figsize)
+        f.show_grayscale(vmin=cmap_min, vmax=cmap_max, pmax=100)
         if contour_image:
                 hdu_c = fits.open(contour_image)
                 # f.show_contour(hdu_c, levels=contour_levels, colors='white', cmap='plasma')
@@ -58,9 +57,16 @@ class BasicFITSPlot():
             plt.colorbar(im)
         f.savefig(self.fitsimage.replace('fits', 'png'), dpi=self.dpi)
 
-    def plot_noaxes(self):
+    def plot_noaxes(self, cmap_min: float = None, cmap_max: float = None):
         """ Save a plot of the FITS image without any axes."""
-        figsize = [self.fitsdata.shape[0] // self.dpi, self.fitsdata.shape[1] // self.dpi]
+        hdu = fits.PrimaryHDU(header=fits.getheader(self.fitsimage), data=self.data)
+        f = FITSFigure(hdu, figsize=self.figsize)
+        f.show_grayscale(vmin=cmap_min, vmax=cmap_max, pmax=100)
+        f.axis_labels.hide()
+        f.tick_labels.hide()
+        f.ticks.hide()
+        f.savefig(self.fitsimage.replace('.fits', '.noaxes.png'), dpi=self.dpi)#bbox_inches='tight', pad_inches=0, transparent=True, dpi=self.dpi)
+        return
         fig = figure(figsize=figsize)
         try:
             ax = fig.add_subplot(111, projection=self.wcs)

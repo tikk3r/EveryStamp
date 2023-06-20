@@ -103,6 +103,8 @@ def _add_args_plot(parser):
     required_args.add_argument('--CLAHE-gridsize', default=5, type=int, required=False, help='Grid size to use for CLAHE.')
     required_args.add_argument('--CLAHE-cliplim', default=1.0, type=float, required=False, help='Clip limit to use for CLAHE.')
     required_args.add_argument('--stretch', default=None, type=str, required=False, choices=['log', 'sqrt', 'squared', 'asinh', 'sinh'], help='Stretch an image with a certian function.')
+    required_args.add_argument('--cmap-min', default=None, type=float, required=False, help='Minimum value for the colourmap.')
+    required_args.add_argument('--cmap-max', default=None, type=float, required=False, help='Maximum value for the colourmap.')
 
     required_args.add_argument('--contour_image', default=None, required=False, help='Plot the given image as contours over the main image.')
 
@@ -344,13 +346,16 @@ def _process_args_plot(args):
             stretch = astropy.visualization.SinhStretch()
         bp.data = stretch(bp.data / np.nanmax(bp.data), min)
     
+    kwargs = {}
+    kwargs['cmap_min'] = args.cmap_min
+    kwargs['cmap_max'] = args.cmap_max
     if args.contour_image:
-        bp.plot2D(contour_image = args.contour_image)
+        bp.plot2D(contour_image = args.contour_image, **kwargs)
     else:
-        bp.plot2D()
+        bp.plot2D(**kwargs)
     if args.image.lower().endswith('fits'):
         bp.savedata(args.image.replace('.fits', '.tonemapped.fits'))
-        bp.plot_noaxes()
+        bp.plot_noaxes(**kwargs)
 
 
 def main():
