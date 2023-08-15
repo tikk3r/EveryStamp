@@ -21,6 +21,31 @@ def make_nonnegative(data):
         return data
 
 
+def normalise(x, vmin=None, vmax=None, clip=True):
+    """ Normalise an array of values according to y = (x - vmin / (vmax - vmin).
+    
+    Args:
+        x : numpy.ndarray
+            Array of values to normalise.
+        vmin : float
+            Lower bound for normalisation.
+        vmax : float
+            Upper bound for normalisation.
+        clip : bool
+            Clip values to the range [0:1]?
+    """
+    if not vmin:
+        vmin = np.nanmin(x)
+    if not vmax:
+        vmax = np.nanmax(x)
+    y = (x - vmin) / (vmax - vmin)
+    if clip:
+        y = np.clip(y, 0, 1)
+        return y
+    else:
+        return y
+
+
 def gamma(data, gamma):
     ''' Apply a gamma correction to the image, raising it to the power 1/gamma.
 
