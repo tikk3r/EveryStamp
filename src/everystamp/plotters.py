@@ -46,7 +46,7 @@ class BasicFITSPlot():
             contour_levels:
                 Number of contour levels to draw if an integer or contour levels if a list. Defaults to 5.
         """
-        hdu = fits.PrimaryHDU(header=fits.getheader(self.fitsimage), data=self.data)
+        hdu = fits.PrimaryHDU(header=WCS(fits.getheader(self.fitsimage)).celestial.to_header(), data=self.data.squeeze())
         f = FITSFigure(hdu, figsize=self.figsize)
         f.show_grayscale(vmin=cmap_min, vmax=cmap_max, pmax=100)
         if contour_image:
