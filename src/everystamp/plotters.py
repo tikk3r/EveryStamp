@@ -4,8 +4,7 @@ import os
 from aplpy import FITSFigure
 from astropy.io import fits
 from astropy.wcs import WCS
-from matplotlib.image import imread
-from matplotlib.pyplot import figure, show
+from matplotlib.pyplot import figure
 from typing import Union
 
 import matplotlib.pyplot as plt
