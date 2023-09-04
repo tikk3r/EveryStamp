@@ -42,7 +42,7 @@ everystamp plot --image tests_output/LoTSS-DR2_202.4842_47.2306_0.300.fits --gam
 #
 
 printf "\nTesting HDR tonemapping"
-everystamp plot --image tests_output/LoTSS-DR2_202.4842_47.2306_0.300.fits --hdr-tonemap ashikmin
+everystamp plot --image tests_output/LoTSS-DR2_202.4842_47.2306_0.300.fits --hdr-tonemap ashikhmin
 everystamp plot --image tests_output/LoTSS-DR2_202.4842_47.2306_0.300.fits --hdr-tonemap drago
 everystamp plot --image tests_output/LoTSS-DR2_202.4842_47.2306_0.300.fits --hdr-tonemap duran
 everystamp plot --image tests_output/LoTSS-DR2_202.4842_47.2306_0.300.fits --hdr-tonemap fattal
