@@ -59,14 +59,11 @@ class BasicFITSPlot():
 
     def plot_noaxes(self, cmap_min: float = None, cmap_max: float = None):
         """ Save a plot of the FITS image without any axes."""
-        hdu = fits.PrimaryHDU(header=fits.getheader(self.fitsimage), data=self.data)
-        f = FITSFigure(hdu, figsize=self.figsize)
-        f.show_grayscale(vmin=cmap_min, vmax=cmap_max, pmax=100)
-        f.axis_labels.hide()
-        f.tick_labels.hide()
-        f.ticks.hide()
-        f.savefig(self.fitsimage.replace('.fits', '.noaxes.png'), dpi=self.dpi)#bbox_inches='tight', pad_inches=0, transparent=True, dpi=self.dpi)
-        return
+        figsize = [self.fitsdata.shape[0] // self.dpi, self.fitsdata.shape[1] // self.dpi]
+        if figsize[0] < 12:
+            figsize[0] = 12
+        if figsize[1] < 8:
+            figsize[1] = 8
         fig = figure(figsize=figsize)
         hdu = fits.PrimaryHDU(header=WCS(fits.getheader(self.fitsimage)).celestial.to_header(), data=self.data.squeeze())
         f = FITSFigure(hdu, figure=fig)
@@ -104,7 +101,7 @@ class BasicImagePlot():
         fig = figure(figsize=figsize)
         ax = fig.add_subplot(111)
         if self.data is not None:
-            ax.imshow(self.data, origin='upper', interpolation='none')
+            ax.imshow(self.data, origin='upper', interpolation='none', cmap='gray')
             # if self.data.max() > 1:
             #     # Probably integer image.
             #     ax.imshow(self.data.astype('uint8'), origin='upper', interpolation='none')
@@ -112,7 +109,7 @@ class BasicImagePlot():
             #     # Probably floating point image.
             #     ax.imshow(self.data.astype(float), origin='upper', interpolation='none')
         else:
-            ax.imshow(self.imdata, origin='upper', interpolation='none')
+            ax.imshow(self.imdata, origin='upper', interpolation='none', cmap='gray')
             # if self.imdata.max() > 1:
             #     # Probably integer image.
             #     ax.imshow(self.imdata.astype('uint8'), origin='upper', interpolation='none')
