@@ -4,8 +4,7 @@ import os
 from aplpy import FITSFigure
 from astropy.io import fits
 from astropy.wcs import WCS
-from matplotlib.image import imread
-from matplotlib.pyplot import figure, show
+from matplotlib.pyplot import figure
 from typing import Union
 
 import matplotlib.pyplot as plt
@@ -46,7 +45,7 @@ class BasicFITSPlot():
             contour_levels:
                 Number of contour levels to draw if an integer or contour levels if a list. Defaults to 5.
         """
-        hdu = fits.PrimaryHDU(header=fits.getheader(self.fitsimage), data=self.data)
+        hdu = fits.PrimaryHDU(header=WCS(fits.getheader(self.fitsimage)).celestial.to_header(), data=self.data.squeeze())
         f = FITSFigure(hdu, figsize=self.figsize)
         f.show_grayscale(vmin=cmap_min, vmax=cmap_max, pmax=100)
         if contour_image:
@@ -54,39 +53,22 @@ class BasicFITSPlot():
                 # f.show_contour(hdu_c, levels=contour_levels, colors='white', cmap='plasma')
                 f.show_contour(hdu_c, levels=contour_levels, colors='C0')
         if plot_colourbar:
-            plt.colorbar(im)
+            f.add_colorbar()
         f.savefig(self.fitsimage.replace('fits', 'png'), dpi=self.dpi)
 
     def plot_noaxes(self, cmap_min: float = None, cmap_max: float = None):
         """ Save a plot of the FITS image without any axes."""
-        hdu = fits.PrimaryHDU(header=fits.getheader(self.fitsimage), data=self.data)
-        f = FITSFigure(hdu, figsize=self.figsize)
-        f.show_grayscale(vmin=cmap_min, vmax=cmap_max, pmax=100)
-        f.axis_labels.hide()
-        f.tick_labels.hide()
-        f.ticks.hide()
-        f.savefig(self.fitsimage.replace('.fits', '.noaxes.png'), dpi=self.dpi)#bbox_inches='tight', pad_inches=0, transparent=True, dpi=self.dpi)
-        return
+        figsize = [self.fitsdata.shape[0] // self.dpi, self.fitsdata.shape[1] // self.dpi]
+        if figsize[0] < 12:
+            figsize[0] = 12
+        if figsize[1] < 8:
+            figsize[1] = 8
         fig = figure(figsize=figsize)
-        try:
-            ax = fig.add_subplot(111, projection=self.wcs)
-            origin='lower'
-        except IndexError:
-            print('WCS from FITS header broken or incompatible, ignoring.')
-            origin='upper'
-            ax = fig.add_subplot(111)
-        if self.data is not None:
-            ax.imshow(self.data, origin=origin, interpolation='none')
-        else:
-            ax.imshow(self.fitsdata, origin=origin, interpolation='none')
-        ax.xaxis.set_visible(False)
-        ax.yaxis.set_visible(False)
-        plt.gca().set_axis_off()
-        plt.subplots_adjust(top=1, bottom=0, right=1, left=0, hspace=0, wspace=0)
-        plt.margins(0, 0)
-        plt.gca().xaxis.set_major_locator(plt.NullLocator())
-        plt.gca().yaxis.set_major_locator(plt.NullLocator())
-        fig.savefig(self.fitsimage.replace('.fits', '.noaxes.png'), bbox_inches='tight', pad_inches=0, transparent=True, dpi=self.dpi)
+        hdu = fits.PrimaryHDU(header=WCS(fits.getheader(self.fitsimage)).celestial.to_header(), data=self.data.squeeze())
+        f = FITSFigure(hdu, figure=fig)
+        f.show_grayscale(vmin=cmap_min, vmax=cmap_max, pmax=100)
+        plt.axis('off')
+        fig.savefig(self.fitsimage.replace('fits', '.noaxes.png'), bbox_inches='tight', pad_inches=0, transparent=True, dpi=self.dpi)
 
     def savedata(self, outfile):
         """ Save data of a BasicPlot object to a FITS file with the same WCS information.
@@ -118,7 +100,7 @@ class BasicImagePlot():
         fig = figure(figsize=figsize)
         ax = fig.add_subplot(111)
         if self.data is not None:
-            ax.imshow(self.data, origin='upper', interpolation='none')
+            ax.imshow(self.data, origin='upper', interpolation='none', cmap='gray')
             # if self.data.max() > 1:
             #     # Probably integer image.
             #     ax.imshow(self.data.astype('uint8'), origin='upper', interpolation='none')
@@ -126,7 +108,7 @@ class BasicImagePlot():
             #     # Probably floating point image.
             #     ax.imshow(self.data.astype(float), origin='upper', interpolation='none')
         else:
-            ax.imshow(self.imdata, origin='upper', interpolation='none')
+            ax.imshow(self.imdata, origin='upper', interpolation='none', cmap='gray')
             # if self.imdata.max() > 1:
             #     # Probably integer image.
             #     ax.imshow(self.imdata.astype('uint8'), origin='upper', interpolation='none')

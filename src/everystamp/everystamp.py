@@ -13,9 +13,12 @@ import os
 import shutil
 import subprocess
 
+from astropy.coordinates import SkyCoord
 from astroquery.skyview import SkyView #type: ignore
 from collections.abc import Iterable
-from everystamp.tonemapping import lhdr
+from everystamp.cutters import make_cutout_2D
+from everystamp.tonemapping import lhdr, normalise
+import astropy.units as units
 import astropy.visualization
 import cv2 #type: ignore
 import requests
@@ -183,6 +186,22 @@ def _add_args_plot(parser):
         logger.warning('Cannot find luminance-hdr-cli. HDR tone mapping functionality will not be available unless LuminanceHDR is (correctly) installed.')
 
 
+def _add_args_cutout(parser):
+    ''' Add arguments to the argparse instance for making cutouts.
+    
+    Args:
+        parser : ArgumentParser
+            ArgumentParser instance to which to add entries.
+    '''
+    required_args = parser.add_argument_group('Required arguments')
+    required_args.add_argument('--image', type=str, required=False, help='FITS image to plot.')
+    required_args.add_argument('--ra', type=float, required=True, help='Right ascension of cutout centre in degrees.')
+    required_args.add_argument('--dec', type=float, required=True, help='Declination of cutout centre in degrees.')
+    required_args.add_argument('--size', type=float, required=False, default=0.01, help='Cutout size in degrees.')
+
+    optional_args = parser.add_argument_group('Optional arguments')
+    optional_args.add_argument('--output-dir', type=str, required=False, default=os.getcwd(), dest='ddir', help='Directory to store cutout files. If not given will saved to $PWD.')
+
 def _process_args_download(args):
     ''' Process arguments to the argparse instance for downloading cutouts.
     
@@ -259,6 +278,7 @@ def _process_args_plot(args):
         # Probably an image format.
         bp = BasicImagePlot(args.image)
     if HAS_LHDR and args.hdr_tonemap:
+        bp.data = normalise(bp.data)
         if args.hdr_tonemap == 'ashikhmin':
             logger.info('Tonemapping image with ashikhmin')
             bp.data = ashikhmin(bp.data, eq2=args.ashikhmin_eq2, simple=args.ashikhmin_simple, local_threshold=args.ashikhmin_local_threshold)
@@ -304,8 +324,9 @@ def _process_args_plot(args):
     
     if args.CLAHE:
         if args.image.lower().endswith('fits'):
-            bp.data = make_nonnegative(bp.fitsdata)
-            bp.data /= np.nanmax(bp.data)
+            # bp.data = make_nonnegative(bp.fitsdata)
+            # bp.data /= np.nanmax(bp.data)
+            bp.data = normalise(bp.fitsdata)
             bp.data *= 2**16
             bp.data = bp.data.astype(np.uint16)
             clahe = cv2.createCLAHE(clipLimit=args.CLAHE_cliplim, tileGridSize=(args.CLAHE_gridsize, args.CLAHE_gridsize))
@@ -321,7 +342,7 @@ def _process_args_plot(args):
     if args.gamma != 1:
         logger.info('Applying gamma stretch of {:f}'.format(args.gamma))
         if args.image.lower().endswith('fits'):
-            bp.data = gamma(bp.data / np.nanmax(bp.data), args.gamma)
+            bp.data = gamma(normalise(bp.data), args.gamma)
         else:
             Lab = cv2.cvtColor(bp.data.astype(np.uint8), cv2.COLOR_RGB2Lab)
             L, a, b = cv2.split(Lab)
@@ -344,7 +365,7 @@ def _process_args_plot(args):
             stretch = astropy.visualization.AsinhStretch()
         elif args.stretch == 'sinh':
             stretch = astropy.visualization.SinhStretch()
-        bp.data = stretch(bp.data / np.nanmax(bp.data), min)
+        bp.data = stretch(normalise(bp.data), min)
     
     kwargs = {}
     kwargs['cmap_min'] = args.cmap_min
@@ -356,6 +377,22 @@ def _process_args_plot(args):
     if args.image.lower().endswith('fits'):
         bp.savedata(args.image.replace('.fits', '.tonemapped.fits'))
         bp.plot_noaxes(**kwargs)
+
+
+def _process_args_cutout(args):
+    ''' Process arguments to the argparse instance for downloading cutouts.
+    
+    Args:
+        parser : ArgumentParser
+            ArgumentParser instance to which to add entries.
+    '''
+    if args.ddir and (not os.path.exists(args.ddir)):
+        logger.info('Download directory does not exist, creating it')
+        os.mkdir(args.ddir)
+    c = SkyCoord(args.ra * units.deg, args.dec * units.deg)
+    s = args.size * units.deg
+    out = os.path.join(args.ddir, args.image.replace('.fits', '.cropped.fits'))
+    make_cutout_2D(args.image, pos=c, size=s, outfile=out)
 
 
 def main():
@@ -371,12 +408,17 @@ def main():
     subparser_plot = subparsers.add_parser('plot', description='Plot a given FITS image. See everystamp plot -h for more information.', help='Plot a user-supplied FITS image.')
     _add_args_plot(subparser_plot)
 
+    subparser_cut = subparsers.add_parser('cutout', description='Trim a given FITS image. See everystamp cutout -h for more information.', help='Cut a user-supplied FITS image to size.')
+    _add_args_cutout(subparser_cut)
+
     args = parser.parse_args()
 
     if args.cmd == 'download':
         _process_args_download(args)
     if args.cmd == 'plot':
         _process_args_plot(args)
+    if args.cmd == 'cutout':
+        _process_args_cutout(args)
 
 
 if __name__ == '__main__':
