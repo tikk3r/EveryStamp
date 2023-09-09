@@ -53,7 +53,7 @@ class BasicFITSPlot():
                 # f.show_contour(hdu_c, levels=contour_levels, colors='white', cmap='plasma')
                 f.show_contour(hdu_c, levels=contour_levels, colors='C0')
         if plot_colourbar:
-            plt.colorbar(im)
+            f.add_colorbar()
         f.savefig(self.fitsimage.replace('fits', 'png'), dpi=self.dpi)
 
     def plot_noaxes(self, cmap_min: float = None, cmap_max: float = None):
