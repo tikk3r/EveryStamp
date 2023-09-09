@@ -393,7 +393,6 @@ def _process_args_cutout(args):
     s = args.size * units.deg
     out = os.path.join(args.ddir, args.image.replace('.fits', '.cropped.fits'))
     make_cutout_2D(args.image, pos=c, size=s, outfile=out)
-    
 
 
 def main():
