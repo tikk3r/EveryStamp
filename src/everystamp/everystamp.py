@@ -220,8 +220,8 @@ def _process_args_download(args):
     ras = []
     decs = []
     if (args.ra and args.dec) and (not args.from_catalogue):
-        ra.append(args.ra)
-        dec.append(args.dec)
+        ras.append(args.ra)
+        decs.append(args.dec)
     elif args.from_catalogue:
         tab = Table.read(args.from_catalogue)
         ras = tab['RA']
@@ -407,11 +407,19 @@ def _process_args_cutout(args):
     if args.ddir and (not os.path.exists(args.ddir)):
         logger.info('Download directory does not exist, creating it')
         os.mkdir(args.ddir)
-    c = SkyCoord(args.ra * units.deg, args.dec * units.deg)
     s = args.size * units.deg
-    out = os.path.join(args.ddir, args.image.replace('.fits', '.cropped.fits'))
 
-    make_cutout_2D(args.image, pos=c, size=s, outfile=out)
+    if (args.ra and args.dec) and (not args.from_catalogue):
+        ras = [args.ra]
+        decs = [args.dec]
+    elif args.from_catalogue:
+        tab = Table.read(args.from_catalogue)
+        ras = tab['RA']
+        decs = tab['DEC']
+    coords = SkyCoord(ras, decs, unit='deg')
+    for c in coords:
+        out = os.path.join(args.ddir, args.image.replace('.fits', '.cropped_{:.4f}_{:.4f}_{:.4f}.fits'.format(c.ra.value, c.dec.value, args.size.value)))
+        make_cutout_2D(args.image, pos=c, size=s, outfile=out)
 
 
 def main():
