@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ''' Python library aiming to provide a wrapper around various astronomical surveys that offer cutouts.'''
-__version__ = '1.3.0'
+__version__ = '1.4.0'
 __author__ = 'Frits Sweijen'
 __license__ = 'GPLv3'
 from typing import Generator
@@ -14,6 +14,7 @@ import shutil
 import subprocess
 
 from astropy.coordinates import SkyCoord
+from astropy.table import Table
 from astroquery.skyview import SkyView #type: ignore
 from collections.abc import Iterable
 from everystamp.cutters import make_cutout_2D
@@ -62,9 +63,10 @@ def _add_args_download(parser):
     allowed_surveys = custom_surveys + skyview_surveys
     required_args = parser.add_argument_group('Required arguments')
     required_args.add_argument('--survey', type=str, required=True, choices=allowed_surveys, help='Survey from which to download the cutout.')
-    required_args.add_argument('--ra', type=float, required=True, help='Right ascension of cutout centre in degrees.')
-    required_args.add_argument('--dec', type=float, required=True, help='Declination of cutout centre in degrees.')
+    required_args.add_argument('--ra', type=float, required=False, help='Right ascension of cutout centre in degrees. Required if no catalogue is given.')
+    required_args.add_argument('--dec', type=float, required=False, help='Declination of cutout centre in degrees. Required if no catalogue is given.')
     required_args.add_argument('--mode', type=str, required=True, default='jpeg', choices=['jpeg', 'fits', 'both'], help='Image type to retrieve. Can be "jpeg", "fits" or "both" to retrieve either a JPEG image, FITS file or both. Default value is jpeg.')
+    required_args.add_argument('--from_catalogue', type=str, required=False, default='', help='Download cutouts from the given catalogue. The catalogue should contain the columns RA and DEC.')
 
     optional_args = parser.add_argument_group('Optional arguments')
     optional_args.add_argument('--download_dir', type=str, required=False, default=os.getcwd(), dest='ddir', help='Directory to store downloaded files. If not given will download to $PWD.')
@@ -202,6 +204,7 @@ def _add_args_cutout(parser):
     optional_args = parser.add_argument_group('Optional arguments')
     optional_args.add_argument('--output-dir', type=str, required=False, default=os.getcwd(), dest='ddir', help='Directory to store cutout files. If not given will saved to $PWD.')
 
+
 def _process_args_download(args):
     ''' Process arguments to the argparse instance for downloading cutouts.
     
@@ -209,55 +212,71 @@ def _process_args_download(args):
         parser : ArgumentParser
             ArgumentParser instance to which to add entries.
     '''
+    if not (args.ra and args.dec) and (not args.from_catalogue):
+        raise ValueError('Either right ascension and declination or a catalogue must be specified to download from.')
+    elif (args.ra and args.dec) and (args.from_catalogue):
+        raise ValueError('Cannot specify both right ascension and declination and a catalogue.')
+    elif ((args.ra and not args.dec) or (not args.ra and args.dec)) and (args.from_catalogue):
+        raise ValueError('Need to specify both right ascension and declination.')
+    ras = []
+    decs = []
+    if (args.ra and args.dec) and (not args.from_catalogue):
+        ras.append(args.ra)
+        decs.append(args.dec)
+    elif args.from_catalogue:
+        tab = Table.read(args.from_catalogue)
+        ras = tab['RA']
+        decs = tab['DEC']
     if args.ddir and (not os.path.exists(args.ddir)):
         logger.info('Download directory does not exist, creating it')
         os.mkdir(args.ddir)
     logger.info('Survey is %s', args.survey)
-    if args.survey == 'legacy':
-        from everystamp.downloaders import LegacyDownloader
-        ld = LegacyDownloader()
-        ld.download(ra=args.ra, dec=args.dec, bands=args.legacy_bands, mode=args.mode, size=args.size, layer=args.legacy_layer, autoscale=args.legacy_autoscale, ddir=args.ddir)
-    elif args.survey == 'pan-starrs':
-        from everystamp.downloaders import PanSTARRSDownloader
-        pd = PanSTARRSDownloader()
-        pd.download(ra=args.ra, dec=args.dec, bands=args.ps_bands, mode=args.mode, size=args.size, ddir=args.ddir)
-    elif args.survey == 'vlass':
-        if args.mode == 'both' or args.mode == 'jpeg':
-            raise ValueError('VLASS download does not support JPEG (yet).')
-        from everystamp.downloaders import VLASSDownloader
-        vd = VLASSDownloader()
-        vd.download(ra=args.ra, dec=args.dec, crop=True, consider_QA_rejected=args.vlass_consider_QA_rejected, ddir=args.ddir)
-    elif args.survey == 'lolss':
-        if args.mode == 'both' or args.mode == 'jpeg':
-            raise ValueError('LoLLS download does not support JPEG (yet).')
-        from everystamp.downloaders import VODownloader
-        vd = VODownloader(url='https://vo.astron.nl/lolss/q/cutout/siap.xml', name='LoLSS')
-        vd.download(ra=args.ra, dec=args.dec, size=args.size, ddir=args.ddir)
-    elif args.survey == 'lotss':
-        if (args.mode == 'both' or args.mode == 'jpeg') and (args.lotss_release != 'dr2'):
-            raise ValueError('LoTSS {:s} download does not support JPEG (yet).'.format(args.lotss_release.upper()))
-        from everystamp.downloaders import VODownloader
-        if args.lotss_release == 'pdr':
-            vd = VODownloader(url='https://vo.astron.nl/lofartier1/q_img/cutout/siap.xml', name='LoTSS-PDR')
-        elif args.lotss_release == 'dr1':
-            vd = VODownloader(url='https://vo.astron.nl/hetdex/lotss-dr1-img/cutout/siap.xml', name='LoTSS-DR1')
-            vd.download(ra=args.ra, dec=args.dec, size=args.size, ddir=args.ddir)
-        elif args.lotss_release == 'dr2':
-            from everystamp.downloaders import HiPSDownloader
-            vd = HiPSDownloader(hips='astron.nl/P/lotss_dr2_high', name='LoTSS-DR2')
-            vd.download(ra=args.ra, dec=args.dec, size=args.size, ddir=args.ddir, mode=args.mode.replace('e', ''), pixsize=1.5)
-    elif args.survey == 'tgss':
-        if args.mode == 'both' or args.mode == 'jpeg':
-            raise ValueError('TGSS download does not support JPEG (yet).')
-        from everystamp.downloaders import VODownloader
-        vd = VODownloader(url='https://vo.astron.nl/tgssadr/q_fits/cutout/siap.xml', name='TGSS')
-        vd.download(ra=args.ra, dec=args.dec, size=args.size, ddir=args.ddir)
-    else:
-        if args.mode == 'both' or args.mode == 'jpeg':
-            raise ValueError('SkyView download does not support JPEG (yet).')
-        from everystamp.downloaders import SkyViewDownloader
-        sd = SkyViewDownloader(args.survey)
-        sd.download(ra=args.ra, dec=args.dec, size=args.size, pixsize=args.skyview_pixsize, ddir=args.ddir)
+    for ra, dec in zip(ras, decs):
+        if args.survey == 'legacy':
+            from everystamp.downloaders import LegacyDownloader
+            ld = LegacyDownloader()
+            ld.download(ra=ra, dec=dec, bands=args.legacy_bands, mode=args.mode, size=args.size, layer=args.legacy_layer, autoscale=args.legacy_autoscale, ddir=args.ddir)
+        elif args.survey == 'pan-starrs':
+            from everystamp.downloaders import PanSTARRSDownloader
+            pd = PanSTARRSDownloader()
+            pd.download(ra=ra, dec=dec, bands=args.ps_bands, mode=args.mode, size=args.size, ddir=args.ddir)
+        elif args.survey == 'vlass':
+            if args.mode == 'both' or args.mode == 'jpeg':
+                raise ValueError('VLASS download does not support JPEG (yet).')
+            from everystamp.downloaders import VLASSDownloader
+            vd = VLASSDownloader()
+            vd.download(ra=ra, dec=dec, crop=True, consider_QA_rejected=args.vlass_consider_QA_rejected, ddir=args.ddir)
+        elif args.survey == 'lolss':
+            if args.mode == 'both' or args.mode == 'jpeg':
+                raise ValueError('LoLLS download does not support JPEG (yet).')
+            from everystamp.downloaders import VODownloader
+            vd = VODownloader(url='https://vo.astron.nl/lolss/q/cutout/siap.xml', name='LoLSS')
+            vd.download(ra=ra, dec=dec, size=args.size, ddir=args.ddir)
+        elif args.survey == 'lotss':
+            if (args.mode == 'both' or args.mode == 'jpeg') and (args.lotss_release != 'dr2'):
+                raise ValueError('LoTSS {:s} download does not support JPEG (yet).'.format(args.lotss_release.upper()))
+            from everystamp.downloaders import VODownloader
+            if args.lotss_release == 'pdr':
+                vd = VODownloader(url='https://vo.astron.nl/lofartier1/q_img/cutout/siap.xml', name='LoTSS-PDR')
+            elif args.lotss_release == 'dr1':
+                vd = VODownloader(url='https://vo.astron.nl/hetdex/lotss-dr1-img/cutout/siap.xml', name='LoTSS-DR1')
+                vd.download(ra=ra, dec=dec, size=args.size, ddir=args.ddir)
+            elif args.lotss_release == 'dr2':
+                from everystamp.downloaders import HiPSDownloader
+                vd = HiPSDownloader(hips='astron.nl/P/lotss_dr2_high', name='LoTSS-DR2')
+                vd.download(ra=ra, dec=dec, size=args.size, ddir=args.ddir, mode=args.mode.replace('e', ''), pixsize=1.5)
+        elif args.survey == 'tgss':
+            if args.mode == 'both' or args.mode == 'jpeg':
+                raise ValueError('TGSS download does not support JPEG (yet).')
+            from everystamp.downloaders import VODownloader
+            vd = VODownloader(url='https://vo.astron.nl/tgssadr/q_fits/cutout/siap.xml', name='TGSS')
+            vd.download(ra=ra, dec=dec, size=args.size, ddir=args.ddir)
+        else:
+            if args.mode == 'both' or args.mode == 'jpeg':
+                raise ValueError('SkyView download does not support JPEG (yet).')
+            from everystamp.downloaders import SkyViewDownloader
+            sd = SkyViewDownloader(args.survey)
+            sd.download(ra=ra, dec=dec, size=args.size, pixsize=args.skyview_pixsize, ddir=args.ddir)
 
 
 def _process_args_plot(args):
@@ -389,10 +408,19 @@ def _process_args_cutout(args):
     if args.ddir and (not os.path.exists(args.ddir)):
         logger.info('Download directory does not exist, creating it')
         os.mkdir(args.ddir)
-    c = SkyCoord(args.ra * units.deg, args.dec * units.deg)
     s = args.size * units.deg
-    out = os.path.join(args.ddir, args.image.replace('.fits', '.cropped.fits'))
-    make_cutout_2D(args.image, pos=c, size=s, outfile=out)
+
+    if (args.ra and args.dec) and (not args.from_catalogue):
+        ras = [args.ra]
+        decs = [args.dec]
+    elif args.from_catalogue:
+        tab = Table.read(args.from_catalogue)
+        ras = tab['RA']
+        decs = tab['DEC']
+    coords = SkyCoord(ras, decs, unit='deg')
+    for c in coords:
+        out = os.path.join(args.ddir, args.image.replace('.fits', '.cropped_{:.4f}_{:.4f}_{:.4f}.fits'.format(c.ra.value, c.dec.value, args.size.value)))
+        make_cutout_2D(args.image, pos=c, size=s, outfile=out)
 
 
 def main():
@@ -402,7 +430,7 @@ def main():
     parser._action_groups.pop()
 
     subparsers = parser.add_subparsers(dest='cmd', description='Description of sub commands.')
-    subparser_dl = subparsers.add_parser('download', usage='everystamp download --survey SURVEY --ra RA --dec DEC --mode MODE --size SIZE', description='Download a cutout from a user-specified survey. See everystamp download -h for all available parameters.', help='Download a cutout from a specified survey.')
+    subparser_dl = subparsers.add_parser('download', description='Download a cutout from a user-specified survey. See everystamp download -h for all available parameters.', help='Download a cutout from a specified survey.')
     _add_args_download(subparser_dl)
 
     subparser_plot = subparsers.add_parser('plot', description='Plot a given FITS image. See everystamp plot -h for more information.', help='Plot a user-supplied FITS image.')
