@@ -78,6 +78,47 @@ class BasicFITSPlot():
         fits.writeto(data=self.data, header=self.wcs.to_header(), filename=outfile, overwrite=True)
 
 
+class SRTPlot():
+    """ Create a line profile plot similar in style to the SRTPLOT task used by Hogbom 1974."""
+    
+    def __init__(self, fitsname):
+        """ Initialise a basic plotting object for 2D FITS files.
+        
+        Args:
+            fitsname : str
+                Name of the FITS file that will be plotted.
+        """
+        self.dpi = 300
+        self.figsize = (12, 12)
+        self.fitsimage = fitsname
+        self.fitsdata = fits.getdata(fitsname).squeeze()
+        if len(self.fitsdata.shape) > 2:
+            raise NotImplementedError('Supplied FITS file appears to have dimensions besides RA and DEC. BasicPlot only supports 2D FITS files.')
+        self.data = self.fitsdata
+
+    def plot2D(self, srt_lines: int = 25, srt_offset: float = 0.01, **kwargs):
+        """ Save an SRTPLOT style plot of the loaded FITS file.
+
+        Args:
+            lines : int
+                Number of lines to plot.
+            offset : float
+                Offset between each line in data units.
+        """
+        f = plt.figure(figsize=self.figsize)
+        ax = f.add_subplot(111)
+        stride = self.data.shape[0] // srt_lines
+        for i, line in enumerate(self.data[::stride, ::-1]):
+            if i > 0:
+                ax.fill_between(list(range(len(line))), (srt_lines-i)*srt_offset, line + (srt_lines-i)*srt_offset, color='w', zorder=i+2)
+            else:
+                ax.fill_between(list(range(len(line))), 0, line + (srt_lines-i)*srt_offset, color='w', zorder=i+2)
+            ax.plot(line + (srt_lines-i)*srt_offset, color='k', zorder=i+2)
+        ax.set_xlim(0, self.data.shape[1])
+        plt.axis('off')
+        f.savefig(self.fitsimage.replace('.fits', '.srtplot.png'), dpi=self.dpi, bbox_inches='tight', pad_inches=0)
+
+
 class BasicImagePlot():
     """ Creates a basic plot of a FITS file."""
     def __init__(self, imname):
