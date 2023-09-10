@@ -204,6 +204,7 @@ def _add_args_cutout(parser):
     optional_args = parser.add_argument_group('Optional arguments')
     optional_args.add_argument('--output-dir', type=str, required=False, default=os.getcwd(), dest='ddir', help='Directory to store cutout files. If not given will saved to $PWD.')
 
+
 def _process_args_download(args):
     ''' Process arguments to the argparse instance for downloading cutouts.
     
@@ -429,7 +430,7 @@ def main():
     parser._action_groups.pop()
 
     subparsers = parser.add_subparsers(dest='cmd', description='Description of sub commands.')
-    subparser_dl = subparsers.add_parser('download', usage='everystamp download --survey SURVEY --ra RA --dec DEC --mode MODE --size SIZE', description='Download a cutout from a user-specified survey. See everystamp download -h for all available parameters.', help='Download a cutout from a specified survey.')
+    subparser_dl = subparsers.add_parser('download', description='Download a cutout from a user-specified survey. See everystamp download -h for all available parameters.', help='Download a cutout from a specified survey.')
     _add_args_download(subparser_dl)
 
     subparser_plot = subparsers.add_parser('plot', description='Plot a given FITS image. See everystamp plot -h for more information.', help='Plot a user-supplied FITS image.')
