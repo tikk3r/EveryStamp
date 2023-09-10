@@ -103,6 +103,9 @@ def _add_args_plot(parser):
     required_args.add_argument('--image', type=str, required=False, help='FITS image to plot.')
 
     required_args = parser.add_argument_group('Optional arguments')
+    required_args.add_argument('--style', type=str, default='normal', choices=['normal', 'srtplot'], required=False, help='Style of plot to make.')
+    required_args.add_argument('--srt_lines', type=int, default=25, required=False, help='Number of lines to draw in an SRTPLOT style plot.')
+    required_args.add_argument('--srt_offset', type=float, default=0.01, required=False, help='Offset in data units between lines in an SRTPLOT style plot.')
     required_args.add_argument('--gamma', type=float, default=1.0, required=False, help='Gamma compress (<1) or expand (>1) an image after tone mapping.')
     required_args.add_argument('--CLAHE', action='store_true', default=False, required=False, help='Apply contrast-limited adaptive histogram equalisation.')
     required_args.add_argument('--CLAHE-gridsize', default=5, type=int, required=False, help='Grid size to use for CLAHE.')
@@ -287,12 +290,15 @@ def _process_args_plot(args):
             ArgumentParser instance to which to add entries.
     '''
     logger.info('Plotting image %s', args.image)
-    from everystamp.plotters import BasicFITSPlot, BasicImagePlot
+    from everystamp.plotters import BasicFITSPlot, BasicImagePlot, SRTPlot
     from everystamp.tonemapping import gamma, make_nonnegative
     import numpy as np
     from everystamp.tonemapping.lhdr import ashikhmin, drago, duran, fattal, ferradans, ferwerda, kimkautz, lischinski, mantiuk06, mantiuk08, reinhard02, reinhard05, pattanaik, vanhateren
     if args.image.lower().endswith('fits'):
-        bp = BasicFITSPlot(args.image)
+        if args.style == 'normal':
+            bp = BasicFITSPlot(args.image)
+        elif args.style == 'srtplot':
+            bp = SRTPlot(args.image)
     else:
         # Probably an image format.
         bp = BasicImagePlot(args.image)
@@ -386,14 +392,11 @@ def _process_args_plot(args):
             stretch = astropy.visualization.SinhStretch()
         bp.data = stretch(normalise(bp.data), min)
     
-    kwargs = {}
-    kwargs['cmap_min'] = args.cmap_min
-    kwargs['cmap_max'] = args.cmap_max
-    if args.contour_image:
-        bp.plot2D(contour_image = args.contour_image, **kwargs)
+    if args.contour_image and (args.style == 'normal'):
+        bp.plot2D(contour_image = args.contour_image, cmap_min=args.cmap_min, cmap_max=args.cmap_max)
     else:
-        bp.plot2D(**kwargs)
-    if args.image.lower().endswith('fits'):
+        bp.plot2D(srt_lines=args.srt_lines, srt_offset=args.srt_offset)
+    if args.image.lower().endswith('fits') and (args.style == 'normal'):
         bp.savedata(args.image.replace('.fits', '.tonemapped.fits'))
         bp.plot_noaxes(**kwargs)
 
