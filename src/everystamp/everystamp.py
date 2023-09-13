@@ -423,7 +423,7 @@ def _process_args_cutout(args):
         decs = tab['DEC']
     coords = SkyCoord(ras, decs, unit='deg')
     for c in coords:
-        out = os.path.join(args.ddir, args.image.replace('.fits', '.cropped_{:.4f}_{:.4f}_{:.4f}.fits'.format(c.ra.value, c.dec.value, args.size.value)))
+        out = os.path.join(args.ddir, args.image.replace('.fits', '.cropped_{:.4f}_{:.4f}_{:.4f}.fits'.format(c.ra, c.dec, args.size)))
         make_cutout_2D(args.image, pos=c, size=s, outfile=out)
 
 
