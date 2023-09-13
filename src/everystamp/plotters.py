@@ -108,6 +108,8 @@ class SRTPlot():
         f = plt.figure(figsize=self.figsize)
         ax = f.add_subplot(111)
         stride = self.data.shape[0] // srt_lines
+        if stride == 0:
+            stride += 1
         for i, line in enumerate(self.data[::stride, ::-1]):
             if i > 0:
                 ax.fill_between(list(range(len(line))), (srt_lines-i)*srt_offset, line + (srt_lines-i)*srt_offset, color='w', zorder=i+2)

@@ -395,7 +395,9 @@ def _process_args_plot(args):
     
     if args.contour_image and (args.style == 'normal'):
         bp.plot2D(contour_image = args.contour_image, cmap_min=args.cmap_min, cmap_max=args.cmap_max)
-    else:
+    elif (not args.contour_image) and (args.style == 'normal'):
+        bp.plot2D(cmap_min=args.cmap_min, cmap_max=args.cmap_max)
+    elif args.style == 'srtplot':
         bp.plot2D(srt_lines=args.srt_lines, srt_offset=args.srt_offset)
     if args.image.lower().endswith('fits') and (args.style == 'normal'):
         bp.savedata(args.image.replace('.fits', '.tonemapped.fits'))
