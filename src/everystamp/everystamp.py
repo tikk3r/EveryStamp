@@ -203,6 +203,7 @@ def _add_args_cutout(parser):
     required_args.add_argument('--ra', type=float, required=True, help='Right ascension of cutout centre in degrees.')
     required_args.add_argument('--dec', type=float, required=True, help='Declination of cutout centre in degrees.')
     required_args.add_argument('--size', type=float, required=False, default=0.01, help='Cutout size in degrees.')
+    required_args.add_argument('--from_catalogue', type=str, required=False, default='', help='Download cutouts from the given catalogue. The catalogue should contain the columns RA and DEC.')
 
     optional_args = parser.add_argument_group('Optional arguments')
     optional_args.add_argument('--output-dir', type=str, required=False, default=os.getcwd(), dest='ddir', help='Directory to store cutout files. If not given will saved to $PWD.')
