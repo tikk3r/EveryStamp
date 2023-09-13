@@ -401,7 +401,7 @@ def _process_args_plot(args):
         bp.plot2D(srt_lines=args.srt_lines, srt_offset=args.srt_offset)
     if args.image.lower().endswith('fits') and (args.style == 'normal'):
         bp.savedata(args.image.replace('.fits', '.tonemapped.fits'))
-        bp.plot_noaxes(**kwargs)
+        bp.plot_noaxes(cmap_min=args.cmap_min, cmap_max=args.cmap_max)
 
 
 def _process_args_cutout(args):
