@@ -60,9 +60,9 @@ def _add_args_download(parser):
     except requests.exceptions.ConnectionError:
         logger.warning('Failed to get SkyView surveys. SkyView cutouts will not be available.')
         skyview_surveys = []
-    allowed_surveys = custom_surveys + skyview_surveys
+    allowed_surveys = custom_surveys + ['SkyView surveys']
     required_args = parser.add_argument_group('Required arguments')
-    required_args.add_argument('--survey', type=str, required=True, choices=allowed_surveys, help='Survey from which to download the cutout.')
+    required_args.add_argument('--survey', type=str, required=True, help='Survey from which to download the cutout. Prefix with hips: to download from any of the sky maps listed in the ID column here: http://aladin.cds.unistra.fr/hips/list#hipssky')
     required_args.add_argument('--ra', type=float, required=False, help='Right ascension of cutout centre in degrees. Required if no catalogue is given.')
     required_args.add_argument('--dec', type=float, required=False, help='Declination of cutout centre in degrees. Required if no catalogue is given.')
     required_args.add_argument('--mode', type=str, required=True, default='jpeg', choices=['jpeg', 'fits', 'both'], help='Image type to retrieve. Can be "jpeg", "fits" or "both" to retrieve either a JPEG image, FITS file or both. Default value is jpeg.')
@@ -236,7 +236,12 @@ def _process_args_download(args):
         os.mkdir(args.ddir)
     logger.info('Survey is %s', args.survey)
     for ra, dec in zip(ras, decs):
-        if args.survey == 'legacy':
+        if args.survey.startswith('hips:'):
+                from everystamp.downloaders import HiPSDownloader
+                hipsname = args.survey.split(':')[1]
+                vd = HiPSDownloader(hips=hipsname, name=hipsname.replace('/', '_'))
+                vd.download(ra=ra, dec=dec, size=args.size, ddir=args.ddir, mode=args.mode.replace('e', ''))
+        elif args.survey == 'legacy':
             from everystamp.downloaders import LegacyDownloader
             ld = LegacyDownloader()
             ld.download(ra=ra, dec=dec, bands=args.legacy_bands, mode=args.mode, size=args.size, layer=args.legacy_layer, autoscale=args.legacy_autoscale, ddir=args.ddir)
