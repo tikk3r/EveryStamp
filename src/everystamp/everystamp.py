@@ -84,6 +84,7 @@ def _add_args_download(parser):
     vlass_args = parser.add_argument_group('[VLASS]')
     vlass_args.add_argument('--vlass_ms', type=str, required=False, default='', help='Measurement Set to take the cutout position from.')
     vlass_args.add_argument('--vlass_consider_QA_rejected', type=bool, required=False, default=False, help='Also consider tiles that failed the Quality Assurance checks.')
+    vlass_args.add_argument('--vlass_type', type=str, required=False, default='quicklook', choices=['ql', 'se'], help='Image to consider: Quick Look (ql) or Single Epoch (se). Default: ql.')
 
     lolss_args = parser.add_argument_group('[LoLSS]')
     lolss_args.add_argument('--lolss_release', type=str, required=False, default='pdr', choices=['pdr'], help='Data release to download from.')
@@ -253,7 +254,7 @@ def _process_args_download(args):
             if args.mode == 'both' or args.mode == 'jpeg':
                 raise ValueError('VLASS download does not support JPEG (yet).')
             from everystamp.downloaders import VLASSDownloader
-            vd = VLASSDownloader()
+            vd = VLASSDownloader(datatype=args.vlass_type)
             vd.download(ra=ra, dec=dec, crop=True, consider_QA_rejected=args.vlass_consider_QA_rejected, ddir=args.ddir)
         elif args.survey == 'lolss':
             if args.mode == 'both' or args.mode == 'jpeg':

@@ -197,10 +197,16 @@ class VLASSDownloader(FileDownloader):
 
     Based on the original code by Anna Ho (https://github.com/annayqho/Query_VLASS) and edits by R. Timmerman.
     '''
-    def __init__(self):
+    def __init__(self, datatype: str = 'ql'):
         self.summary_url = 'https://archive-new.nrao.edu/vlass/VLASS_dyn_summary.php'
         self.logger = logging.getLogger('EveryStamp:VLASSDownloader')
-        self.pixel_scale = 1.0  # arcsec / pixel
+        self.datatype = datatype.lower()
+        if self.datatype != 'ql' and self.datatype != 'se':
+            raise ValueError('Unknown VLASS image type specificed. Choose either ql or se for Quick Look or Single Epoch.')
+        if self.datatype == 'ql':
+            self.pixel_scale = 2.777777777778e-4 * 3600  # arcsec / pixel
+        elif self.datatype == 'se':
+            self.pixel_scale = 1.666666666667e-04 * 3600
 
     def get_tiles(self, summary_file='VLASS_dyn_summary.php'):
         '''
@@ -290,14 +296,18 @@ class VLASSDownloader(FileDownloader):
 
         # Obtain the HTML for the given tile
         if '1.' not in epoch:
-            self.logger.info(f'Downloading from https://archive-new.nrao.edu/vlass/quicklook/{epoch}/{tilename}')
-            urlpath = urlopen(f"https://archive-new.nrao.edu/vlass/quicklook/{epoch}/{tilename}")
+            if self.datatype == 'se':
+                URLPATH = f'https://archive-new.nrao.edu/vlass/se_continuum_imaging/{epoch}/{tilename}'
+            elif self.datatype == 'ql':
+                URLPATH = f'https://archive-new.nrao.edu/vlass/quicklook/{epoch}/{tilename}'
+            self.logger.info(f'Downloading from {URLPATH}')
+            urlpath = urlopen(f"{URLPATH}")
         else:
             self.logger.info(f'Downloading from https://archive-new.nrao.edu/vlass/quicklook/{epoch}v2/{tilename}')
             urlpath = urlopen(f"https://archive-new.nrao.edu/vlass/quicklook/{epoch}v2/{tilename}")
         string = urlpath.read().decode('utf-8').split("\n")
 
-        if consider_QA_rejected:
+        if self.datatype == 'ql' and consider_QA_rejected:
             # Obtain the HTML for the QA Rejected
             urlpath_rejected = urlopen(f"https://archive-new.nrao.edu/vlass/quicklook/{epoch}v2/QA_REJECTED")
             string += urlpath_rejected.read().decode('utf-8').split("\n")
@@ -415,6 +425,9 @@ class VLASSDownloader(FileDownloader):
         # Find the VLASS tile
         tiles = self.get_tiles()
         tilename, epoch, obsdate = self.search_tiles(tiles, c)
+        if self.datatype == 'se':
+            # No other epoch available for now, so hardcode until the code is updated.
+            epoch = 'VLASS2.1'
 
         subtiles, c_tiles = self.get_subtiles(tilename, epoch, consider_QA_rejected)
         dist = c.separation(c_tiles)
@@ -422,14 +435,20 @@ class VLASSDownloader(FileDownloader):
 
         imname = f"{subtile[:-1]}.I.iter1.image.pbcor.tt0.subim.fits"
         if len(glob.glob(imname)) == 0:
-            if '1.' not in epoch:
-                url_get = f"https://archive-new.nrao.edu/vlass/quicklook/{epoch}/{tilename}/{subtile}"
-            else:
-                url_get = f"https://archive-new.nrao.edu/vlass/quicklook/{epoch}v2/{tilename}/{subtile}"
+            if self.datatype == 'ql':
+                if '1.' not in epoch:
+                    url_get = f"https://archive-new.nrao.edu/vlass/quicklook/{epoch}/{tilename}/{subtile}"
+                else:
+                    url_get = f"https://archive-new.nrao.edu/vlass/quicklook/{epoch}v2/{tilename}/{subtile}"
+            elif self.datatype == 'se':
+                # Dirty workaround until proper implementation.
+                epoch = 'VLASS2.1'
+                imname = imname.replace('iter1', 'iter3')
+                url_get = f"https://archive-new.nrao.edu/vlass/se_continuum_imaging/{epoch}/{tilename}/{subtile}"
             fname = f"{url_get}{imname}"
             self.logger.info('Downloading to ' + ddir)
             self.download_file(fname, target_dir=ddir)
-            if consider_QA_rejected:
+            if self.datatype == 'ql' and consider_QA_rejected:
                 if '1.' not in epoch:
                     url_get = f"https://archive-new.nrao.edu/vlass/quicklook/{epoch}/QA_REJECTED/{subtile}"
                 else:
