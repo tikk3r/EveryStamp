@@ -9,4 +9,3 @@ build_local.sh
 dist
 tests_output
 tmpenv
-test
