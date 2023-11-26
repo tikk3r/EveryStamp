@@ -36,4 +36,4 @@ jobs:
         python -m pip install .
     - name: Run tests
       run: |
-        bash test/run_tests.sh
+        pytest
