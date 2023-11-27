@@ -161,8 +161,15 @@ class LegacyDownloader(FileDownloader):
             ddir = os.getcwd()
         else:
             ddir = kwargs['ddir']
-        fname = 'legacystamps_{ra:f}_{dec:f}_{layer:s}.{mode:s}'.format(ra=kwargs['ra'], dec=kwargs['dec'], layer=kwargs['layer'], mode=kwargs['mode'])
-        self.download_file(furl, filename=fname, target_dir=ddir)
+        fname = 'legacystamps_{ra:.4f}_{dec:.4f}_{size:.5f}_{layer:s}.{mode:s}'.format(ra=kwargs['ra'], dec=kwargs['dec'], size=kwargs['size'], layer=kwargs['layer'], mode=kwargs['mode'])
+        if os.path.isfile(os.path.join(ddir, fname)):
+            self.logger.info(f'File {fname} already exists.')
+            return
+
+        try:
+            self.download_file(furl, filename=fname, target_dir=ddir)
+        except requests.exceptions.HTTPError:
+            self.logger.warning(f'Failed to download {fname}')
 
 
 class PanSTARRSDownloader():

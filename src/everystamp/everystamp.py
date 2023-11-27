@@ -104,6 +104,7 @@ def _add_args_plot(parser):
     required_args.add_argument('--image', type=str, required=False, help='FITS image to plot.')
 
     required_args = parser.add_argument_group('Optional arguments')
+    required_args.add_argument('--wcs_image', type=str, required=False, help='FITS image to take the WCS from when plotting a PNG or JPEG image.')
     required_args.add_argument('--style', type=str, default='normal', choices=['normal', 'srtplot'], required=False, help='Style of plot to make.')
     required_args.add_argument('--srt_lines', type=int, default=25, required=False, help='Number of lines to draw in an SRTPLOT style plot.')
     required_args.add_argument('--srt_offset', type=float, default=0.01, required=False, help='Offset in data units between lines in an SRTPLOT style plot.')
@@ -308,7 +309,7 @@ def _process_args_plot(args):
             bp = SRTPlot(args.image)
     else:
         # Probably an image format.
-        bp = BasicImagePlot(args.image)
+        bp = BasicImagePlot(args.image, wcsimage=args.wcs_image)
     if HAS_LHDR and args.hdr_tonemap:
         bp.data = normalise(bp.data)
         if args.hdr_tonemap == 'ashikhmin':

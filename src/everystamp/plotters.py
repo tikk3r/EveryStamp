@@ -5,6 +5,7 @@ from aplpy import FITSFigure
 from astropy.io import fits
 from astropy.wcs import WCS
 from matplotlib.pyplot import figure
+import numpy as np
 from typing import Union
 
 import matplotlib.pyplot as plt
@@ -123,7 +124,7 @@ class SRTPlot():
 
 class BasicImagePlot():
     """ Creates a basic plot of a FITS file."""
-    def __init__(self, imname):
+    def __init__(self, imname, wcsimage=None):
         """ Initialise a basic plotting object for 2D FITS files.
         
         Args:
@@ -136,28 +137,35 @@ class BasicImagePlot():
         import cv2
         self.imdata = cv2.cvtColor(cv2.imread(imname), cv2.COLOR_BGR2RGB)
         self.data = self.imdata
+        if wcsimage:
+            self.wcs = WCS(fits.getheader(wcsimage)).celestial
+        else:
+            self.wcs = None
 
-    def plot2D(self):
+    # def plot2D(self, contour_image = None):
+    def plot2D(self, plot_colourbar=False, contour_image: numpy.ndarray = None, contour_levels: Union[int, list] = 7, cmap_min: float = None, cmap_max: float = None):
         """ Save a plot of the FITS image without any axes."""
         figsize = [self.imdata.shape[0] // self.dpi, self.imdata.shape[1] // self.dpi]
         fig = figure(figsize=figsize)
-        ax = fig.add_subplot(111)
-        if self.data is not None:
-            ax.imshow(self.data, origin='upper', interpolation='none', cmap='gray')
-            # if self.data.max() > 1:
-            #     # Probably integer image.
-            #     ax.imshow(self.data.astype('uint8'), origin='upper', interpolation='none')
-            # elif self.data.max() <= 1:
-            #     # Probably floating point image.
-            #     ax.imshow(self.data.astype(float), origin='upper', interpolation='none')
+        if self.wcs:
+            ax = fig.add_subplot(111, projection=self.wcs)
+            if self.data is not None:
+                ax.imshow(self.data, interpolation='none', cmap='gray')
+            else:
+                ax.imshow(self.imdata, interpolation='none', cmap='gray')
         else:
-            ax.imshow(self.imdata, origin='upper', interpolation='none', cmap='gray')
-            # if self.imdata.max() > 1:
-            #     # Probably integer image.
-            #     ax.imshow(self.imdata.astype('uint8'), origin='upper', interpolation='none')
-            # elif self.imdata.max() <= 1:
-            #     # Probably floating point image.
-            #     ax.imshow(self.imdata.astype(float), origin='upper', interpolation='none')
+            ax = fig.add_subplot(111)
+            if self.data is not None:
+                ax.imshow(self.data, origin='upper', interpolation='none', cmap='gray')
+            else:
+                ax.imshow(self.imdata, origin='upper', interpolation='none', cmap='gray')
+        if contour_image:
+            # Flip to get North up.
+            cdata = np.flipud(fits.getdata(contour_image).squeeze())
+            chead = fits.getheader(contour_image)
+            wcs = WCS(chead).celestial
+            # f.show_contour(hdu_c, levels=contour_levels, colors='white', cmap='plasma')
+            ax.contour(cdata, levels=210e-6 + 70e-6 * np.array([5, 10, 25, 50]), colors='C0', transform=ax.get_transform(wcs), linewidths=1)
         ax.xaxis.set_visible(False)
         ax.yaxis.set_visible(False)
         plt.gca().set_axis_off()
