@@ -8,4 +8,4 @@ EveryStamp provides a simple Python interface for retrieving FITS or image cutou
 # Quick links
 
 [Installation]({{ site.baseurl }}{% link docs/installation.md %}){: .btn .btn-green .btn-primary .fs-5 .mb-4 .mb-md-0 .mr-2 }
-[API documentation]({{ site.baseurl }}{% link docs/apidocs/everystamp/index.html %}){: .btn .btn-blue .btn-primary .fs-5 .mb-4 .mb-md-0 .mr-2 }
+[API documentation]({{ site.baseurl }}{% link docs/apidocs/index.html %}){: .btn .btn-blue .btn-primary .fs-5 .mb-4 .mb-md-0 .mr-2 }
