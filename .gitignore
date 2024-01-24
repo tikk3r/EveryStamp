@@ -10,3 +10,4 @@ dist
 tests_output
 tmpenv
 venv
+.idea
