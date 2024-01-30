@@ -11,3 +11,4 @@ requests
 opencv-python
 scikit-image
 tqdm
+pyregion
