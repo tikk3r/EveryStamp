@@ -24,6 +24,20 @@ A basic cutout download requires five arguments and can be obtained via
 
 This will download a square cutout centred on the given right ascension and declination of the given size. The mode can be `fits`, `jpeg` or `both` to download the respecitve formats. Note that not all surveys support JPEG cutouts. Various surveys may also have further arguments specific to them. See `everystamp download -h` for a complete summary of available parameters.
 
+## Local cutouts
+EveryStamp also support making cutouts of local FITS files through `everystamp cutout`. A full list of options can be seen via `everystamp cutout -h`. An example is
+
+> everystamp cutout --image \<image> --ra \<ra> --dec \<dec> --size \<size> --mode \<mode>
+
+## Catalogue download
+For bulk cutouts at multiple positions, a user can specify a catalogue to use by passing `--from_catalogue <catalogue>` to either `everystamp download` or `everystamp cutout`. This catalogue must be readable by `astropy.table.Table.read` and must contain the columns RA and DEC.
+
+### SkyView surveys
+Names of surveys covered by the [SkyView](https://skyview.gsfc.nasa.gov/) service can be directly passed to the `--survey` argment. See e.g. [astroquery's](https://astroquery.readthedocs.io/en/latest/skyview/skyview.html) documentation for an overview.
+
+### HiPS surveys
+HiPS surveys offered by Aladin can also be queried for cutouts. The full list of available surveys is listed [here](http://aladin.cds.unistra.fr/hips/list#hipssky). The name can be passed to the download option directly by prefixing it with `hips:` like `--survey hips:<name>`.
+
 ## Optical surveys
 ### DESI Legacy Imaging Surveys
 Cutouts of the [DESI Legacy Imaging Surveys](https://www.legacysurvey.org/) are provided through a wrapper aroud their own cutout service. Examples of how to query that service can be found at https://www.legacysurvey.org/viewer/urls.
