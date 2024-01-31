@@ -198,7 +198,7 @@ class LegacyDownloader(FileDownloader):
         )
 
     def download(self, **kwargs):
-        if kwargs['mode'] == 'both':
+        if kwargs["mode"] == "both":
             furl = self.format_url(**kwargs)
             self.logger.info("Downloading cutout from %s", furl)
             if not kwargs["ddir"]:
@@ -213,14 +213,14 @@ class LegacyDownloader(FileDownloader):
                 ra=kwargs["ra"],
                 dec=kwargs["dec"],
                 layer=kwargs["layer"],
-                mode='jpeg',
+                mode="jpeg",
             )
             self.download_file(furl, filename=fname, target_dir=ddir)
 
             # Download FITS
             self.logger.info("Downloading cutout from %s", furl)
-            furl = furl.replace('jpeg', 'fits')
-            fname = fname.replace('jpeg', 'fits')
+            furl = furl.replace("jpeg", "fits")
+            fname = fname.replace("jpeg", "fits")
             self.download_file(furl, filename=fname, target_dir=ddir)
         else:
             furl = self.format_url(**kwargs)
