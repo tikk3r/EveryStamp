@@ -198,23 +198,48 @@ class LegacyDownloader(FileDownloader):
         )
 
     def download(self, **kwargs):
-        furl = self.format_url(**kwargs)
-        self.logger.info("Downloading cutout from %s", furl)
-        if not kwargs["ddir"]:
-            self.logger.info(
-                "Download directory not specified, downloading to %s instead",
-                os.getcwd(),
+        if kwargs["mode"] == "both":
+            furl = self.format_url(**kwargs)
+            self.logger.info("Downloading cutout from %s", furl)
+            if not kwargs["ddir"]:
+                self.logger.info(
+                    "Download directory not specified, downloading to %s instead",
+                    os.getcwd(),
+                )
+                ddir = os.getcwd()
+            else:
+                ddir = kwargs["ddir"]
+            fname = "legacystamps_{ra:f}_{dec:f}_{layer:s}.{mode:s}".format(
+                ra=kwargs["ra"],
+                dec=kwargs["dec"],
+                layer=kwargs["layer"],
+                mode="jpeg",
             )
-            ddir = os.getcwd()
+            self.download_file(furl, filename=fname, target_dir=ddir)
+
+            # Download FITS
+            self.logger.info("Downloading cutout from %s", furl)
+            furl = furl.replace("jpeg", "fits")
+            fname = fname.replace("jpeg", "fits")
+            self.download_file(furl, filename=fname, target_dir=ddir)
         else:
-            ddir = kwargs["ddir"]
-        fname = "legacystamps_{ra:f}_{dec:f}_{layer:s}.{mode:s}".format(
-            ra=kwargs["ra"],
-            dec=kwargs["dec"],
-            layer=kwargs["layer"],
-            mode=kwargs["mode"],
-        )
-        self.download_file(furl, filename=fname, target_dir=ddir)
+            furl = self.format_url(**kwargs)
+            self.logger.info("Downloading cutout from %s", furl)
+            if not kwargs["ddir"]:
+                self.logger.info(
+                    "Download directory not specified, downloading to %s instead",
+                    os.getcwd(),
+                )
+                ddir = os.getcwd()
+            else:
+                ddir = kwargs["ddir"]
+            fname = "legacystamps_{ra:f}_{dec:f}_{layer:s}.{mode:s}".format(
+                ra=kwargs["ra"],
+                dec=kwargs["dec"],
+                layer=kwargs["layer"],
+                mode=kwargs["mode"],
+            )
+            self.download_file(furl, filename=fname, target_dir=ddir)
 
 
 class PanSTARRSDownloader:
