@@ -539,7 +539,7 @@ class VODownloader():
         im = query.getrecord(0)
         if im.format == 'image/fits':
             self.logger.info('Downloading cutout from {:s}'.format(self.name))
-            im.cachedataset(os.path.join(ddir, '{:s}_{:.4f}_{:.4f}_{:.3f}.fits'.format(self.name, ra, dec, size)))
+            im.cachedataset(os.path.join(ddir, '{:s}_{:.4f}_{:.4f}_{:.5f}.fits'.format(self.name, ra, dec, size)))
 
 
 class HiPSDownloader():
@@ -582,9 +582,9 @@ class HiPSDownloader():
         if mode == 'jpg':
             from PIL import Image
             imdata = Image.fromarray(img)
-            imdata.save(os.path.join(ddir, '{:s}_{:.4f}_{:.4f}_{:.3f}.jpeg'.format(self.name, ra, dec, size)))
+            imdata.save(os.path.join(ddir, '{:s}_{:.4f}_{:.4f}_{:.5f}.jpeg'.format(self.name, ra, dec, size)))
         elif mode == 'fits':
-            img.writeto(os.path.join(ddir, '{:s}_{:.4f}_{:.4f}_{:.3f}.fits'.format(self.name, ra, dec, size)))
+            img.writeto(os.path.join(ddir, '{:s}_{:.4f}_{:.4f}_{:.5f}.fits'.format(self.name, ra, dec, size)))
 
 
 class SkyViewDownloader():
@@ -622,4 +622,4 @@ class SkyViewDownloader():
         hdul = sv.get_images(c, self.survey, radius=size * u.deg, pixels=int(pixels))
         if not hdul:
             raise ValueError('SkyView did not return a result. If you requested a large cutout, try increasing the pixel size through --skyview_pixsize or reducing the cutout area.')
-        hdul[0].writeto(os.path.join(ddir, '{:s}_{:.4f}_{:.4f}_{:.3f}.fits'.format(self.survey.replace(' ', '_'), ra, dec, size)))            
+        hdul[0].writeto(os.path.join(ddir, '{:s}_{:.4f}_{:.4f}_{:.5f}.fits'.format(self.survey.replace(' ', '_'), ra, dec, size)))            
