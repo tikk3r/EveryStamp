@@ -11,6 +11,27 @@ from typing import Union
 import matplotlib.pyplot as plt
 import numpy
 
+def find_rms(image_data):
+    """
+    from Cyril Tasse/kMS
+
+    :param image_data: image data array
+    :return: rms (noise measure)
+    """
+
+    maskSup = 1e-7
+    m = image_data[np.abs(image_data)>maskSup]
+    rmsold = np.std(m)
+    diff = 1e-1
+    cut = 3.
+    med = np.median(m)
+    for _ in range(10):
+        ind = np.where(np.abs(m - med) < rmsold*cut)[0]
+        rms = np.std(m[ind])
+        if np.abs((rms-rmsold) / rmsold) < diff: break
+        rmsold = rms
+    print(f'Noise : {str(round(rms * 1000, 4))} {u.mJy/u.beam}')
+    return rms
 
 class BasicFITSPlot():
     """ Creates a basic plot of a FITS file."""
@@ -142,7 +163,6 @@ class BasicImagePlot():
         else:
             self.wcs = None
 
-    # def plot2D(self, contour_image = None):
     def plot2D(self, plot_colourbar=False, contour_image: numpy.ndarray = None, contour_levels: Union[int, list] = 7, cmap_min: float = None, cmap_max: float = None):
         """ Save a plot of the FITS image without any axes."""
         figsize = [self.imdata.shape[0] // self.dpi, self.imdata.shape[1] // self.dpi]
@@ -165,7 +185,12 @@ class BasicImagePlot():
             chead = fits.getheader(contour_image)
             wcs = WCS(chead).celestial
             # f.show_contour(hdu_c, levels=contour_levels, colors='white', cmap='plasma')
-            ax.contour(cdata, levels=210e-6 + 70e-6 * np.array([5, 10, 25, 50]), colors='C0', transform=ax.get_transform(wcs), linewidths=1)
+            crms = find_rms(cdata)
+            clevels = np.arange(crms, np.percentile(cdata, 99.9), np.sqrt(2) * 70e-6)
+            if type(contour_levels) is int:
+                step = len(clevels) // contour_levels
+                clevels = clevels[::step]
+            ax.contour(cdata, levels=clevels, colors='C0', transform=ax.get_transform(wcs), linewidths=1)
         ax.xaxis.set_visible(False)
         ax.yaxis.set_visible(False)
         plt.gca().set_axis_off()
