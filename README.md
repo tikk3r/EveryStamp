@@ -1,5 +1,8 @@
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/EveryStamp)
+![PyPI - Version](https://img.shields.io/pypi/v/EveryStamp)
+
 # EveryStamp
-Over-arching package to easily obtain postage stamps from a variety of surveys.
+EveryStamp aims to be an over-arching package to easily obtain postage stamps from a variety of surveys.
 
 # Installation
 EveryStamp can be installed through pip from PyPI via
@@ -26,7 +29,7 @@ Three main types of functionality are currently supported: downloading cutouts, 
         plot                Plot a user-supplied FITS image.
         cutout              Cut a user-supplied FITS image to size.
 
-See the help of each sub command for a complete overview of available options.
+See the help of each sub command for a complete overview of available options. For more detailed examples, see the [documentation](https://tikk3r.github.io/EveryStamp/).
 
 # Acknowledgements
 If you use EveryStamp in your work, please consider acknowledging this package through
