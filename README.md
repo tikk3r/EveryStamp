@@ -1,7 +1,32 @@
 # EveryStamp
 Over-arching package to easily obtain postage stamps from a variety of surveys.
 
+# Installation
+EveryStamp can be installed through pip from PyPI via
+
+    pip install EveryStamp
+
+or directly from the git repository via
+
     pip install git+https://github.com/tikk3r/EveryStamp.git
+
+# Usage
+Three main types of functionality are currently supported: downloading cutouts, simple plotting and making cutouts from local FITS files:
+
+    everystamp -h
+    usage: everystamp [-h] {download,plot,cutout} ...
+
+    EveryStamp 1.4.0 by Frits Sweijen
+
+    subcommands:
+      Description of sub commands.
+
+      {download,plot,cutout}
+        download            Download a cutout from a specified survey.
+        plot                Plot a user-supplied FITS image.
+        cutout              Cut a user-supplied FITS image to size.
+
+See the help of each sub command for a complete overview of available options.
 
 # Acknowledgements
 If you use EveryStamp in your work, please consider acknowledging this package through
