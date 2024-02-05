@@ -163,7 +163,7 @@ class BasicImagePlot():
         else:
             self.wcs = None
 
-    def plot2D(self, plot_colourbar=False, contour_image: numpy.ndarray = None, contour_levels: Union[int, list] = 7, cmap_min: float = None, cmap_max: float = None):
+    def plot2D(self, plot_colourbar=False, contour_image: numpy.ndarray = None, contour_levels: Union[int, list] = 5, cmap_min: float = None, cmap_max: float = None):
         """ Save a plot of the FITS image without any axes."""
         figsize = [self.imdata.shape[0] // self.dpi, self.imdata.shape[1] // self.dpi]
         fig = figure(figsize=figsize)
