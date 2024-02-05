@@ -1,4 +1,4 @@
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/EveryStamp)
+![Python Version from PEP 621 TOML](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Ftikk3r%2FEveryStamp%2Fmaster%2Fpyproject.toml)
 ![PyPI - Version](https://img.shields.io/pypi/v/EveryStamp)
 
 # EveryStamp
