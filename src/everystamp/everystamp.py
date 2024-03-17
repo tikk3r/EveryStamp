@@ -176,7 +176,7 @@ def _add_args_download(parser):
         "--vlass_type",
         type=str,
         required=False,
-        default="quicklook",
+        default="ql",
         choices=["ql", "se"],
         help="Image to consider: Quick Look (ql) or Single Epoch (se). Default: ql.",
     )
