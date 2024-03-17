@@ -719,6 +719,7 @@ class HiPSDownloader:
         self.logger = logging.getLogger(
             "EveryStamp:HiPSDownloader[{:s}]".format(self.name)
         )
+        self.logger.warning("downloading from a HiPS survey. Scientific accuracy of resulting FITS images is not guaranteed!")
 
     def download(
         self, ra=0.0, dec=0.0, size=0.1, ddir=os.getcwd(), pixsize=1.0, mode="jpg"
