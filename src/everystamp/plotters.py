@@ -45,7 +45,7 @@ class BasicFITSPlot:
         contour_levels: Union[int, list] = 7,
         cmap_min: Optional[float] = None,
         cmap_max: Optional[float] = None,
-        cmap: Optional[str] = None,
+        cmap: str = "grey",
     ):
         """Save a 2D plot of the loaded FITS file.
 
@@ -65,6 +65,7 @@ class BasicFITSPlot:
         if not cmap:
             f.show_grayscale(vmin=cmap_min, vmax=cmap_max, pmax=100)
         else:
+            print(f'Using colour map: {cmap}')
             f.show_colorscale(vmin=cmap_min, vmax=cmap_max, pmax=100, cmap=cmap)
         if contour_image:
             hdu_c = fits.open(contour_image)
