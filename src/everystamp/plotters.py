@@ -1,5 +1,5 @@
 """Sub-module for plotting FITS images."""
-from typing import Union
+from typing import Optional, Union
 
 import matplotlib.pyplot as plt
 import numpy
@@ -41,10 +41,11 @@ class BasicFITSPlot:
     def plot2D(
         self,
         plot_colourbar=False,
-        contour_image: numpy.ndarray = None,
+        contour_image: Optional[numpy.ndarray] = None,
         contour_levels: Union[int, list] = 7,
-        cmap_min: float = None,
-        cmap_max: float = None,
+        cmap_min: Optional[float] = None,
+        cmap_max: Optional[float] = None,
+        cmap: Optional[str] = None,
     ):
         """Save a 2D plot of the loaded FITS file.
 
@@ -61,7 +62,10 @@ class BasicFITSPlot:
             data=self.data.squeeze(),
         )
         f = FITSFigure(hdu, figsize=self.figsize)
-        f.show_grayscale(vmin=cmap_min, vmax=cmap_max, pmax=100)
+        if not cmap:
+            f.show_grayscale(vmin=cmap_min, vmax=cmap_max, pmax=100)
+        else:
+            f.show_colorscale(vmin=cmap_min, vmax=cmap_max, pmax=100, cmap=cmap)
         if contour_image:
             hdu_c = fits.open(contour_image)
             # f.show_contour(hdu_c, levels=contour_levels, colors='white', cmap='plasma')
@@ -70,7 +74,7 @@ class BasicFITSPlot:
             f.add_colorbar()
         f.savefig(self.fitsimage.replace("fits", "png"), dpi=self.dpi)
 
-    def plot_noaxes(self, cmap_min: float = None, cmap_max: float = None):
+    def plot_noaxes(self, cmap_min: float = None, cmap_max: float = None, cmap=None):
         """Save a plot of the FITS image without any axes."""
         figsize = [
             self.fitsdata.shape[0] // self.dpi,
@@ -86,7 +90,10 @@ class BasicFITSPlot:
             data=self.data.squeeze(),
         )
         f = FITSFigure(hdu, figure=fig)
-        f.show_grayscale(vmin=cmap_min, vmax=cmap_max, pmax=100)
+        if not cmap:
+            f.show_grayscale(vmin=cmap_min, vmax=cmap_max, pmax=100)
+        else:
+            f.show_colorscale(vmin=cmap_min, vmax=cmap_max, pmax=100, cmap=cmap)
         plt.axis("off")
         fig.savefig(
             self.fitsimage.replace("fits", ".noaxes.png"),
