@@ -37,9 +37,9 @@ def run_command(cmd: Union[list, str]) -> None:
     """
     print("Running command:", " ".join(cmd))
     try:
-        if type(cmd) is list:
+        if isinstance(cmd, list):
             subprocess.run(cmd)
-        elif type(cmd) is str:
+        elif isinstance(cmd, str):
             subprocess.run(cmd.split(" "))
         else:
             raise ValueError("Malformed command: ", cmd)

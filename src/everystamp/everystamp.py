@@ -5,14 +5,9 @@ __author__ = "Frits Sweijen"
 __license__ = "GPLv3"
 import argparse
 import logging
-from typing import Generator
-
-logging.basicConfig(
-    format="[%(name)s] %(asctime)s - %(levelname)s: %(message)s", level=logging.INFO
-)
-logger = logging.getLogger("EveryStamp")
 import os
 from collections.abc import Iterable
+from typing import Generator
 
 import astropy.units as units
 import astropy.visualization
@@ -21,9 +16,15 @@ import requests
 from astropy.coordinates import SkyCoord
 from astropy.table import Table
 from astroquery.skyview import SkyView  # type: ignore
-
 from everystamp.cutters import make_cutout_2D
 from everystamp.tonemapping import lhdr, normalise
+
+logging.basicConfig(
+    format="[%(name)s] %(asctime)s - %(levelname)s: %(message)s", level=logging.INFO
+)
+logger = logging.getLogger("EveryStamp")
+
+
 
 # Check if LuminanceHDR is installed.
 HAS_LHDR = (
