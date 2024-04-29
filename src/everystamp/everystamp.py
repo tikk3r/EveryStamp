@@ -5,14 +5,9 @@ __author__ = "Frits Sweijen"
 __license__ = "GPLv3"
 import argparse
 import logging
-from typing import Generator
-
-logging.basicConfig(
-    format="[%(name)s] %(asctime)s - %(levelname)s: %(message)s", level=logging.INFO
-)
-logger = logging.getLogger("EveryStamp")
 import os
 from collections.abc import Iterable
+from typing import Generator
 
 import astropy.units as units
 import astropy.visualization
@@ -21,9 +16,15 @@ import requests
 from astropy.coordinates import SkyCoord
 from astropy.table import Table
 from astroquery.skyview import SkyView  # type: ignore
-
 from everystamp.cutters import make_cutout_2D
 from everystamp.tonemapping import lhdr, normalise
+
+logging.basicConfig(
+    format="[%(name)s] %(asctime)s - %(levelname)s: %(message)s", level=logging.INFO
+)
+logger = logging.getLogger("EveryStamp")
+
+
 
 # Check if LuminanceHDR is installed.
 HAS_LHDR = (
@@ -272,6 +273,13 @@ def _add_args_plot(parser):
         required=False,
         choices=["log", "sqrt", "squared", "asinh", "sinh"],
         help="Stretch an image with a certian function.",
+    )
+    required_args.add_argument(
+        "--cmap",
+        default="grey",
+        type=str,
+        required=False,
+        help="Colour map to use while plotting.",
     )
     required_args.add_argument(
         "--cmap-min",
@@ -1042,16 +1050,17 @@ def _process_args_plot(args):
     if args.contour_image and (args.style == "normal"):
         bp.plot2D(
             contour_image=args.contour_image,
+            cmap=args.cmap,
             cmap_min=args.cmap_min,
             cmap_max=args.cmap_max,
         )
     elif (not args.contour_image) and (args.style == "normal"):
-        bp.plot2D(cmap_min=args.cmap_min, cmap_max=args.cmap_max)
+        bp.plot2D(cmap=args.cmap, cmap_min=args.cmap_min, cmap_max=args.cmap_max)
     elif args.style == "srtplot":
         bp.plot2D(srt_lines=args.srt_lines, srt_offset=args.srt_offset)
     if args.image.lower().endswith("fits") and (args.style == "normal"):
         bp.savedata(args.image.replace(".fits", ".tonemapped.fits"))
-        bp.plot_noaxes(cmap_min=args.cmap_min, cmap_max=args.cmap_max)
+        bp.plot_noaxes(cmap=args.cmap, cmap_min=args.cmap_min, cmap_max=args.cmap_max)
 
 
 def _process_args_cutout(args):

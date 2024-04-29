@@ -3,6 +3,7 @@ import logging
 import os
 import subprocess
 import sys
+from collections.abc import Iterable
 from urllib.request import urlopen
 
 import astropy.units as u
@@ -25,10 +26,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger("EveryStamp:Downloader")
 
-from collections.abc import Iterable
 
-import requests
-from astroquery.skyview import SkyView
 
 
 def flatten(xs):
