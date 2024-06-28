@@ -237,8 +237,10 @@ class LegacyDownloader(FileDownloader):
                 layer=kwargs["layer"],
                 mode=kwargs["mode"],
             )
+        try:
             self.download_file(furl, filename=fname, target_dir=ddir)
-
+        except requests.exceptions.HTTPError:
+            self.logger.warning(f'Failed to download {fname}')
 
 class PanSTARRSDownloader:
     """Downloader sub-class for the VLASS survey."""
@@ -441,7 +443,7 @@ class VLASSDownloader(FileDownloader):
         fname = np.array([val.split('"')[7] for val in vals])
 
         # Split out the actual coordinate string
-        pos_raw = np.array([val.split(".")[4] for val in fname])
+        pos_raw = np.array([val.split(".")[4] for val in fname if val.startswith("VLASS")])
 
         if "-" in pos_raw[0]:
             # dec < 0
@@ -701,7 +703,6 @@ class VODownloader:
                 )
             )
 
-
 class HiPSDownloader:
     """Sub-class to download a file from a HiPS image using hips2fits."""
 
@@ -755,21 +756,10 @@ class HiPSDownloader:
             os.mkdir(ddir)
         if mode == "jpg":
             from PIL import Image
-
             imdata = Image.fromarray(img)
-            imdata.save(
-                os.path.join(
-                    ddir,
-                    "{:s}_{:.4f}_{:.4f}_{:.3f}.jpeg".format(self.name, ra, dec, size),
-                )
-            )
-        elif mode == "fits":
-            img.writeto(
-                os.path.join(
-                    ddir,
-                    "{:s}_{:.4f}_{:.4f}_{:.3f}.fits".format(self.name, ra, dec, size),
-                )
-            )
+            imdata.save(os.path.join(ddir, '{:s}_{:.4f}_{:.4f}_{:.5f}.jpeg'.format(self.name, ra, dec, size)))
+        elif mode == 'fits':
+            img.writeto(os.path.join(ddir, '{:s}_{:.4f}_{:.4f}_{:.5f}.fits'.format(self.name, ra, dec, size)))
 
 
 class SkyViewDownloader:

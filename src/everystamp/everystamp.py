@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """ Python library aiming to provide a wrapper around various astronomical surveys that offer cutouts."""
-__version__ = "1.4.1"
+__version__ = "1.4.2"
 __author__ = "Frits Sweijen"
 __license__ = "GPLv3"
 import argparse
@@ -896,7 +896,7 @@ def _process_args_plot(args):
             bp = SRTPlot(args.image)
     else:
         # Probably an image format.
-        bp = BasicImagePlot(args.image)
+        bp = BasicImagePlot(args.image, wcsimage=args.wcs_image)
     if HAS_LHDR and args.hdr_tonemap:
         bp.data = normalise(bp.data)
         if args.hdr_tonemap == "ashikhmin":

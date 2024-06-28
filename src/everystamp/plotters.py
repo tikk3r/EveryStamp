@@ -7,7 +7,31 @@ from aplpy import FITSFigure
 from astropy.io import fits
 from astropy.wcs import WCS
 from matplotlib.pyplot import figure
+import numpy as np
+from typing import Union
 
+
+def find_rms(image_data):
+    """
+    from Cyril Tasse/kMS
+
+    :param image_data: image data array
+    :return: rms (noise measure)
+    """
+
+    maskSup = 1e-7
+    m = image_data[np.abs(image_data)>maskSup]
+    rmsold = np.std(m)
+    diff = 1e-1
+    cut = 3.
+    med = np.median(m)
+    for _ in range(10):
+        ind = np.where(np.abs(m - med) < rmsold*cut)[0]
+        rms = np.std(m[ind])
+        if np.abs((rms-rmsold) / rmsold) < diff: break
+        rmsold = rms
+    print(f'Noise : {str(round(rms * 1000, 4))} {u.mJy/u.beam}')
+    return rms
 
 class BasicFITSPlot:
     """Creates a basic plot of a FITS file."""
@@ -180,11 +204,10 @@ class SRTPlot:
 
 
 class BasicImagePlot:
-    """Creates a basic plot of a FITS file."""
-
-    def __init__(self, imname):
-        """Initialise a basic plotting object for 2D FITS files.
-
+    """ Creates a basic plot of a FITS file."""
+    def __init__(self, imname, wcsimage=None):
+        """ Initialise a basic plotting object for 2D FITS files.
+        
         Args:
             fitsname : str
                 Name of the FITS file that will be plotted.
@@ -196,28 +219,39 @@ class BasicImagePlot:
 
         self.imdata = cv2.cvtColor(cv2.imread(imname), cv2.COLOR_BGR2RGB)
         self.data = self.imdata
+        if wcsimage:
+            self.wcs = WCS(fits.getheader(wcsimage)).celestial
+        else:
+            self.wcs = None
 
-    def plot2D(self, contour_image = None, cmap=None, cmap_min=None, cmap_max=None):
-        """Save a plot of the FITS image without any axes."""
-
+    def plot2D(self, plot_colourbar=False, contour_image: numpy.ndarray = None, contour_levels: Union[int, list] = 5, cmap_min: float = None, cmap_max: float = None):
+        """ Save a plot of the FITS image without any axes."""
         figsize = [self.imdata.shape[0] // self.dpi, self.imdata.shape[1] // self.dpi]
         fig = figure(figsize=figsize)
-        if contour_image:
-            self.wcs = WCS(fits.getheader(contour_image)).celestial
+        if self.wcs:
             ax = fig.add_subplot(111, projection=self.wcs)
+            if self.data is not None:
+                ax.imshow(self.data, interpolation='none', cmap='gray')
+            else:
+                ax.imshow(self.imdata, interpolation='none', cmap='gray')
         else:
             ax = fig.add_subplot(111)
-        if self.data is not None:
-            if contour_image:
-                ax.imshow(self.data, interpolation="none", cmap="gray")
-                ax.contour(fits.getdata(contour_image).squeeze(), levels=10)
+            if self.data is not None:
+                ax.imshow(self.data, origin='upper', interpolation='none', cmap='gray')
             else:
-                ax.imshow(self.data, origin="upper", interpolation="none", cmap="gray")
-        else:
-            if contour_image:
-                ax.imshow(self.imdata, interpolation="none", cmap="gray")
-            else:
-                ax.imshow(self.imdata, origin="upper", interpolation="none", cmap="gray")
+                ax.imshow(self.imdata, origin='upper', interpolation='none', cmap='gray')
+        if contour_image:
+            # Flip to get North up.
+            cdata = np.flipud(fits.getdata(contour_image).squeeze())
+            chead = fits.getheader(contour_image)
+            wcs = WCS(chead).celestial
+            # f.show_contour(hdu_c, levels=contour_levels, colors='white', cmap='plasma')
+            crms = find_rms(cdata)
+            clevels = np.arange(crms, np.percentile(cdata, 99.9), np.sqrt(2) * 70e-6)
+            if type(contour_levels) is int:
+                step = len(clevels) // contour_levels
+                clevels = clevels[::step]
+            ax.contour(cdata, levels=clevels, colors='C0', transform=ax.get_transform(wcs), linewidths=1)
         ax.xaxis.set_visible(False)
         ax.yaxis.set_visible(False)
         plt.gca().set_axis_off()
