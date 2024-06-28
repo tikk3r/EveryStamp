@@ -443,7 +443,7 @@ class VLASSDownloader(FileDownloader):
         fname = np.array([val.split('"')[7] for val in vals])
 
         # Split out the actual coordinate string
-        pos_raw = np.array([val.split(".")[4] for val in fname])
+        pos_raw = np.array([val.split(".")[4] for val in fname if val.startswith("VLASS")])
 
         if "-" in pos_raw[0]:
             # dec < 0
