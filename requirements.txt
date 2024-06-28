@@ -8,6 +8,7 @@ panstamps
 Pillow
 pyvo
 requests
-opencv-python
+opencv-python-headless
 scikit-image
 tqdm
+pyregion

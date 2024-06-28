@@ -9,3 +9,5 @@ build_local.sh
 dist
 tests_output
 tmpenv
+venv
+.idea
