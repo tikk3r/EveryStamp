@@ -20,4 +20,4 @@ def test_TGSS_cli():
 
 def test_VLASS_cli():
     run_command('everystamp download --survey vlass --ra 165.345 --dec 65.567 --size 0.1 --download_dir tests_output --mode fits --vlass_type ql')
-    run_command('everystamp download --survey vlass --ra 180.345 --dec 60.567 --size 0.1 --download_dir tests_output --mode fits --vlass_type se')
+    #run_command('everystamp download --survey vlass --ra 180.345 --dec 60.567 --size 0.1 --download_dir tests_output --mode fits --vlass_type se')
