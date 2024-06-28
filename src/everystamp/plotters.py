@@ -197,27 +197,27 @@ class BasicImagePlot:
         self.imdata = cv2.cvtColor(cv2.imread(imname), cv2.COLOR_BGR2RGB)
         self.data = self.imdata
 
-    def plot2D(self):
+    def plot2D(self, contour_image = None, cmap=None, cmap_min=None, cmap_max=None):
         """Save a plot of the FITS image without any axes."""
+
         figsize = [self.imdata.shape[0] // self.dpi, self.imdata.shape[1] // self.dpi]
         fig = figure(figsize=figsize)
-        ax = fig.add_subplot(111)
-        if self.data is not None:
-            ax.imshow(self.data, origin="upper", interpolation="none", cmap="gray")
-            # if self.data.max() > 1:
-            #     # Probably integer image.
-            #     ax.imshow(self.data.astype('uint8'), origin='upper', interpolation='none')
-            # elif self.data.max() <= 1:
-            #     # Probably floating point image.
-            #     ax.imshow(self.data.astype(float), origin='upper', interpolation='none')
+        if contour_image:
+            self.wcs = WCS(fits.getheader(contour_image)).celestial
+            ax = fig.add_subplot(111, projection=self.wcs)
         else:
-            ax.imshow(self.imdata, origin="upper", interpolation="none", cmap="gray")
-            # if self.imdata.max() > 1:
-            #     # Probably integer image.
-            #     ax.imshow(self.imdata.astype('uint8'), origin='upper', interpolation='none')
-            # elif self.imdata.max() <= 1:
-            #     # Probably floating point image.
-            #     ax.imshow(self.imdata.astype(float), origin='upper', interpolation='none')
+            ax = fig.add_subplot(111)
+        if self.data is not None:
+            if contour_image:
+                ax.imshow(self.data, interpolation="none", cmap="gray")
+                ax.contour(fits.getdata(contour_image).squeeze(), levels=10)
+            else:
+                ax.imshow(self.data, origin="upper", interpolation="none", cmap="gray")
+        else:
+            if contour_image:
+                ax.imshow(self.imdata, interpolation="none", cmap="gray")
+            else:
+                ax.imshow(self.imdata, origin="upper", interpolation="none", cmap="gray")
         ax.xaxis.set_visible(False)
         ax.yaxis.set_visible(False)
         plt.gca().set_axis_off()
