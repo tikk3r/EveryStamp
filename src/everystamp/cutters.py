@@ -3,7 +3,7 @@
 import sys
 from typing import Union
 
-import pyregion
+#import pyregion
 from astropy.io import fits
 from astropy.nddata import Cutout2D
 from astropy.wcs import WCS
@@ -45,6 +45,7 @@ def make_cutout_region(image: str = None, region: str = None, outfile: str = Non
     :param region: region file
     :param outfile: output fits file
     """
+    raise NotImplementedError
 
     hdu = fits.open(image)
     head = hdu[0].header
