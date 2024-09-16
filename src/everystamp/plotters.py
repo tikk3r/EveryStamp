@@ -92,7 +92,10 @@ class BasicFITSPlot:
             print(f'Using colour map: {cmap}')
             f.show_colorscale(vmin=cmap_min, vmax=cmap_max, pmax=100, cmap=cmap)
         if contour_image:
-            hdu_c = fits.open(contour_image)
+            head = fits.getheader(contour_image)
+            data = fits.getdata(contour_image)
+            head = WCS(head).celestial.to_header()
+            hdu_c = fits.PrimaryHDU(data=data, header=head)
             # f.show_contour(hdu_c, levels=contour_levels, colors='white', cmap='plasma')
             f.show_contour(hdu_c, levels=contour_levels, colors="C0")
         if plot_colourbar:
