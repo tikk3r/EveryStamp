@@ -198,7 +198,7 @@ def _add_args_download(parser):
         type=str,
         required=False,
         default="dr1",
-        choices=["pdr", "dr1", "dr2"],
+        choices=["pdr", "dr1", "dr2", "dr2-low"],
         help="Data release to download from.",
     )
 
@@ -824,7 +824,7 @@ def _process_args_download(args):
                     name="LoTSS-DR1",
                 )
                 vd.download(ra=ra, dec=dec, size=args.size, ddir=args.ddir)
-            elif args.lotss_release == "dr2":
+            elif args.lotss_release == "dr2" or args.lotss_release == "dr2-low":
                 from everystamp.downloaders import LoTSSDownloader
 
                 vd = LoTSSDownloader()
@@ -834,6 +834,7 @@ def _process_args_download(args):
                     size=args.size,
                     ddir=args.ddir,
                     mode=args.mode.replace("e", ""),
+                    release=args.lotss_release
                 )
         elif args.survey == "tgss":
             if args.mode == "both" or args.mode == "jpeg":

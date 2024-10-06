@@ -143,9 +143,9 @@ class LoTSSDownloader(FileDownloader):
     logger = logging.getLogger("EveryStamp:LoTSSDownloader")
 
     def __init__(self):
-        self.url = "https://lofar-surveys.org/dr2-cutout.fits?pos={coord_str:s}&size={size_arcmin:f}"
+        self.url = "https://lofar-surveys.org/{release:s}-cutout.fits?pos={coord_str:s}&size={size_arcmin:f}"
 
-    def format_url(self, ra: str = "", dec: str = "", size: float = 1.0) -> str:
+    def format_url(self, ra: str, dec: str, release: str, size: float = 1.0) -> str:
         """
 
         Args:
@@ -165,19 +165,20 @@ class LoTSSDownloader(FileDownloader):
             .replace("d", ":")
             .replace("s", "")
         )
-        url = self.url.format(coord_str=coord_str, size_arcmin=size_arcmin)
+        url = self.url.format(coord_str=coord_str, size_arcmin=size_arcmin, release=release)
         return url
 
     def download(self, **kwargs):
         if kwargs["mode"] != "fits":
             raise ValueError("LoTSSDownloader only supports FITS downloads.")
-        furl = self.format_url(ra=kwargs["ra"], dec=kwargs["dec"], size=kwargs["size"])
+        furl = self.format_url(ra=kwargs["ra"], dec=kwargs["dec"], size=kwargs["size"], release=kwargs["release"])
         logger.info(furl)
-        fname = "LoTSS-DR2_{ra:f}_{dec:f}_{size:.3f}.{mode:s}".format(
+        fname = "LoTSS-{release:s}_{ra:f}_{dec:f}_{size:.3f}.{mode:s}".format(
             ra=kwargs["ra"],
             dec=kwargs["dec"],
             mode="fits",
             size=kwargs["size"],
+            release=kwargs["release"].upper(),
         )
         if not kwargs["ddir"]:
             self.logger.info(
