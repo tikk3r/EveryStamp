@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-""" Python library aiming to provide a wrapper around various astronomical surveys that offer cutouts."""
+"""Python library aiming to provide a wrapper around various astronomical surveys that offer cutouts."""
+
 __version__ = "1.5.0"
 __author__ = "Frits Sweijen"
 __license__ = "GPLv3"
@@ -23,7 +24,6 @@ logging.basicConfig(
     format="[%(name)s] %(asctime)s - %(levelname)s: %(message)s", level=logging.INFO
 )
 logger = logging.getLogger("EveryStamp")
-
 
 
 # Check if LuminanceHDR is installed.
@@ -825,16 +825,15 @@ def _process_args_download(args):
                 )
                 vd.download(ra=ra, dec=dec, size=args.size, ddir=args.ddir)
             elif args.lotss_release == "dr2":
-                from everystamp.downloaders import HiPSDownloader
+                from everystamp.downloaders import LoTSSDownloader
 
-                vd = HiPSDownloader(hips="astron.nl/P/lotss_dr2_high", name="LoTSS-DR2")
+                vd = LoTSSDownloader()
                 vd.download(
                     ra=ra,
                     dec=dec,
                     size=args.size,
                     ddir=args.ddir,
                     mode=args.mode.replace("e", ""),
-                    pixsize=1.5,
                 )
         elif args.survey == "tgss":
             if args.mode == "both" or args.mode == "jpeg":
