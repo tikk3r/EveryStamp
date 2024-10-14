@@ -745,7 +745,10 @@ def _process_args_download(args):
         if args.survey.startswith("hips:"):
             from everystamp.downloaders import HiPSDownloader
 
-            hipsname = args.survey.split(":")[1]
+            if 'http' in args.survey:
+                hipsname = args.survey[5:]
+            else:
+                hipsname = args.survey.split(":")[1]
             vd = HiPSDownloader(hips=hipsname, name=hipsname.replace("/", "_"))
             vd.download(
                 ra=ra,
