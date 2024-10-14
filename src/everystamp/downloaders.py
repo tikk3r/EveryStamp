@@ -27,8 +27,6 @@ logging.basicConfig(
 logger = logging.getLogger("EveryStamp:Downloader")
 
 
-
-
 def flatten(xs):
     """Flatten a nested list, as per the example on https://stackoverflow.com/a/40857703.
 
@@ -138,6 +136,61 @@ class FileDownloader(object):
         return target_dest_dir
 
 
+class LoTSSDownloader(FileDownloader):
+    """Downloader sub-class for the LOFAR Two-metre Sky Survey."""
+
+    supported_keywords = ["ra", "dec", "size_arcmin"]
+    logger = logging.getLogger("EveryStamp:LoTSSDownloader")
+
+    def __init__(self):
+        self.url = "https://lofar-surveys.org/{release:s}-cutout.fits?pos={coord_str:s}&size={size_arcmin:f}"
+
+    def format_url(self, ra: str, dec: str, release: str, size: float = 1.0) -> str:
+        """
+
+        Args:
+            ra: right ascension in HH:MM:SS format.
+            dec: declination in HH:MM:SS format.
+            size: size of the cutout area in degrees.
+
+        Returns:
+            url: the formatted URL.
+        """
+        size_arcmin = size * 60
+        coord_str = (
+            SkyCoord(ra, dec, unit="deg", frame="icrs")
+            .to_string("hmsdms")
+            .replace("h", ":")
+            .replace("m", ":")
+            .replace("d", ":")
+            .replace("s", "")
+        )
+        url = self.url.format(coord_str=coord_str, size_arcmin=size_arcmin, release=release)
+        return url
+
+    def download(self, **kwargs):
+        if kwargs["mode"] != "fits":
+            raise ValueError("LoTSSDownloader only supports FITS downloads.")
+        furl = self.format_url(ra=kwargs["ra"], dec=kwargs["dec"], size=kwargs["size"], release=kwargs["release"])
+        logger.info(furl)
+        fname = "LoTSS-{release:s}_{ra:f}_{dec:f}_{size:.3f}.{mode:s}".format(
+            ra=kwargs["ra"],
+            dec=kwargs["dec"],
+            mode="fits",
+            size=kwargs["size"],
+            release=kwargs["release"].upper(),
+        )
+        if not kwargs["ddir"]:
+            self.logger.info(
+                "Download directory not specified, downloading to %s instead",
+                os.getcwd(),
+            )
+            ddir = os.getcwd()
+        else:
+            ddir = kwargs["ddir"]
+        self.download_file(furl, filename=fname, target_dir=ddir)
+
+
 class LegacyDownloader(FileDownloader):
     """Downloader sub-class for the DESI Legacy Imaging Surveys."""
 
@@ -240,7 +293,8 @@ class LegacyDownloader(FileDownloader):
         try:
             self.download_file(furl, filename=fname, target_dir=ddir)
         except requests.exceptions.HTTPError:
-            self.logger.warning(f'Failed to download {fname}')
+            self.logger.warning(f"Failed to download {fname}")
+
 
 class PanSTARRSDownloader:
     """Downloader sub-class for the VLASS survey."""
@@ -443,7 +497,9 @@ class VLASSDownloader(FileDownloader):
         fname = np.array([val.split('"')[7] for val in vals])
 
         # Split out the actual coordinate string
-        pos_raw = np.array([val.split(".")[4] for val in fname if val.startswith("VLASS")])
+        pos_raw = np.array(
+            [val.split(".")[4] for val in fname if val.startswith("VLASS")]
+        )
 
         if "-" in pos_raw[0]:
             # dec < 0
@@ -703,6 +759,7 @@ class VODownloader:
                 )
             )
 
+
 class HiPSDownloader:
     """Sub-class to download a file from a HiPS image using hips2fits."""
 
@@ -718,7 +775,9 @@ class HiPSDownloader:
         self.logger = logging.getLogger(
             "EveryStamp:HiPSDownloader[{:s}]".format(self.name)
         )
-        self.logger.warning("downloading from a HiPS survey. Scientific accuracy of resulting FITS images is not guaranteed!")
+        self.logger.warning(
+            "downloading from a HiPS survey. Scientific accuracy of resulting FITS images is not guaranteed!"
+        )
 
     def download(
         self, ra=0.0, dec=0.0, size=0.1, ddir=os.getcwd(), pixsize=1.0, mode="jpg"
@@ -756,10 +815,21 @@ class HiPSDownloader:
             os.mkdir(ddir)
         if mode == "jpg":
             from PIL import Image
+
             imdata = Image.fromarray(img)
-            imdata.save(os.path.join(ddir, '{:s}_{:.4f}_{:.4f}_{:.5f}.jpeg'.format(self.name, ra, dec, size)))
-        elif mode == 'fits':
-            img.writeto(os.path.join(ddir, '{:s}_{:.4f}_{:.4f}_{:.5f}.fits'.format(self.name, ra, dec, size)))
+            imdata.save(
+                os.path.join(
+                    ddir,
+                    "{:s}_{:.4f}_{:.4f}_{:.5f}.jpeg".format(self.name, ra, dec, size),
+                )
+            )
+        elif mode == "fits":
+            img.writeto(
+                os.path.join(
+                    ddir,
+                    "{:s}_{:.4f}_{:.4f}_{:.5f}.fits".format(self.name, ra, dec, size),
+                )
+            )
 
 
 class SkyViewDownloader:
