@@ -747,6 +747,8 @@ def _process_args_download(args):
 
             if 'http' in args.survey:
                 hipsname = args.survey[5:]
+            elif 'https' in args.survey:
+                hipsname = args.survey[6:]
             else:
                 hipsname = args.survey.split(":")[1]
             vd = HiPSDownloader(hips=hipsname, name=hipsname.replace("/", "_"))
