@@ -2,7 +2,7 @@ aplpy
 astropy
 astroquery
 matplotlib
-markupsafe<=2.0.1
+markupsafe
 numpy<2
 panstamps
 Pillow
