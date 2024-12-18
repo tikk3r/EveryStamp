@@ -1,5 +1,5 @@
 aplpy
-astropy<6.0.0
+astropy
 astroquery
 matplotlib
 markupsafe<=2.0.1
