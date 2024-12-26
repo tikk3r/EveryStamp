@@ -297,7 +297,7 @@ class LegacyDownloader(FileDownloader):
 
 
 class PanSTARRSDownloader:
-    """Downloader sub-class for the VLASS survey."""
+    """Downloader sub-class for the PanSTARRS survey."""
 
     from panstamps.downloader import downloader as psdownloader
 
@@ -730,7 +730,7 @@ class VODownloader:
             )
 
     def download(self, ra=0.0, dec=0.0, size=0.1, ddir=os.getcwd(), suffix=""):
-        """Download a cutout from the VLASS survey.
+        """Download a cutout from a VO survey.
 
         Parameters
         ----------
@@ -782,7 +782,7 @@ class HiPSDownloader:
     def download(
         self, ra=0.0, dec=0.0, size=0.1, ddir=os.getcwd(), pixsize=1.0, mode="jpg"
     ):
-        """Download a cutout from the VLASS survey.
+        """Download a cutout from a HiPS survey.
 
         Parameters
         ----------
@@ -847,7 +847,7 @@ class SkyViewDownloader:
     def download(
         self, ra=0.0, dec=0.0, size=0.1, pixsize=1, ddir=os.getcwd(), suffix=""
     ):
-        """Download a cutout from the VLASS survey.
+        """Download a cutout from a SkyView survey.
 
         Parameters
         ----------
