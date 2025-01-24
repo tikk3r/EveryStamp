@@ -302,6 +302,12 @@ def _add_args_plot(parser):
         required=False,
         help="Plot the given image as contours over the main image.",
     )
+    required_args.add_argument(
+        "--wcs_image",
+        default=None,
+        required=False,
+        help="Image to take the WCS from when plotting.",
+    )
 
     if HAS_LHDR:
         required_args.add_argument(
@@ -1056,6 +1062,7 @@ def _process_args_plot(args):
             cmap=args.cmap,
             cmap_min=args.cmap_min,
             cmap_max=args.cmap_max,
+
         )
     elif (not args.contour_image) and (args.style == "normal"):
         bp.plot2D(cmap=args.cmap, cmap_min=args.cmap_min, cmap_max=args.cmap_max)

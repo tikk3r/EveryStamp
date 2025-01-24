@@ -9,6 +9,7 @@ from astropy.wcs import WCS
 from matplotlib.pyplot import figure
 import numpy as np
 from typing import Union
+import astropy.units as u
 
 
 def find_rms(image_data):
@@ -227,22 +228,27 @@ class BasicImagePlot:
         else:
             self.wcs = None
 
-    def plot2D(self, plot_colourbar=False, contour_image: numpy.ndarray = None, contour_levels: Union[int, list] = 5, cmap_min: float = None, cmap_max: float = None):
+    def plot2D(self, plot_colourbar=False, contour_image: numpy.ndarray = None, contour_levels: Union[int, list] = 5, cmap: str = "gray", cmap_min: float = None, cmap_max: float = None):
         """ Save a plot of the FITS image without any axes."""
         figsize = [self.imdata.shape[0] // self.dpi, self.imdata.shape[1] // self.dpi]
-        fig = figure(figsize=figsize)
+        if figsize[0] < self.imdata.shape[0]:
+            figsize[0] = 4
+        if figsize[1] < self.imdata.shape[1]:
+            figsize[1] = 4
+        print("FIGURE SIZE: ", figsize)
+        fig = figure(figsize=figsize, dpi=self.dpi)
         if self.wcs:
             ax = fig.add_subplot(111, projection=self.wcs)
             if self.data is not None:
-                ax.imshow(self.data, interpolation='none', cmap='gray')
+                ax.imshow(self.data, interpolation='none', cmap=cmap)
             else:
-                ax.imshow(self.imdata, interpolation='none', cmap='gray')
+                ax.imshow(self.imdata, interpolation='none', cmap=cmap)
         else:
             ax = fig.add_subplot(111)
             if self.data is not None:
-                ax.imshow(self.data, origin='upper', interpolation='none', cmap='gray')
+                ax.imshow(self.data, origin='upper', interpolation='none', cmap=cmap)
             else:
-                ax.imshow(self.imdata, origin='upper', interpolation='none', cmap='gray')
+                ax.imshow(self.imdata, origin='upper', interpolation='none', cmap=cmap)
         if contour_image:
             # Flip to get North up.
             cdata = np.flipud(fits.getdata(contour_image).squeeze())
@@ -254,19 +260,20 @@ class BasicImagePlot:
             if type(contour_levels) is int:
                 step = len(clevels) // contour_levels
                 clevels = clevels[::step]
-            ax.contour(cdata, levels=clevels, colors='C0', transform=ax.get_transform(wcs), linewidths=1)
-        ax.xaxis.set_visible(False)
-        ax.yaxis.set_visible(False)
-        plt.gca().set_axis_off()
+            ax.contour(cdata, levels=clevels, colors='w', transform=ax.get_transform(wcs), linewidths=2)
+        #ax.xaxis.set_visible(False)
+        #ax.yaxis.set_visible(False)
+        #plt.gca().set_axis_off()
         plt.subplots_adjust(top=1, bottom=0, right=1, left=0, hspace=0, wspace=0)
-        plt.margins(0, 0)
-        plt.gca().xaxis.set_major_locator(plt.NullLocator())
-        plt.gca().yaxis.set_major_locator(plt.NullLocator())
+        plt.xlabel("Right ascension [J2000]", fontsize=16)
+        plt.ylabel("Declination [J2000]", fontsize=16)
+        #plt.margins(0, 0)
+        #plt.gca().xaxis.set_major_locator(plt.NullLocator())
+        #plt.gca().yaxis.set_major_locator(plt.NullLocator())
         file_ext = "." + self.image.split(".")[-1]
         fig.savefig(
             self.image.replace(file_ext, ".output.png"),
             bbox_inches="tight",
-            pad_inches=0,
             transparent=True,
             dpi=self.dpi,
         )
