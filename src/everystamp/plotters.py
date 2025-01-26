@@ -208,7 +208,7 @@ class SRTPlot:
 
 
 class BasicImagePlot:
-    """ Creates a basic plot of a FITS file."""
+    """ Creates a basic plot of an image (not FITS) file."""
     def __init__(self, imname, wcsimage=None):
         """ Initialise a basic plotting object for 2D FITS files.
         
@@ -240,23 +240,24 @@ class BasicImagePlot:
         if self.wcs:
             ax = fig.add_subplot(111, projection=self.wcs)
             if self.data is not None:
-                ax.imshow(self.data, interpolation='none', cmap=cmap)
+                ax.imshow(np.flipud(self.data), interpolation='none', cmap=cmap)
             else:
-                ax.imshow(self.imdata, interpolation='none', cmap=cmap)
+                ax.imshow(np.flipud(self.imdata), interpolation='none', cmap=cmap)
         else:
             ax = fig.add_subplot(111)
             if self.data is not None:
-                ax.imshow(self.data, origin='upper', interpolation='none', cmap=cmap)
+                ax.imshow(np.flipud(self.data), origin='lower', interpolation='none', cmap=cmap)
             else:
-                ax.imshow(self.imdata, origin='upper', interpolation='none', cmap=cmap)
+                ax.imshow(np.flipud(self.imdata), origin='lower', interpolation='none', cmap=cmap)
         if contour_image:
             # Flip to get North up.
-            cdata = np.flipud(fits.getdata(contour_image).squeeze())
+            #cdata = np.flipud(fits.getdata(contour_image).squeeze())
+            cdata = fits.getdata(contour_image).squeeze()
             chead = fits.getheader(contour_image)
             wcs = WCS(chead).celestial
             # f.show_contour(hdu_c, levels=contour_levels, colors='white', cmap='plasma')
             crms = find_rms(cdata)
-            clevels = np.arange(crms, np.percentile(cdata, 99.9), np.sqrt(2) * 70e-6)
+            clevels = np.arange(crms, np.percentile(cdata, 99.9), np.sqrt(2) * 40e-6)
             if type(contour_levels) is int:
                 step = len(clevels) // contour_levels
                 clevels = clevels[::step]
