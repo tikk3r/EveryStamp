@@ -136,10 +136,6 @@ class BasicFITSPlot:
                 print(f'Using colour map: {cmap}')
                 f.show_colorscale(vmin=cmap_min, vmax=cmap_max, pmax=100, cmap=cmap)
         if contour_image:
-            #head = fits.getheader(contour_image)
-            #data = fits.getdata(contour_image)
-            #head = WCS(head).celestial.to_header()
-
             cdata = fits.getdata(contour_image).squeeze()
             chead = fits.getheader(contour_image)
             crms = find_rms(cdata)
@@ -151,7 +147,7 @@ class BasicFITSPlot:
             f.add_colorbar()
         f.savefig(self.fitsimage.replace("fits", "png"), dpi=self.dpi)
 
-    def plot_noaxes(self, cmap_min: float = None, cmap_max: float = None, cmap=None):
+    def plot_noaxes(self, cmap_min: float = None, cmap_max: float = None, cmap=None, contour_image=None):
         """Save a plot of the FITS image without any axes."""
         figsize = [
             self.fitsdata.shape[0] // self.dpi,
@@ -161,7 +157,7 @@ class BasicFITSPlot:
             figsize[0] = 12
         if figsize[1] < 8:
             figsize[1] = 8
-        fig = figure(figsize=figsize)
+        #fig = figure(figsize=figsize)
         if self.load_rgb:
             f = FITSFigure("temp_rgb.png", figsize=self.figsize)
             f.show_rgb()
@@ -170,15 +166,22 @@ class BasicFITSPlot:
                 header=WCS(fits.getheader(self.fitsimage)).celestial.to_header(),
                 data=self.data.squeeze(),
             )
-            f = FITSFigure(hdu, figure=fig)
+            f = FITSFigure(hdu, figsize=self.figsize)
             if not cmap:
                 f.show_grayscale(vmin=cmap_min, vmax=cmap_max, pmax=100)
             else:
                 f.show_colorscale(vmin=cmap_min, vmax=cmap_max, pmax=100, cmap=cmap)
+        if contour_image:
+            cdata = fits.getdata(contour_image).squeeze()
+            chead = fits.getheader(contour_image)
+            crms = find_rms(cdata)
+            contour_levels = np.arange(5*crms, np.percentile(cdata, 99.999), np.sqrt(2) * crms)
+            print(contour_levels)
+            hdu_c = fits.PrimaryHDU(data=cdata, header=chead)
+            f.show_contour(hdu_c, levels=contour_levels, colors='white')
         plt.axis("off")
-        fig.savefig(
+        f.savefig(
             self.fitsimage.replace("fits", ".noaxes.png"),
-            bbox_inches="tight",
             pad_inches=0,
             transparent=True,
             dpi=self.dpi,
