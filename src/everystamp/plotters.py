@@ -83,10 +83,14 @@ class BasicFITSPlot:
         self.figsize = (12, 8)
         self.fitsimage = fitsname
         self.fitsdata = fits.getdata(fitsname).squeeze()
+        self.load_rgb = False
         if len(self.fitsdata.shape) > 2:
-            raise NotImplementedError(
-                "Supplied FITS file appears to have dimensions besides RA and DEC. BasicPlot only supports 2D FITS files."
-            )
+            #raise NotImplementedError(
+            #    "Supplied FITS file appears to have dimensions besides RA and DEC. BasicPlot only supports 2D FITS files."
+            #)
+            print("Generating RGB image")
+            aplpy.make_rgb_image(self.fitsimage, "temp_rgb.png", embed_avm_tags=True, stretch_r="sqrt", stretch_g="sqrt", stretch_b="sqrt")
+            self.load_rgb = True
         self.data = self.fitsdata
         self.wcs = WCS(fits.getheader(fitsname)).celestial
         self.figsize = [
@@ -117,23 +121,32 @@ class BasicFITSPlot:
             contour_levels:
                 Number of contour levels to draw if an integer or contour levels if a list. Defaults to 5.
         """
-        hdu = fits.PrimaryHDU(
-            header=WCS(fits.getheader(self.fitsimage)).celestial.to_header(),
-            data=self.data.squeeze(),
-        )
-        f = FITSFigure(hdu, figsize=self.figsize)
-        #f = FITSFigure("temp_rgb.png", figsize=self.figsize)
-        if not cmap:
-            f.show_grayscale(vmin=cmap_min, vmax=cmap_max, pmax=100)
+        if self.load_rgb:
+            f = FITSFigure("temp_rgb.png", figsize=self.figsize)
+            f.show_rgb()
         else:
-            f.show_colorscale(vmin=cmap_min, vmax=cmap_max, pmax=100, cmap=cmap)
+            hdu = fits.PrimaryHDU(
+                header=WCS(fits.getheader(self.fitsimage)).celestial.to_header(),
+                data=self.data.squeeze(),
+            )
+            f = FITSFigure(hdu, figsize=self.figsize)
+            if not cmap:
+                f.show_grayscale(vmin=cmap_min, vmax=cmap_max, pmax=100)
+            else:
+                print(f'Using colour map: {cmap}')
+                f.show_colorscale(vmin=cmap_min, vmax=cmap_max, pmax=100, cmap=cmap)
         if contour_image:
-            head = fits.getheader(contour_image)
-            data = fits.getdata(contour_image)
-            head = WCS(head).celestial.to_header()
-            hdu_c = fits.PrimaryHDU(data=data, header=head)
-            # f.show_contour(hdu_c, levels=contour_levels, colors='white', cmap='plasma')
-            f.show_contour(hdu_c, levels=contour_levels, colors="C0")
+            #head = fits.getheader(contour_image)
+            #data = fits.getdata(contour_image)
+            #head = WCS(head).celestial.to_header()
+
+            cdata = fits.getdata(contour_image).squeeze()
+            chead = fits.getheader(contour_image)
+            crms = find_rms(cdata)
+            contour_levels = np.arange(5*crms, np.percentile(cdata, 99.999), np.sqrt(2) * crms)
+            print(contour_levels)
+            hdu_c = fits.PrimaryHDU(data=cdata, header=chead)
+            f.show_contour(hdu_c, levels=contour_levels, colors='white')
         if plot_colourbar:
             f.add_colorbar()
         f.savefig(self.fitsimage.replace("fits", "png"), dpi=self.dpi)
@@ -149,15 +162,19 @@ class BasicFITSPlot:
         if figsize[1] < 8:
             figsize[1] = 8
         fig = figure(figsize=figsize)
-        hdu = fits.PrimaryHDU(
-            header=WCS(fits.getheader(self.fitsimage)).celestial.to_header(),
-            data=self.data.squeeze(),
-        )
-        f = FITSFigure(hdu, figure=fig)
-        if not cmap:
-            f.show_grayscale(vmin=cmap_min, vmax=cmap_max, pmax=100)
+        if self.load_rgb:
+            f = FITSFigure("temp_rgb.png", figsize=self.figsize)
+            f.show_rgb()
         else:
-            f.show_colorscale(vmin=cmap_min, vmax=cmap_max, pmax=100, cmap=cmap)
+            hdu = fits.PrimaryHDU(
+                header=WCS(fits.getheader(self.fitsimage)).celestial.to_header(),
+                data=self.data.squeeze(),
+            )
+            f = FITSFigure(hdu, figure=fig)
+            if not cmap:
+                f.show_grayscale(vmin=cmap_min, vmax=cmap_max, pmax=100)
+            else:
+                f.show_colorscale(vmin=cmap_min, vmax=cmap_max, pmax=100, cmap=cmap)
         plt.axis("off")
         fig.savefig(
             self.fitsimage.replace("fits", ".noaxes.png"),
@@ -468,6 +485,7 @@ class BasicImagePlot:
         self.data = self.imdata
         self.wcsimage = wcsimage
         if wcsimage:
+            print(f"Loading WCS from {wcsimage}")
             self.wcs = WCS(fits.getheader(wcsimage)).celestial
         else:
             self.wcs = None
@@ -484,50 +502,31 @@ class BasicImagePlot:
         """Save a plot of the FITS image without any axes."""
         figsize = [self.imdata.shape[0] // self.dpi, self.imdata.shape[1] // self.dpi]
         if figsize[0] < self.imdata.shape[0]:
-            figsize[0] = 4
+            figsize[0] = 8
         if figsize[1] < self.imdata.shape[1]:
-            figsize[1] = 4
+            figsize[1] = 8
         print("FIGURE SIZE: ", figsize)
-        hdu = fits.PrimaryHDU(
-            header=self.wcs.celestial.to_header(),
-            data=self.data.squeeze(),
-        )
-        f = FITSFigure(self.wcsimage, figsize=self.figsize)
+        f = FITSFigure(self.wcsimage, figsize=self.figsize, dimensions=[0, 1], slices=[0])
         f.show_rgb(self.image)
+        print("BLABLABLA")
         if contour_image:
             ## Flip to get North up.
             ##cdata = np.flipud(fits.getdata(contour_image).squeeze())
             cdata = fits.getdata(contour_image).squeeze()
             chead = fits.getheader(contour_image)
             crms = find_rms(cdata)
-            crms = 20e-6
-            clevels = np.arange(3*crms, np.percentile(cdata, 99.999), np.sqrt(2) * 20e-6)
+            clevels = np.arange(5*crms, np.percentile(cdata, 99.999), np.sqrt(2) * crms)
             print(clevels)
             f.show_contour(contour_image, levels=clevels, colors="w")
-            #wcs = WCS(chead).celestial
-            ## f.show_contour(hdu_c, levels=contour_levels, colors='white', cmap='plasma')
-            ##crms = find_rms(cdata)
-            #crms = 20e-6
-            #clevels = np.arange(3*crms, np.percentile(cdata, 99.999), np.sqrt(2) * 20e-6)
-            #print(cdata)
-            #print(np.any(np.isnan(cdata)))
-            #print("Contour levels:", clevels)
-            #if type(contour_levels) is int:
-            #    step = len(clevels) // contour_levels
-            #    if step > 0:
-            #        clevels = clevels[::step]
-            #    else:
-            #        clevels = 5
-            #ax.contour(cdata, levels=clevels, colors='k', transform=ax.get_transform(wcs), linewidths=2)
         f.savefig(self.image + "_plot.png", dpi=self.dpi)
         return
         fig = figure(figsize=figsize, dpi=self.dpi)
         if self.wcs:
             ax = fig.add_subplot(111, projection=self.wcs)
-            if self.data is not None:
-                ax.imshow(np.flipud(self.data), interpolation="none", cmap=cmap)
-            else:
-                ax.imshow(np.flipud(self.imdata), interpolation="none", cmap=cmap)
+            #if self.data is not None:
+            #    ax.imshow(np.flipud(self.data), interpolation='none', cmap=cmap)
+            #else:
+            #    ax.imshow(np.flipud(self.imdata), interpolation='none', cmap=cmap)
         else:
             raise ValueError("BOOM")
             ax = fig.add_subplot(111)
@@ -551,12 +550,9 @@ class BasicImagePlot:
             cdata = fits.getdata(contour_image).squeeze()
             chead = fits.getheader(contour_image)
             wcs = WCS(chead).celestial
-            # f.show_contour(hdu_c, levels=contour_levels, colors='white', cmap='plasma')
-            #crms = find_rms(cdata)
-            crms = 20e-6
-            clevels = np.arange(3*crms, np.percentile(cdata, 99.999), np.sqrt(2) * 20e-6)
-            print(cdata)
-            print(np.any(np.isnan(cdata)))
+            crms = find_rms(cdata)
+            crms = 30e-6
+            clevels = np.arange(5*crms, np.percentile(cdata, 99.999), np.sqrt(2) * crms)
             print("Contour levels:", clevels)
             if type(contour_levels) is int:
                 step = len(clevels) // contour_levels
@@ -564,7 +560,7 @@ class BasicImagePlot:
                     clevels = clevels[::step]
                 else:
                     clevels = 5
-            ax.contour(cdata, levels=clevels, colors='k', transform=ax.get_transform(wcs), linewidths=2)
+            ax.contour(cdata, levels=clevels, colors='k', transform=ax.get_transform(wcs), linewidths=2, zorder=999)
         #ax.xaxis.set_visible(False)
         #ax.yaxis.set_visible(False)
         #plt.gca().set_axis_off()
