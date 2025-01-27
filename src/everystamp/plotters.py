@@ -6,6 +6,11 @@ import astropy.units as u
 import colormaps
 import matplotlib.pyplot as plt
 import numpy
+import aplpy
+from aplpy import FITSFigure
+from astropy.io import fits
+from astropy.wcs import WCS
+from matplotlib.pyplot import figure
 import numpy as np
 from aplpy import FITSFigure
 from astropy.coordinates import SkyCoord
@@ -117,6 +122,7 @@ class BasicFITSPlot:
             data=self.data.squeeze(),
         )
         f = FITSFigure(hdu, figsize=self.figsize)
+        #f = FITSFigure("temp_rgb.png", figsize=self.figsize)
         if not cmap:
             f.show_grayscale(vmin=cmap_min, vmax=cmap_max, pmax=100)
         else:
@@ -460,6 +466,7 @@ class BasicImagePlot:
 
         self.imdata = cv2.cvtColor(cv2.imread(imname), cv2.COLOR_BGR2RGB)
         self.data = self.imdata
+        self.wcsimage = wcsimage
         if wcsimage:
             self.wcs = WCS(fits.getheader(wcsimage)).celestial
         else:
@@ -481,6 +488,39 @@ class BasicImagePlot:
         if figsize[1] < self.imdata.shape[1]:
             figsize[1] = 4
         print("FIGURE SIZE: ", figsize)
+        hdu = fits.PrimaryHDU(
+            header=self.wcs.celestial.to_header(),
+            data=self.data.squeeze(),
+        )
+        f = FITSFigure(self.wcsimage, figsize=self.figsize)
+        f.show_rgb(self.image)
+        if contour_image:
+            ## Flip to get North up.
+            ##cdata = np.flipud(fits.getdata(contour_image).squeeze())
+            cdata = fits.getdata(contour_image).squeeze()
+            chead = fits.getheader(contour_image)
+            crms = find_rms(cdata)
+            crms = 20e-6
+            clevels = np.arange(3*crms, np.percentile(cdata, 99.999), np.sqrt(2) * 20e-6)
+            print(clevels)
+            f.show_contour(contour_image, levels=clevels, colors="w")
+            #wcs = WCS(chead).celestial
+            ## f.show_contour(hdu_c, levels=contour_levels, colors='white', cmap='plasma')
+            ##crms = find_rms(cdata)
+            #crms = 20e-6
+            #clevels = np.arange(3*crms, np.percentile(cdata, 99.999), np.sqrt(2) * 20e-6)
+            #print(cdata)
+            #print(np.any(np.isnan(cdata)))
+            #print("Contour levels:", clevels)
+            #if type(contour_levels) is int:
+            #    step = len(clevels) // contour_levels
+            #    if step > 0:
+            #        clevels = clevels[::step]
+            #    else:
+            #        clevels = 5
+            #ax.contour(cdata, levels=clevels, colors='k', transform=ax.get_transform(wcs), linewidths=2)
+        f.savefig(self.image + "_plot.png", dpi=self.dpi)
+        return
         fig = figure(figsize=figsize, dpi=self.dpi)
         if self.wcs:
             ax = fig.add_subplot(111, projection=self.wcs)
@@ -489,6 +529,7 @@ class BasicImagePlot:
             else:
                 ax.imshow(np.flipud(self.imdata), interpolation="none", cmap=cmap)
         else:
+            raise ValueError("BOOM")
             ax = fig.add_subplot(111)
             if self.data is not None:
                 ax.imshow(
@@ -511,22 +552,23 @@ class BasicImagePlot:
             chead = fits.getheader(contour_image)
             wcs = WCS(chead).celestial
             # f.show_contour(hdu_c, levels=contour_levels, colors='white', cmap='plasma')
-            crms = find_rms(cdata)
-            clevels = np.arange(crms, np.percentile(cdata, 99.9), np.sqrt(2) * 40e-6)
+            #crms = find_rms(cdata)
+            crms = 20e-6
+            clevels = np.arange(3*crms, np.percentile(cdata, 99.999), np.sqrt(2) * 20e-6)
+            print(cdata)
+            print(np.any(np.isnan(cdata)))
+            print("Contour levels:", clevels)
             if type(contour_levels) is int:
                 step = len(clevels) // contour_levels
-                clevels = clevels[::step]
-            ax.contour(
-                cdata,
-                levels=clevels,
-                colors="w",
-                transform=ax.get_transform(wcs),
-                linewidths=2,
-            )
-        # ax.xaxis.set_visible(False)
-        # ax.yaxis.set_visible(False)
-        # plt.gca().set_axis_off()
-        plt.subplots_adjust(top=1, bottom=0, right=1, left=0, hspace=0, wspace=0)
+                if step > 0:
+                    clevels = clevels[::step]
+                else:
+                    clevels = 5
+            ax.contour(cdata, levels=clevels, colors='k', transform=ax.get_transform(wcs), linewidths=2)
+        #ax.xaxis.set_visible(False)
+        #ax.yaxis.set_visible(False)
+        #plt.gca().set_axis_off()
+        #plt.subplots_adjust(top=1, bottom=0, right=1, left=0, hspace=0, wspace=0)
         plt.xlabel("Right ascension [J2000]", fontsize=16)
         plt.ylabel("Declination [J2000]", fontsize=16)
         # plt.margins(0, 0)
