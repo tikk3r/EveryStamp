@@ -106,7 +106,6 @@ class BasicFITSPlot:
             chead = fits.getheader(contour_image)
             crms = find_rms(cdata)
             contour_levels = np.arange(5*crms, np.percentile(cdata, 99.999), np.sqrt(2) * crms)
-            print(contour_levels)
             hdu_c = fits.PrimaryHDU(data=cdata, header=chead)
             f.show_contour(hdu_c, levels=contour_levels, colors='white')
         if plot_colourbar:
@@ -142,13 +141,11 @@ class BasicFITSPlot:
             chead = fits.getheader(contour_image)
             crms = find_rms(cdata)
             contour_levels = np.arange(5*crms, np.percentile(cdata, 99.999), np.sqrt(2) * crms)
-            print(contour_levels)
             hdu_c = fits.PrimaryHDU(data=cdata, header=chead)
             f.show_contour(hdu_c, levels=contour_levels, colors='white')
         plt.axis("off")
         f.savefig(
             self.fitsimage.replace("fits", ".noaxes.png"),
-            pad_inches=0,
             transparent=True,
             dpi=self.dpi,
         )
@@ -261,7 +258,6 @@ class BasicImagePlot:
         print("FIGURE SIZE: ", figsize)
         f = FITSFigure(self.wcsimage, figsize=self.figsize, dimensions=[0, 1], slices=[0])
         f.show_rgb(self.image)
-        print("BLABLABLA")
         if contour_image:
             ## Flip to get North up.
             ##cdata = np.flipud(fits.getdata(contour_image).squeeze())
@@ -269,7 +265,6 @@ class BasicImagePlot:
             chead = fits.getheader(contour_image)
             crms = find_rms(cdata)
             clevels = np.arange(5*crms, np.percentile(cdata, 99.999), np.sqrt(2) * crms)
-            print(clevels)
             f.show_contour(contour_image, levels=clevels, colors="w")
         f.savefig(self.image + "_plot.png", dpi=self.dpi)
         return
