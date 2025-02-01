@@ -7,8 +7,9 @@ import colormaps
 import matplotlib.pyplot as plt
 import numpy
 import aplpy
-from aplpy import FITSFigure
+from aplpy import FITSFigure, make_rgb_image
 from astropy.io import fits
+from astropy.visualization import make_lupton_rgb
 from astropy.wcs import WCS
 from matplotlib.pyplot import figure
 import numpy as np
@@ -83,13 +84,17 @@ class BasicFITSPlot:
         self.figsize = (12, 8)
         self.fitsimage = fitsname
         self.fitsdata = fits.getdata(fitsname).squeeze()
+        rgbdata = make_lupton_rgb(self.fitsdata[2], self.fitsdata[1], self.fitsdata[0], filename=self.fitsimage.replace(".fits", "_rgb.jpeg"), Q=10.0, stretch=0.1)
+        fits.writeto(self.fitsimage.replace(".fits", "_temp_rgb.fits"), header=fits.getheader(self.fitsimage), data=np.transpose(rgbdata, (2, 0, 1)), overwrite=True)
         self.load_rgb = False
         if len(self.fitsdata.shape) > 2:
             #raise NotImplementedError(
             #    "Supplied FITS file appears to have dimensions besides RA and DEC. BasicPlot only supports 2D FITS files."
             #)
             print("Generating RGB image")
-            aplpy.make_rgb_image(self.fitsimage, "temp_rgb.png", embed_avm_tags=True, stretch_r="sqrt", stretch_g="sqrt", stretch_b="sqrt")
+            colour_stretch = "linear"
+            aplpy.make_rgb_image(self.fitsimage.replace(".fits", "_temp_rgb.fits"), self.fitsimage.replace(".fits", "_temp_rgb.png"), embed_avm_tags=True, stretch_r=colour_stretch, stretch_g=colour_stretch, stretch_b=colour_stretch, pmax_r=100, pmax_g=100, pmax_b=100)
+            self.rgbimage = self.fitsimage.replace(".fits", "_temp_rgb.png")
             self.load_rgb = True
         self.data = self.fitsdata
         self.wcs = WCS(fits.getheader(fitsname)).celestial
@@ -122,8 +127,11 @@ class BasicFITSPlot:
                 Number of contour levels to draw if an integer or contour levels if a list. Defaults to 5.
         """
         if self.load_rgb:
-            f = FITSFigure("temp_rgb.png", figsize=self.figsize)
+            f = FITSFigure(self.fitsimage.replace(".fits", "_temp_rgb.png"), figsize=self.figsize)
             f.show_rgb()
+            ra = fits.getheader(self.fitsimage)["CRVAL1"]
+            dec = fits.getheader(self.fitsimage)["CRVAL2"]
+            f.recenter(ra, dec, radius=8.0/3600)
         else:
             hdu = fits.PrimaryHDU(
                 header=WCS(fits.getheader(self.fitsimage)).celestial.to_header(),
@@ -139,7 +147,9 @@ class BasicFITSPlot:
             cdata = fits.getdata(contour_image).squeeze()
             chead = fits.getheader(contour_image)
             crms = find_rms(cdata)
-            contour_levels = np.arange(5*crms, np.percentile(cdata, 99.999), np.sqrt(2) * crms)
+            contour_levels = np.arange(5*crms, np.percentile(cdata, 99.999), 2*np.sqrt(2) * crms)
+            if len(contour_levels) > 10:
+                contour_levels = np.linspace(np.sqrt(5*crms), np.sqrt(np.percentile(cdata, 99.999)), 7)**2
             hdu_c = fits.PrimaryHDU(data=cdata, header=chead)
             f.show_contour(hdu_c, levels=contour_levels, colors='white')
         if plot_colourbar:
