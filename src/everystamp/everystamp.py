@@ -125,7 +125,14 @@ def _add_args_download(parser):
         default=1.0,
         help="Pixel size in arcsec for SkyView cutouts.",
     )
-
+    optional_args.add_argument(
+        "--hips_pixsize",
+        type=float,
+        required=False,
+        default=1.0,
+        help="Pixel size in arcsec for HiPS cutouts.",
+    )
+    
     legacy_args = parser.add_argument_group("[DESI Legacy Imaging Surveys]")
     legacy_args.add_argument(
         "--legacy_bands",
@@ -760,6 +767,7 @@ def _process_args_download(args):
                 ra=ra,
                 dec=dec,
                 size=args.size,
+                pixsize=args.hips_pixsize,
                 ddir=args.ddir,
                 mode=args.mode.replace("e", ""),
             )
