@@ -116,7 +116,7 @@ def _add_args_download(parser):
         type=float,
         required=False,
         default=0.01,
-        help="Cutout size in degrees.",
+        help="Width and height of the square cutout in degrees.",
     )
     optional_args.add_argument(
         "--skyview_pixsize",
@@ -701,7 +701,7 @@ def _add_args_cutout(parser):
         type=float,
         required=False,
         default=0.01,
-        help="Cutout size in degrees.",
+        help="Width and height of the square cutout in degrees.",
     )
     required_args.add_argument(
         "--from_catalogue",
