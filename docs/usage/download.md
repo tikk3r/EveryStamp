@@ -22,7 +22,7 @@ A basic cutout download requires five arguments and can be obtained via
 
 > everystamp download --survey \<survey> --ra \<ra> --dec \<dec> --size \<size> --mode \<mode>
 
-This will download a square cutout centred on the given right ascension and declination, with a width and height specified by `size`. The mode can be `fits`, `jpeg` or `both` to download the respecitve formats. Note that not all surveys support JPEG cutouts. Various surveys may also have further arguments specific to them. See `everystamp download -h` for a complete summary of available parameters.
+This will download a square cutout centred on the given right ascension and declination, with a width and height specified by `size`. The mode can be `fits`, `jpeg` or `both` to download the respecitve formats. Note that not all surveys support JPEG cutouts. Various surveys may also have further arguments specific to them. See `everystamp download -h` for a complete summary of available parameters and what units to provide arguments in.
 
 ## Local cutouts
 EveryStamp also support making cutouts of local FITS files through `everystamp cutout`. A full list of options can be seen via `everystamp cutout -h`. An example is
