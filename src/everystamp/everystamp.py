@@ -806,6 +806,7 @@ def _process_args_download(args):
             vd.download(
                 ra=ra,
                 dec=dec,
+                size=args.size,
                 crop=True,
                 consider_QA_rejected=args.vlass_consider_QA_rejected,
                 ddir=args.ddir,
