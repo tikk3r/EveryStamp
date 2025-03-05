@@ -669,7 +669,6 @@ class VLASSDownloader(FileDownloader):
         ra=0.0,
         dec=0.0,
         size=0.1,
-        ms="",
         crop=True,
         consider_QA_rejected=False,
         ddir=os.getcwd(),
@@ -684,8 +683,6 @@ class VLASSDownloader(FileDownloader):
             Declination of the coordinate of interest.
         size : float
             Size of the area of interest in degrees.
-        ms : str
-            Path to a Measurement Set to take coordinates from instead of using ra and dec.
         crop : bool
             Crop the image to the area of interest.
         consider_QA_rejected : bool
@@ -693,12 +690,6 @@ class VLASSDownloader(FileDownloader):
         ddir : str
             Location to download the cutout to.
         """
-        if ms:
-            with ct.table(ms.rstrip("/") + "::FIELD") as field:
-                direction = field.getcol("PHASE_DIR").squeeze()
-            ra = (direction[0] % (2 * np.pi)) / np.pi * 180
-            dec = direction[1] / np.pi * 180
-
         c = SkyCoord(ra, dec, unit="deg")
 
         crop_scale = size * 3600 / self.pixel_scale
