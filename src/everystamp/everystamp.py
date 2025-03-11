@@ -1107,7 +1107,7 @@ def _process_args_cutout(args):
             args.ddir,
             args.image.replace(
                 ".fits",
-                ".cropped_{:.4f}_{:.4f}_{:.4f}.fits".format(c.ra, c.dec, args.size),
+                ".cropped_{:.4f}_{:.4f}_{:.4f}.fits".format(c.ra.value, c.dec.value, args.size),
             ),
         )
         make_cutout_2D(args.image, pos=c, size=s, outfile=out)
