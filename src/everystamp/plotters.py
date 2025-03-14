@@ -107,6 +107,12 @@ class BasicFITSPlot:
         if self.figsize[1] < 8:
             self.figsize[1] = 8
 
+    def get_contour_levels(self, cdata: numpy.ndarray) -> numpy.ndarray:
+        crms = find_rms(cdata)
+        contour_levels = np.arange(np.sqrt(3*crms), np.sqrt(np.percentile(cdata, 99.999)), np.sqrt(2*np.sqrt(2) * crms))**2
+        print(f"Minimum contour: {3*crms}")
+        return contour_levels
+
     def plot2D(
         self,
         plot_colourbar=False,
@@ -146,11 +152,7 @@ class BasicFITSPlot:
         if contour_image:
             cdata = fits.getdata(contour_image).squeeze()
             chead = fits.getheader(contour_image)
-            crms = find_rms(cdata)
-            contour_levels = np.arange(np.sqrt(3*crms), np.sqrt(np.percentile(cdata, 99.999)), np.sqrt(2*np.sqrt(2) * crms))**2
-            print(f"Minimum contour: {3*crms}")
-            #if len(contour_levels) > 10:
-            #    contour_levels = np.linspace(np.sqrt(3*crms), np.sqrt(np.percentile(cdata, 99.999)), 7)**2
+            contour_levels = self.get_contour_levels(cdata)
             hdu_c = fits.PrimaryHDU(data=cdata, header=chead)
             f.show_contour(hdu_c, levels=contour_levels, colors='white')
         if plot_colourbar:
@@ -184,8 +186,7 @@ class BasicFITSPlot:
         if contour_image:
             cdata = fits.getdata(contour_image).squeeze()
             chead = fits.getheader(contour_image)
-            crms = find_rms(cdata)
-            contour_levels = np.arange(5*crms, np.percentile(cdata, 99.999), np.sqrt(2) * crms)
+            contour_levels = self.get_contour_levels(cdata)
             hdu_c = fits.PrimaryHDU(data=cdata, header=chead)
             f.show_contour(hdu_c, levels=contour_levels, colors='white')
         plt.axis("off")
