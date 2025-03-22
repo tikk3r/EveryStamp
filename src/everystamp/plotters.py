@@ -1,10 +1,20 @@
 """Sub-module for plotting FITS images."""
+
 from typing import Optional, Union
 
 import matplotlib.pyplot as plt
 import numpy
 from aplpy import FITSFigure
 from astropy.io import fits
+from astropy.visualization import (
+    ImageNormalize,
+    MinMaxInterval,
+    SqrtStretch,
+    PercentileInterval,
+)
+from blend_modes import addition
+from PIL import Image
+
 from astropy.wcs import WCS
 from matplotlib.pyplot import figure
 import numpy as np
@@ -21,18 +31,20 @@ def find_rms(image_data):
     """
 
     maskSup = 1e-7
-    m = image_data[np.abs(image_data)>maskSup]
+    m = image_data[np.abs(image_data) > maskSup]
     rmsold = np.std(m)
     diff = 1e-1
-    cut = 3.
+    cut = 3.0
     med = np.median(m)
     for _ in range(10):
-        ind = np.where(np.abs(m - med) < rmsold*cut)[0]
+        ind = np.where(np.abs(m - med) < rmsold * cut)[0]
         rms = np.std(m[ind])
-        if np.abs((rms-rmsold) / rmsold) < diff: break
+        if np.abs((rms - rmsold) / rmsold) < diff:
+            break
         rmsold = rms
-    print(f'Noise : {str(round(rms * 1000, 4))} {u.mJy/u.beam}')
+    print(f"Noise : {str(round(rms * 1000, 4))} {u.mJy/u.beam}")
     return rms
+
 
 class BasicFITSPlot:
     """Creates a basic plot of a FITS file."""
@@ -90,7 +102,7 @@ class BasicFITSPlot:
         if not cmap:
             f.show_grayscale(vmin=cmap_min, vmax=cmap_max, pmax=100)
         else:
-            print(f'Using colour map: {cmap}')
+            print(f"Using colour map: {cmap}")
             f.show_colorscale(vmin=cmap_min, vmax=cmap_max, pmax=100, cmap=cmap)
         if contour_image:
             head = fits.getheader(contour_image)
@@ -143,6 +155,59 @@ class BasicFITSPlot:
             filename=outfile,
             overwrite=True,
         )
+
+
+class BlendPlot:
+    """Creates a composite image using blending modes."""
+
+    def __init__(self, background, foreground, blend_mode, centre, radius):
+        Image.MAX_IMAGE_PIXELS = None
+        self.background = background
+        self.foreground = foreground
+        self.blend_modes = blend_mode
+
+        print("Preparing background image.")
+        fig = FITSFigure(background)
+        fig.show_rgb()
+        fig.recenter(centre.ra.value, centre.dec.value, radius)
+        fig.axis_labels.hide()
+        fig.tick_labels.hide()
+        fig.ticks.hide()
+        fig.savefig("temp_background.png")
+
+        print("Preparing foreground image.")
+        h = fits.getheader(foreground)
+        wcs = WCS(h).celestial
+        d = fits.getdata(foreground).squeeze()
+        d[d < 5 * 32e-6] = np.nan
+        norm = ImageNormalize(
+            d, interval=PercentileInterval(99.9), stretch=SqrtStretch()
+        )
+
+        figf = FITSFigure(background)
+        figf.ax.imshow(
+            d, transform=figf.ax.get_transform(wcs), cmap="afmhot", norm=norm
+        )
+        figf.recenter(centre.ra.value, centre.dec.value, radius)
+        figf.axis_labels.hide()
+        figf.tick_labels.hide()
+        figf.ticks.hide()
+        figf.savefig("temp_foreground.png", transparent=True)
+
+        fig.ax.imshow(d, transform=fig.ax.get_transform(wcs), cmap="afmhot", norm=norm)
+        fig.savefig("temp_reference.png")
+
+        del fig, figf
+
+    def blend(self):
+        img_bg = np.array(Image.open("temp_background.png")).astype(float)
+        img_fg = np.array(Image.open("temp_foreground.png")).astype(float)
+        for bm in self.blend_modes:
+            match bm:
+                case "add":
+                    img_blend = addition(img_bg, img_fg, 1.0)
+
+        Image.fromarray(np.uint8(img_blend)).save(self.foreground.replace(".fits", "_blend.png"))
 
 
 class SRTPlot:
@@ -208,10 +273,11 @@ class SRTPlot:
 
 
 class BasicImagePlot:
-    """ Creates a basic plot of an image (not FITS) file."""
+    """Creates a basic plot of an image (not FITS) file."""
+
     def __init__(self, imname, wcsimage=None):
-        """ Initialise a basic plotting object for 2D FITS files.
-        
+        """Initialise a basic plotting object for 2D FITS files.
+
         Args:
             fitsname : str
                 Name of the FITS file that will be plotted.
@@ -228,8 +294,16 @@ class BasicImagePlot:
         else:
             self.wcs = None
 
-    def plot2D(self, plot_colourbar=False, contour_image: numpy.ndarray = None, contour_levels: Union[int, list] = 5, cmap: str = "gray", cmap_min: float = None, cmap_max: float = None):
-        """ Save a plot of the FITS image without any axes."""
+    def plot2D(
+        self,
+        plot_colourbar=False,
+        contour_image: numpy.ndarray = None,
+        contour_levels: Union[int, list] = 5,
+        cmap: str = "gray",
+        cmap_min: float = None,
+        cmap_max: float = None,
+    ):
+        """Save a plot of the FITS image without any axes."""
         figsize = [self.imdata.shape[0] // self.dpi, self.imdata.shape[1] // self.dpi]
         if figsize[0] < self.imdata.shape[0]:
             figsize[0] = 4
@@ -240,18 +314,28 @@ class BasicImagePlot:
         if self.wcs:
             ax = fig.add_subplot(111, projection=self.wcs)
             if self.data is not None:
-                ax.imshow(np.flipud(self.data), interpolation='none', cmap=cmap)
+                ax.imshow(np.flipud(self.data), interpolation="none", cmap=cmap)
             else:
-                ax.imshow(np.flipud(self.imdata), interpolation='none', cmap=cmap)
+                ax.imshow(np.flipud(self.imdata), interpolation="none", cmap=cmap)
         else:
             ax = fig.add_subplot(111)
             if self.data is not None:
-                ax.imshow(np.flipud(self.data), origin='lower', interpolation='none', cmap=cmap)
+                ax.imshow(
+                    np.flipud(self.data),
+                    origin="lower",
+                    interpolation="none",
+                    cmap=cmap,
+                )
             else:
-                ax.imshow(np.flipud(self.imdata), origin='lower', interpolation='none', cmap=cmap)
+                ax.imshow(
+                    np.flipud(self.imdata),
+                    origin="lower",
+                    interpolation="none",
+                    cmap=cmap,
+                )
         if contour_image:
             # Flip to get North up.
-            #cdata = np.flipud(fits.getdata(contour_image).squeeze())
+            # cdata = np.flipud(fits.getdata(contour_image).squeeze())
             cdata = fits.getdata(contour_image).squeeze()
             chead = fits.getheader(contour_image)
             wcs = WCS(chead).celestial
@@ -261,16 +345,22 @@ class BasicImagePlot:
             if type(contour_levels) is int:
                 step = len(clevels) // contour_levels
                 clevels = clevels[::step]
-            ax.contour(cdata, levels=clevels, colors='w', transform=ax.get_transform(wcs), linewidths=2)
-        #ax.xaxis.set_visible(False)
-        #ax.yaxis.set_visible(False)
-        #plt.gca().set_axis_off()
+            ax.contour(
+                cdata,
+                levels=clevels,
+                colors="w",
+                transform=ax.get_transform(wcs),
+                linewidths=2,
+            )
+        # ax.xaxis.set_visible(False)
+        # ax.yaxis.set_visible(False)
+        # plt.gca().set_axis_off()
         plt.subplots_adjust(top=1, bottom=0, right=1, left=0, hspace=0, wspace=0)
         plt.xlabel("Right ascension [J2000]", fontsize=16)
         plt.ylabel("Declination [J2000]", fontsize=16)
-        #plt.margins(0, 0)
-        #plt.gca().xaxis.set_major_locator(plt.NullLocator())
-        #plt.gca().yaxis.set_major_locator(plt.NullLocator())
+        # plt.margins(0, 0)
+        # plt.gca().xaxis.set_major_locator(plt.NullLocator())
+        # plt.gca().yaxis.set_major_locator(plt.NullLocator())
         file_ext = "." + self.image.split(".")[-1]
         fig.savefig(
             self.image.replace(file_ext, ".output.png"),
