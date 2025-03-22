@@ -7,12 +7,14 @@ __license__ = "GPLv3"
 import argparse
 import logging
 import os
+import sys
 from collections.abc import Iterable
 from typing import Generator
 
 import astropy.units as units
 import astropy.visualization
 import cv2  # type: ignore
+from numpy import require
 import requests
 from astropy.coordinates import SkyCoord
 from astropy.table import Table
@@ -722,6 +724,36 @@ def _add_args_cutout(parser):
     )
 
 
+def _add_args_composite(parser):
+    """Add arguments to the argparse instance for making composites.
+
+    Args:
+        parser : ArgumentParser
+            ArgumentParser instance to which to add entries.
+    """
+    required_args = parser.add_argument_group("Required arguments")
+    required_args.add_argument(
+        "--background", type=str, required=False, help="Background image."
+    )
+    required_args.add_argument(
+        "--foreground", type=str, required=False, help="Foreground image."
+    )
+    required_args.add_argument(
+        "--blend-mode",
+        nargs="+",
+        required=False,
+        help="Blending mode to blend the foreground image into the background image with.",
+    )
+
+    optional_args = parser.add_argument_group("Optional arguments")
+    optional_args.add_argument(
+        "--bg_wcs_from",
+        type=str,
+        default=None,
+        help="File to extract the background WCS from. Can be a text file with a FITS header, or a FITS image. If the background image has AVM data or is a FITS image this is not needed.",
+    )
+
+
 def _process_args_download(args):
     """Process arguments to the argparse instance for downloading cutouts.
 
@@ -1114,6 +1146,62 @@ def _process_args_cutout(args):
         make_cutout_2D(args.image, pos=c, size=s, outfile=out)
 
 
+def _process_args_composite(args):
+    """Process arguments to the argparse instance for making composites.
+
+    Args:
+        parser : ArgumentParser
+            ArgumentParser instance to which to add entries.
+    """
+    from astropy.io import fits
+    from everystamp.plotters import BlendPlot
+    import magic
+    import pyavm
+
+    try:
+        pyavm.AVM.from_image(args.background)
+    except pyavm.exceptions.NoXMPPacketFound:
+        if args.bg_wcs_from:
+            print("No AVM metadata found in background image.")
+            match magic.from_file(args.bg_wcs_from).split():
+                case ["FITS", *_]:
+                    print(
+                        f"Extracting WCS information from FITS file {args.bg_wcs_from}."
+                    )
+                    try:
+                        header = fits.getheader(args.bg_wcs_from)
+                    except OSError:
+                        with open(args.bg_wcs_from, "rb") as f:
+                            header = fits.Header.fromfile(
+                                f, sep="\n", padding=False, endcard=False
+                            )
+                    avm = pyavm.AVM.from_header(header)
+                    avm.embed(
+                        args.background, os.path.basename(args.background) + ".avm.png"
+                    )
+                case ["ASCII", *_]:
+                    print(
+                        f"Extracting WCS information from ASCII file {args.bg_wcs_from}."
+                    )
+                    raise NotImplementedError
+                case _:
+                    print(
+                        f"Could not parse WCS from {args.bg_wcs_from}; unknown file type."
+                    )
+                    sys.exit(-1)
+        else:
+            print(
+                "Cannot make composite: No AVM metadata found in background image and no WCS file given."
+            )
+            sys.exit(-1)
+
+        background_file = os.path.basename(args.background) + ".avm.png"
+        header_fg = fits.getheader(args.foreground)
+        pos = SkyCoord(header_fg["CRVAL1"], header_fg["CRVAL2"], unit="deg")
+        bp = BlendPlot(background_file, args.foreground, args.blend_mode, pos, 0.02)
+        bp.blend()
+
+
 def main():
     """Main entry point if called as a standalone executable."""
     parser = argparse.ArgumentParser(
@@ -1145,6 +1233,13 @@ def main():
     )
     _add_args_cutout(subparser_cut)
 
+    subparser_composite = subparsers.add_parser(
+        "composite",
+        description="Create a composite of a background image and foreground image(s).",
+        help="Compose background and foreground image(s) with various blending modes.",
+    )
+    _add_args_composite(subparser_composite)
+
     args = parser.parse_args()
 
     if args.cmd == "download":
@@ -1153,6 +1248,8 @@ def main():
         _process_args_plot(args)
     if args.cmd == "cutout":
         _process_args_cutout(args)
+    if args.cmd == "composite":
+        _process_args_composite(args)
 
 
 if __name__ == "__main__":
