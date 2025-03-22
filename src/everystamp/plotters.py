@@ -12,7 +12,7 @@ from astropy.visualization import (
     SqrtStretch,
     PercentileInterval,
 )
-from blend_modes import addition
+from blend_modes import addition, soft_light
 from PIL import Image
 
 from astropy.wcs import WCS
@@ -202,10 +202,13 @@ class BlendPlot:
     def blend(self):
         img_bg = np.array(Image.open("temp_background.png")).astype(float)
         img_fg = np.array(Image.open("temp_foreground.png")).astype(float)
+        img_blend = img_fg
         for bm in self.blend_modes:
             match bm:
                 case "add":
-                    img_blend = addition(img_bg, img_fg, 1.0)
+                    img_blend = addition(img_bg, img_blend, 1.0)
+                case "softlight":
+                    img_blend = soft_light(img_blend, img_fg, 0.5)
 
         Image.fromarray(np.uint8(img_blend)).save(self.foreground.replace(".fits", "_blend.png"))
 
