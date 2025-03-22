@@ -15,6 +15,7 @@ import astropy.units as units
 import astropy.visualization
 import cv2  # type: ignore
 from numpy import require
+import numpy as np
 import requests
 from astropy.coordinates import SkyCoord
 from astropy.table import Table
@@ -739,7 +740,15 @@ def _add_args_composite(parser):
         "--foreground", type=str, required=False, help="Foreground image."
     )
     required_args.add_argument(
-        "--blend-mode",
+        "--blend-modes",
+        type=str,
+        nargs="+",
+        required=False,
+        help="Blending mode to blend the foreground image into the background image with.",
+    )
+    required_args.add_argument(
+        "--blend-opacities",
+        type=float,
         nargs="+",
         required=False,
         help="Blending mode to blend the foreground image into the background image with.",
@@ -751,6 +760,12 @@ def _add_args_composite(parser):
         type=str,
         default=None,
         help="File to extract the background WCS from. Can be a text file with a FITS header, or a FITS image. If the background image has AVM data or is a FITS image this is not needed.",
+    )
+    optional_args.add_argument(
+        "--fg_rms_cut",
+        type=float,
+        default=np.nan,
+        help="Factor of the rms noise level below which to blank the foreground image. Mainly useful for radio overlay.",
     )
 
 
@@ -1198,8 +1213,8 @@ def _process_args_composite(args):
         background_file = os.path.basename(args.background) + ".avm.png"
         header_fg = fits.getheader(args.foreground)
         pos = SkyCoord(header_fg["CRVAL1"], header_fg["CRVAL2"], unit="deg")
-        bp = BlendPlot(background_file, args.foreground, args.blend_mode, pos, 0.02)
-        bp.blend()
+        bp = BlendPlot(background_file, args.foreground, pos, 0.02, args.fg_rms_cut)
+        bp.blend(args.blend_modes, args.blend_opacities)
 
 
 def main():

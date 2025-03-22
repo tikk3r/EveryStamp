@@ -12,7 +12,7 @@ from astropy.visualization import (
     SqrtStretch,
     PercentileInterval,
 )
-from blend_modes import addition, soft_light
+from blend_modes import addition, hard_light, soft_light
 from PIL import Image
 
 from astropy.wcs import WCS
@@ -160,15 +160,14 @@ class BasicFITSPlot:
 class BlendPlot:
     """Creates a composite image using blending modes."""
 
-    def __init__(self, background, foreground, blend_mode, centre, radius):
+    def __init__(self, background, foreground, centre, radius, rmscut):
         Image.MAX_IMAGE_PIXELS = None
         self.background = background
         self.foreground = foreground
-        self.blend_modes = blend_mode
 
         print("Preparing background image.")
         fig = FITSFigure(background)
-        fig.show_rgb()
+        fig.show_rgb(interpolation="none")
         fig.recenter(centre.ra.value, centre.dec.value, radius)
         fig.axis_labels.hide()
         fig.tick_labels.hide()
@@ -179,14 +178,15 @@ class BlendPlot:
         h = fits.getheader(foreground)
         wcs = WCS(h).celestial
         d = fits.getdata(foreground).squeeze()
-        d[d < 5 * 32e-6] = np.nan
+        rms = find_rms(d)
+        d[d < rmscut * rms] = np.nan
         norm = ImageNormalize(
             d, interval=PercentileInterval(99.9), stretch=SqrtStretch()
         )
 
         figf = FITSFigure(background)
         figf.ax.imshow(
-            d, transform=figf.ax.get_transform(wcs), cmap="afmhot", norm=norm
+            d, transform=figf.ax.get_transform(wcs), cmap="afmhot", norm=norm, interpolation="none"
         )
         figf.recenter(centre.ra.value, centre.dec.value, radius)
         figf.axis_labels.hide()
@@ -199,18 +199,22 @@ class BlendPlot:
 
         del fig, figf
 
-    def blend(self):
+    def blend(self, blend_modes, blend_opacities):
         img_bg = np.array(Image.open("temp_background.png")).astype(float)
         img_fg = np.array(Image.open("temp_foreground.png")).astype(float)
         img_blend = img_fg
-        for bm in self.blend_modes:
+        for bm, ba in zip(blend_modes, blend_opacities):
             match bm:
                 case "add":
-                    img_blend = addition(img_bg, img_blend, 1.0)
+                    img_blend = addition(img_bg, img_blend, ba)
                 case "softlight":
-                    img_blend = soft_light(img_blend, img_fg, 0.5)
+                    img_blend = soft_light(img_blend, img_fg, ba)
+                case "hardlight":
+                    img_blend = hard_light(img_blend, img_fg, ba)
 
-        Image.fromarray(np.uint8(img_blend)).save(self.foreground.replace(".fits", "_blend.png"))
+        Image.fromarray(np.uint8(img_blend)).save(
+            self.foreground.replace(".fits", "_blend.png")
+        )
 
 
 class SRTPlot:
