@@ -21,6 +21,9 @@ import numpy as np
 from typing import Union
 import astropy.units as u
 
+from matplotlib import colormaps as mplcm
+import colormaps
+
 
 def find_rms(image_data):
     """
@@ -160,7 +163,7 @@ class BasicFITSPlot:
 class BlendPlot:
     """Creates a composite image using blending modes."""
 
-    def __init__(self, background, foreground, centre, radius, rmscut):
+    def __init__(self, background, foreground, cmaps, centre, radius, rmscut):
         Image.MAX_IMAGE_PIXELS = None
         self.background = background
         self.foreground = foreground
@@ -174,46 +177,52 @@ class BlendPlot:
         fig.ticks.hide()
         fig.savefig("temp_background.png")
 
-        print("Preparing foreground image.")
-        h = fits.getheader(foreground)
-        wcs = WCS(h).celestial
-        d = fits.getdata(foreground).squeeze()
-        rms = find_rms(d)
-        d[d < rmscut * rms] = np.nan
-        norm = ImageNormalize(
-            d, interval=PercentileInterval(99.9), stretch=SqrtStretch()
-        )
+        for i, fg in enumerate(foreground):
+            print(fg)
+            print("Preparing foreground image.")
+            h = fits.getheader(fg)
+            wcs = WCS(h).celestial
+            d = fits.getdata(fg).squeeze()
+            rms = find_rms(d)
+            d[d < rmscut * rms] = np.nan
+            norm = ImageNormalize(
+                d, interval=PercentileInterval(99.9), stretch=SqrtStretch()
+            )
 
-        figf = FITSFigure(background)
-        figf.ax.imshow(
-            d, transform=figf.ax.get_transform(wcs), cmap="afmhot", norm=norm, interpolation="none"
-        )
-        figf.recenter(centre.ra.value, centre.dec.value, radius)
-        figf.axis_labels.hide()
-        figf.tick_labels.hide()
-        figf.ticks.hide()
-        figf.savefig("temp_foreground.png", transparent=True)
+            figf = FITSFigure(background)
+            if cmaps[i] in list(mplcm):
+                cm = cmaps[i]
+            else:
+                cm = eval("colormaps." + cmaps[i])
+            figf.ax.imshow(
+                d, transform=figf.ax.get_transform(wcs), cmap=cm, norm=norm, interpolation="none"
+            )
+            figf.recenter(centre.ra.value, centre.dec.value, radius)
+            figf.axis_labels.hide()
+            figf.tick_labels.hide()
+            figf.ticks.hide()
+            figf.savefig(f"temp_foreground_{i:02d}.png", transparent=True)
 
-        fig.ax.imshow(d, transform=fig.ax.get_transform(wcs), cmap="afmhot", norm=norm)
-        fig.savefig("temp_reference.png")
+            fig.ax.imshow(d, transform=fig.ax.get_transform(wcs), cmap="afmhot", norm=norm)
+            fig.savefig(f"temp_reference{i:02d}.png")
 
         del fig, figf
 
     def blend(self, blend_modes, blend_opacities):
-        img_bg = np.array(Image.open("temp_background.png")).astype(float)
-        img_fg = np.array(Image.open("temp_foreground.png")).astype(float)
-        img_blend = img_fg
-        for bm, ba in zip(blend_modes, blend_opacities):
-            match bm:
-                case "add":
-                    img_blend = addition(img_bg, img_blend, ba)
-                case "softlight":
-                    img_blend = soft_light(img_blend, img_fg, ba)
-                case "hardlight":
-                    img_blend = hard_light(img_blend, img_fg, ba)
-
+        img_blend = np.array(Image.open("temp_background.png")).astype(float)
+        for i, (bms, ba) in enumerate(zip(blend_modes, blend_opacities)):
+            img_fg = np.array(Image.open(f"temp_foreground_{i:02d}.png")).astype(float)
+            for bm in bms.split(","):
+                print(bm)
+                match bm:
+                    case "add":
+                        img_blend = addition(img_blend, img_fg, ba)
+                    case "softlight":
+                        img_blend = soft_light(img_blend, img_fg, ba)
+                    case "hardlight":
+                        img_blend = hard_light(img_blend, img_fg, ba)
         Image.fromarray(np.uint8(img_blend)).save(
-            self.foreground.replace(".fits", "_blend.png")
+            self.foreground[0].replace(".fits", "_blend.png")
         )
 
 
