@@ -740,7 +740,10 @@ def _add_args_composite(parser):
         "--foreground", type=str, nargs="+", required=False, help="Foreground image."
     )
     required_args.add_argument(
-        "--radius", type=float, required=False, help="Radius around the centre of the foreground image to consider."
+        "--radius",
+        type=float,
+        required=False,
+        help="Radius around the centre of the foreground image to consider.",
     )
     required_args.add_argument(
         "--blend-modes",
@@ -776,6 +779,14 @@ def _add_args_composite(parser):
         type=float,
         default=np.nan,
         help="Factor of the rms noise level below which to blank the foreground image. Mainly useful for radio overlay.",
+    )
+
+    optional_args.add_argument(
+        "--preset",
+        type=str,
+        default="",
+        help="Apply a preset of blending modes.",
+        choices=["opt+x-ray+lofar"],
     )
 
 
@@ -1186,9 +1197,7 @@ def _process_args_composite(args):
     if args.bg_wcs_from:
         match magic.from_file(args.bg_wcs_from).split():
             case ["FITS", *_]:
-                print(
-                    f"Extracting WCS information from FITS file {args.bg_wcs_from}."
-                )
+                print(f"Extracting WCS information from FITS file {args.bg_wcs_from}.")
                 try:
                     header = fits.getheader(args.bg_wcs_from)
                 except OSError:
@@ -1201,9 +1210,7 @@ def _process_args_composite(args):
                     args.background, os.path.basename(args.background) + ".avm.png"
                 )
             case ["ASCII", *_]:
-                print(
-                    f"Extracting WCS information from ASCII file {args.bg_wcs_from}."
-                )
+                print(f"Extracting WCS information from ASCII file {args.bg_wcs_from}.")
                 raise NotImplementedError
             case _:
                 print(
@@ -1231,7 +1238,8 @@ def _process_args_composite(args):
                                 )
                         avm = pyavm.AVM.from_header(header)
                         avm.embed(
-                            args.background, os.path.basename(args.background) + ".avm.png"
+                            args.background,
+                            os.path.basename(args.background) + ".avm.png",
                         )
                     case ["ASCII", *_]:
                         print(
@@ -1252,8 +1260,19 @@ def _process_args_composite(args):
     background_file = os.path.basename(args.background) + ".avm.png"
     header_fg = fits.getheader(args.foreground[0])
     pos = SkyCoord(header_fg["CRVAL1"], header_fg["CRVAL2"], unit="deg")
-    bp = BlendPlot(background_file, args.foreground, args.blend_cmaps, pos, args.radius, args.fg_rms_cut)
-    bp.blend(args.blend_modes, args.blend_opacities)
+    bp = BlendPlot(
+        background_file,
+        args.foreground,
+        args.blend_cmaps,
+        pos,
+        args.radius,
+        args.fg_rms_cut,
+    )
+    if args.preset:
+        bp.load_preset(args.preset)
+    else:
+        bp.set_blends(args.blend_modes, args.blend_cmaps, args.blend_opacities)
+    bp.blend()
 
 
 def main():

@@ -167,50 +167,61 @@ class BlendPlot:
         Image.MAX_IMAGE_PIXELS = None
         self.background = background
         self.foreground = foreground
+        self.blend_cmaps = cmaps
+        self.centre = centre
+        self.radius = radius
+        self.rmscut = rmscut
 
+    def prepare_images(self):
         print("Preparing background image.")
-        fig = FITSFigure(background)
+        fig = FITSFigure(self.background)
         fig.show_rgb(interpolation="none")
-        fig.recenter(centre.ra.value, centre.dec.value, radius)
+        fig.recenter(self.centre.ra.value, self.centre.dec.value, self.radius)
         fig.axis_labels.hide()
         fig.tick_labels.hide()
         fig.ticks.hide()
         fig.savefig("temp_background.png")
 
-        for i, fg in enumerate(foreground):
+        for i, fg in enumerate(self.foreground):
             print(fg)
             print("Preparing foreground image.")
             h = fits.getheader(fg)
             wcs = WCS(h).celestial
             d = fits.getdata(fg).squeeze()
             rms = find_rms(d)
-            d[d < rmscut * rms] = np.nan
+            d[d < self.rmscut * rms] = np.nan
             norm = ImageNormalize(
                 d, interval=PercentileInterval(99.9), stretch=SqrtStretch()
             )
 
-            figf = FITSFigure(background)
-            if cmaps[i] in list(mplcm):
-                cm = cmaps[i]
+            figf = FITSFigure(self.background)
+            if self.blend_cmaps[i] in list(mplcm):
+                cm = self.blend_cmaps[i]
             else:
-                cm = eval("colormaps." + cmaps[i])
+                cm = eval("colormaps." + self.blend_cmaps[i])
             figf.ax.imshow(
-                d, transform=figf.ax.get_transform(wcs), cmap=cm, norm=norm, interpolation="none"
+                d,
+                transform=figf.ax.get_transform(wcs),
+                cmap=cm,
+                norm=norm,
+                interpolation="none",
             )
-            figf.recenter(centre.ra.value, centre.dec.value, radius)
+            figf.recenter(self.centre.ra.value, self.centre.dec.value, self.radius)
             figf.axis_labels.hide()
             figf.tick_labels.hide()
             figf.ticks.hide()
             figf.savefig(f"temp_foreground_{i:02d}.png", transparent=True)
 
-            fig.ax.imshow(d, transform=fig.ax.get_transform(wcs), cmap="afmhot", norm=norm)
+            fig.ax.imshow(
+                d, transform=fig.ax.get_transform(wcs), cmap="afmhot", norm=norm
+            )
             fig.savefig(f"temp_reference{i:02d}.png")
 
         del fig, figf
 
-    def blend(self, blend_modes, blend_opacities):
+    def blend(self):
         img_blend = np.array(Image.open("temp_background.png")).astype(float)
-        for i, (bms, ba) in enumerate(zip(blend_modes, blend_opacities)):
+        for i, (bms, ba) in enumerate(zip(self.blend_modes, self.blend_opacities)):
             img_fg = np.array(Image.open(f"temp_foreground_{i:02d}.png")).astype(float)
             for bm in bms.split(","):
                 print(bm)
@@ -224,6 +235,18 @@ class BlendPlot:
         Image.fromarray(np.uint8(img_blend)).save(
             self.foreground[0].replace(".fits", "_blend.png")
         )
+
+    def load_preset(self, preset):
+        match preset:
+            case "opt+x-ray+lofar":
+                self.blend_modes = ["add,softlight", "add,add"]
+                self.blend_cmaps = ["c_7_16", "afmhot"]
+                self.blend_opacities = [0.5, 1.0]
+
+    def set_blends(self, blend_modes, blend_cmaps, blend_opacities):
+        self.blend_modes = blend_modes
+        self.blend_cmaps = blend_cmaps
+        self.blend_opacities = blend_opacities
 
 
 class SRTPlot:
