@@ -329,9 +329,9 @@ class BlendPlot:
         """
         match preset:
             case "opt+x-ray+lofar":
-                self.blend_modes = ["add,softlight", "add,add,softlight"]
+                self.blend_modes = ["add,softlight", "add,add,overlay"]
                 self.blend_cmaps = ["c_7_16", "solar"]
-                self.blend_opacities = [0.5, 0.6]
+                self.blend_opacities = [0.35, 0.6]
                 self.rmscut = 5.0
             case "opt+lofar":
                 self.blend_modes = ["add,overlay,softlight"]
