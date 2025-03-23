@@ -2,6 +2,7 @@ aplpy
 astropy
 astroquery
 blend-modes
+colormaps
 matplotlib
 markupsafe
 numpy<2
