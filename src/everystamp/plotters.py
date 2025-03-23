@@ -1,28 +1,26 @@
 """Sub-module for plotting FITS images."""
 
-from typing import Optional, Union
+from typing import List, Optional, Union
 
+import astropy.units as u
+import colormaps
 import matplotlib.pyplot as plt
 import numpy
+import numpy as np
 from aplpy import FITSFigure
+from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.visualization import (
     ImageNormalize,
     MinMaxInterval,
-    SqrtStretch,
     PercentileInterval,
+    SqrtStretch,
 )
-from blend_modes import addition, hard_light, soft_light
-from PIL import Image
-
 from astropy.wcs import WCS
-from matplotlib.pyplot import figure
-import numpy as np
-from typing import Union
-import astropy.units as u
-
+from blend_modes import addition, hard_light, soft_light
 from matplotlib import colormaps as mplcm
-import colormaps
+from matplotlib.pyplot import figure
+from PIL import Image
 
 
 def find_rms(image_data):
@@ -161,9 +159,36 @@ class BasicFITSPlot:
 
 
 class BlendPlot:
-    """Creates a composite image using blending modes."""
+    """Creates a composite image using blending modes.
 
-    def __init__(self, background, foreground, cmaps, centre, radius, rmscut):
+    Attributes: 
+        backgroundg 
+        foregroundg 
+        blend_cmapsg 
+        centreg 
+        radiusg 
+        rmscutg 
+        blend_modesg 
+        blend_cmapsg 
+        blend_opacitiesg 
+
+    Methods:
+        blend
+        load_preset
+        prepare_images
+        set_blends
+    """
+    def __init__(self, background: str, foreground: List[str], cmaps: List[str], centre: SkyCoord, radius: float, rmscut: float) -> None:
+        """ Initialises the BlendPlot.
+
+        Args:
+            background (str): 
+            foreground (str): 
+            cmaps (list[str]): 
+            centre (SkyCoord): 
+            radius (float): 
+            rmscut (float): 
+        """
         Image.MAX_IMAGE_PIXELS = None
         self.background = background
         self.foreground = foreground
@@ -172,7 +197,12 @@ class BlendPlot:
         self.radius = radius
         self.rmscut = rmscut
 
-    def prepare_images(self):
+    def prepare_images(self) -> None:
+        """ Prepare images for blending.
+
+        This involves plotting all the specified images in the same WCS projection, with the specified rms noise cut.
+        Plots are saved as PNGs in the current directory.
+        """
         print("Preparing background image.")
         fig = FITSFigure(self.background)
         fig.show_rgb(interpolation="none")
@@ -219,7 +249,12 @@ class BlendPlot:
 
         del fig, figf
 
-    def blend(self):
+    def blend(self) -> None:
+        """ Blend the background and foreground images together using the specified modes.
+
+        Returns:
+            None
+        """
         img_blend = np.array(Image.open("temp_background.png")).astype(float)
         for i, (bms, ba) in enumerate(zip(self.blend_modes, self.blend_opacities)):
             img_fg = np.array(Image.open(f"temp_foreground_{i:02d}.png")).astype(float)
@@ -236,14 +271,38 @@ class BlendPlot:
             self.foreground[0].replace(".fits", "_blend.png")
         )
 
-    def load_preset(self, preset):
+    def load_preset(self, preset: str) -> None:
+        """ Loads a preset of blending modes, colour maps and opacities.
+
+        Args:
+            preset (str): name of the preset to load.
+
+        Returns:
+            None
+
+        Raises:
+            ValueError: if an unknown preset is specified.
+
+        """
         match preset:
             case "opt+x-ray+lofar":
                 self.blend_modes = ["add,softlight", "add,add"]
                 self.blend_cmaps = ["c_7_16", "afmhot"]
                 self.blend_opacities = [0.5, 1.0]
+            case _:
+                raise ValueError("Unknown preset requested.")
 
-    def set_blends(self, blend_modes, blend_cmaps, blend_opacities):
+    def set_blends(self, blend_modes: List[str], blend_cmaps: List[str], blend_opacities: List[float]) -> None:
+        """Set the blending modes, colour maps and opacities of the current plot.
+
+        Args:
+            blend_modes (list[str]): blending modes to apply to each image.
+            blend_cmaps (list[str]): colour maps to use for each image.
+            blend_opacities (list[float]): opacities with which to blend each layer.
+
+        Returns:
+            None
+        """
         self.blend_modes = blend_modes
         self.blend_cmaps = blend_cmaps
         self.blend_opacities = blend_opacities
