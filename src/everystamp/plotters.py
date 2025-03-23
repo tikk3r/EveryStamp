@@ -17,7 +17,22 @@ from astropy.visualization import (
     SqrtStretch,
 )
 from astropy.wcs import WCS
-from blend_modes import addition, hard_light, soft_light
+from blend_modes import (
+    addition,
+    hard_light,
+    soft_light,
+    lighten_only,
+    darken_only,
+    multiply,
+    dodge,
+    difference,
+    subtract,
+    grain_extract,
+    grain_merge,
+    divide,
+    overlay,
+    normal,
+)
 from matplotlib import colormaps as mplcm
 from matplotlib.pyplot import figure
 from PIL import Image
@@ -161,16 +176,16 @@ class BasicFITSPlot:
 class BlendPlot:
     """Creates a composite image using blending modes.
 
-    Attributes: 
-        backgroundg 
-        foregroundg 
-        blend_cmapsg 
-        centreg 
-        radiusg 
-        rmscutg 
-        blend_modesg 
-        blend_cmapsg 
-        blend_opacitiesg 
+    Attributes:
+        backgroundg
+        foregroundg
+        blend_cmapsg
+        centreg
+        radiusg
+        rmscutg
+        blend_modesg
+        blend_cmapsg
+        blend_opacitiesg
 
     Methods:
         blend
@@ -178,16 +193,25 @@ class BlendPlot:
         prepare_images
         set_blends
     """
-    def __init__(self, background: str, foreground: List[str], cmaps: List[str], centre: SkyCoord, radius: float, rmscut: float) -> None:
-        """ Initialises the BlendPlot.
+
+    def __init__(
+        self,
+        background: str,
+        foreground: List[str],
+        cmaps: List[str],
+        centre: SkyCoord,
+        radius: float,
+        rmscut: float,
+    ) -> None:
+        """Initialises the BlendPlot.
 
         Args:
-            background (str): 
-            foreground (str): 
-            cmaps (list[str]): 
-            centre (SkyCoord): 
-            radius (float): 
-            rmscut (float): 
+            background (str):
+            foreground (str):
+            cmaps (list[str]):
+            centre (SkyCoord):
+            radius (float):
+            rmscut (float):
         """
         Image.MAX_IMAGE_PIXELS = None
         self.background = background
@@ -198,7 +222,7 @@ class BlendPlot:
         self.rmscut = rmscut
 
     def prepare_images(self) -> None:
-        """ Prepare images for blending.
+        """Prepare images for blending.
 
         This involves plotting all the specified images in the same WCS projection, with the specified rms noise cut.
         Plots are saved as PNGs in the current directory.
@@ -250,7 +274,7 @@ class BlendPlot:
         del fig, figf
 
     def blend(self) -> None:
-        """ Blend the background and foreground images together using the specified modes.
+        """Blend the background and foreground images together using the specified modes.
 
         Returns:
             None
@@ -267,12 +291,34 @@ class BlendPlot:
                         img_blend = soft_light(img_blend, img_fg, ba)
                     case "hardlight":
                         img_blend = hard_light(img_blend, img_fg, ba)
+                    case "lighten_only":
+                        img_blend = lighten_only(img_blend, img_fg, ba)
+                    case "darken_only":
+                        img_blend = darken_only(img_blend, img_fg, ba)
+                    case "multiply":
+                        img_blend = multiply(img_blend, img_fg, ba)
+                    case "dodge":
+                        img_blend = dodge(img_blend, img_fg, ba)
+                    case "difference":
+                        img_blend = difference(img_blend, img_fg, ba)
+                    case "subtract":
+                        img_blend = subtract(img_blend, img_fg, ba)
+                    case "grain_extract":
+                        img_blend = grain_extract(img_blend, img_fg, ba)
+                    case "grain_merge":
+                        img_blend = grain_merge(img_blend, img_fg, ba)
+                    case "divide":
+                        img_blend = divide(img_blend, img_fg, ba)
+                    case "overlay":
+                        img_blend = overlay(img_blend, img_fg, ba)
+                    case "normal":
+                        img_blend = normal(img_blend, img_fg, ba)
         Image.fromarray(np.uint8(img_blend)).save(
             self.foreground[0].replace(".fits", "_blend.png")
         )
 
     def load_preset(self, preset: str) -> None:
-        """ Loads a preset of blending modes, colour maps and opacities.
+        """Loads a preset of blending modes, colour maps and opacities.
 
         Args:
             preset (str): name of the preset to load.
@@ -290,13 +336,19 @@ class BlendPlot:
                 self.blend_cmaps = ["c_7_16", "solar"]
                 self.blend_opacities = [0.5, 0.6]
             case "opt+lofar":
-                self.blend_modes = ["add,add"]
+                self.blend_modes = ["add,overlay,softlight"]
                 self.blend_cmaps = ["solar"]
+                #self.blend_cmaps = ["redy3_r"]
                 self.blend_opacities = [0.6]
             case _:
                 raise ValueError("Unknown preset requested.")
 
-    def set_blends(self, blend_modes: List[str], blend_cmaps: List[str], blend_opacities: List[float]) -> None:
+    def set_blends(
+        self,
+        blend_modes: List[str],
+        blend_cmaps: List[str],
+        blend_opacities: List[float],
+    ) -> None:
         """Set the blending modes, colour maps and opacities of the current plot.
 
         Args:
