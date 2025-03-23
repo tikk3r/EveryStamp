@@ -118,7 +118,6 @@ class BasicFITSPlot:
         if not cmap:
             f.show_grayscale(vmin=cmap_min, vmax=cmap_max, pmax=100)
         else:
-            print(f"Using colour map: {cmap}")
             f.show_colorscale(vmin=cmap_min, vmax=cmap_max, pmax=100, cmap=cmap)
         if contour_image:
             head = fits.getheader(contour_image)
@@ -237,7 +236,6 @@ class BlendPlot:
         fig.savefig("temp_background.png")
 
         for i, fg in enumerate(self.foreground):
-            print(fg)
             print("Preparing foreground image.")
             h = fits.getheader(fg)
             wcs = WCS(h).celestial
@@ -283,7 +281,6 @@ class BlendPlot:
         for i, (bms, ba) in enumerate(zip(self.blend_modes, self.blend_opacities)):
             img_fg = np.array(Image.open(f"temp_foreground_{i:02d}.png")).astype(float)
             for bm in bms.split(","):
-                print(bm)
                 match bm:
                     case "add":
                         img_blend = addition(img_blend, img_fg, ba)
@@ -335,11 +332,12 @@ class BlendPlot:
                 self.blend_modes = ["add,softlight", "add,add,softlight"]
                 self.blend_cmaps = ["c_7_16", "solar"]
                 self.blend_opacities = [0.5, 0.6]
+                self.rmscut = 5.0
             case "opt+lofar":
                 self.blend_modes = ["add,overlay,softlight"]
                 self.blend_cmaps = ["solar"]
-                #self.blend_cmaps = ["redy3_r"]
                 self.blend_opacities = [0.6]
+                self.rmscut = 5.0
             case _:
                 raise ValueError("Unknown preset requested.")
 
