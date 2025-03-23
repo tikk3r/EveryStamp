@@ -786,7 +786,7 @@ def _add_args_composite(parser):
         type=str,
         default="",
         help="Apply a preset of blending modes.",
-        choices=["opt+x-ray+lofar"],
+        choices=["opt+lofar", "opt+x-ray+lofar"],
     )
 
 
@@ -1272,6 +1272,7 @@ def _process_args_composite(args):
         bp.load_preset(args.preset)
     else:
         bp.set_blends(args.blend_modes, args.blend_cmaps, args.blend_opacities)
+    bp.prepare_images()
     bp.blend()
 
 

@@ -286,9 +286,13 @@ class BlendPlot:
         """
         match preset:
             case "opt+x-ray+lofar":
-                self.blend_modes = ["add,softlight", "add,add"]
-                self.blend_cmaps = ["c_7_16", "afmhot"]
-                self.blend_opacities = [0.5, 1.0]
+                self.blend_modes = ["add,softlight", "add,add,softlight"]
+                self.blend_cmaps = ["c_7_16", "solar"]
+                self.blend_opacities = [0.5, 0.6]
+            case "opt+lofar":
+                self.blend_modes = ["add,add"]
+                self.blend_cmaps = ["solar"]
+                self.blend_opacities = [0.6]
             case _:
                 raise ValueError("Unknown preset requested.")
 
