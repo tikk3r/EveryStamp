@@ -14,6 +14,8 @@ from astropy.visualization import (
     ImageNormalize,
     MinMaxInterval,
     PercentileInterval,
+    LinearStretch,
+    LogStretch,
     SqrtStretch,
 )
 from astropy.wcs import WCS
@@ -227,8 +229,9 @@ class BlendPlot:
         Plots are saved as PNGs in the current directory.
         """
         print("Preparing background image.")
-        fig = FITSFigure(self.background)
+        fig = FITSFigure(self.background, figsize=(8, 8), dpi=600)
         fig.show_rgb(interpolation="none")
+        print(f"Recentring on {self.centre.ra.value}, {self.centre.dec.value} {self.radius}")
         fig.recenter(self.centre.ra.value, self.centre.dec.value, self.radius)
         fig.axis_labels.hide()
         fig.tick_labels.hide()
@@ -243,10 +246,10 @@ class BlendPlot:
             rms = find_rms(d)
             d[d < self.rmscut * rms] = np.nan
             norm = ImageNormalize(
-                d, interval=PercentileInterval(99.9), stretch=SqrtStretch()
+                d, interval=PercentileInterval(99.99), stretch=SqrtStretch()
             )
 
-            figf = FITSFigure(self.background)
+            figf = FITSFigure(self.background, figsize=(8, 8), dpi=600)
             if self.blend_cmaps[i] in list(mplcm):
                 cm = self.blend_cmaps[i]
             else:
@@ -267,7 +270,7 @@ class BlendPlot:
             fig.ax.imshow(
                 d, transform=fig.ax.get_transform(wcs), cmap="afmhot", norm=norm
             )
-            fig.savefig(f"temp_reference{i:02d}.png")
+            fig.savefig(f"temp_reference{i:02d}.png", dpi=600)
 
         del fig, figf
 
@@ -333,8 +336,13 @@ class BlendPlot:
                 self.blend_cmaps = ["c_7_16", "solar"]
                 self.blend_opacities = [0.35, 0.6]
                 self.rmscut = 5.0
-            case "opt+lofar":
-                self.blend_modes = ["add,overlay,softlight"]
+            case "opt+lofar_hot":
+                self.blend_modes = ["add,add"]
+                self.blend_cmaps = ["afmhot"]
+                self.blend_opacities = [0.6]
+                self.rmscut = 5.0
+            case "opt+lofar_solar":
+                self.blend_modes = ["add,softlight"]
                 self.blend_cmaps = ["solar"]
                 self.blend_opacities = [0.6]
                 self.rmscut = 5.0

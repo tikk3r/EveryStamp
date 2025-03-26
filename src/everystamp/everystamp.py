@@ -786,7 +786,7 @@ def _add_args_composite(parser):
         type=str,
         default="",
         help="Apply a preset of blending modes.",
-        choices=["opt+lofar", "opt+x-ray+lofar"],
+        choices=["opt+lofar_hot", "opt+lofar_solar", "opt+x-ray+lofar"],
     )
 
 
