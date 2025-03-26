@@ -682,7 +682,7 @@ def _add_args_cutout(parser):
     """
     required_args = parser.add_argument_group("Required arguments")
     required_args.add_argument(
-        "--image", type=str, required=False, help="FITS image to plot."
+        "--image", type=str, required=False, help="FITS image to make a cutout from."
     )
     required_args.add_argument(
         "--ra",
