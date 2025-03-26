@@ -132,7 +132,7 @@ def _add_args_download(parser):
         default=1.0,
         help="Pixel size in arcsec for HiPS cutouts.",
     )
-    
+
     legacy_args = parser.add_argument_group("[DESI Legacy Imaging Surveys]")
     legacy_args.add_argument(
         "--legacy_bands",
@@ -758,7 +758,7 @@ def _process_args_download(args):
         if args.survey.startswith("hips:"):
             from everystamp.downloaders import HiPSDownloader
 
-            if 'http' in args.survey:
+            if "http" in args.survey:
                 hipsname = args.survey[5:]
             else:
                 hipsname = args.survey.split(":")[1]
@@ -852,7 +852,7 @@ def _process_args_download(args):
                     size=args.size,
                     ddir=args.ddir,
                     mode=args.mode.replace("e", ""),
-                    release=args.lotss_release
+                    release=args.lotss_release,
                 )
         elif args.survey == "tgss":
             if args.mode == "both" or args.mode == "jpeg":
@@ -1071,7 +1071,6 @@ def _process_args_plot(args):
             cmap=args.cmap,
             cmap_min=args.cmap_min,
             cmap_max=args.cmap_max,
-
         )
     elif (not args.contour_image) and (args.style == "normal"):
         bp.plot2D(cmap=args.cmap, cmap_min=args.cmap_min, cmap_max=args.cmap_max)
@@ -1105,9 +1104,11 @@ def _process_args_cutout(args):
     for c in coords:
         out = os.path.join(
             args.ddir,
-            args.image.replace(
+            os.path.basename(args.image).replace(
                 ".fits",
-                ".cropped_{:.4f}_{:.4f}_{:.4f}.fits".format(c.ra.value, c.dec.value, args.size),
+                ".cropped_{:.4f}_{:.4f}_{:.4f}.fits".format(
+                    c.ra.value, c.dec.value, args.size
+                ),
             ),
         )
         make_cutout_2D(args.image, pos=c, size=s, outfile=out)
