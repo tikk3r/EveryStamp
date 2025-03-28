@@ -750,7 +750,7 @@ def _add_args_composite(parser):
         type=str,
         nargs="+",
         required=False,
-        help="Blending mode to blend the foreground image into the background image with.",
+        help="Blending mode to blend the foreground image into the background image with. Available modes are: soft_light, lighten_only, dodge, add, darken_only, multiply, hard_light, difference, subtract, grain-extract, grain_merge, divide, overlay and normal.",
     )
     required_args.add_argument(
         "--blend-opacities",
