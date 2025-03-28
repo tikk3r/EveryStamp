@@ -14,7 +14,7 @@ or directly from the git repository via
     pip install git+https://github.com/tikk3r/EveryStamp.git
 
 # Usage
-Three main types of functionality are currently supported: downloading cutouts, simple plotting and making cutouts from local FITS files:
+Four main types of functionality are currently supported: downloading cutouts, simple plotting, making cutouts from local FITS files and more advanced image composites:
 
     everystamp -h
     usage: everystamp [-h] {download,plot,cutout} ...
@@ -28,6 +28,7 @@ Three main types of functionality are currently supported: downloading cutouts, 
         download            Download a cutout from a specified survey.
         plot                Plot a user-supplied FITS image.
         cutout              Cut a user-supplied FITS image to size.
+        composite           Create composite images with more advanced blending modes.
 
 See the help of each sub command for a complete overview of available options. For more detailed examples, see the [documentation](https://tikk3r.github.io/EveryStamp/).
 
