@@ -750,14 +750,14 @@ def _add_args_composite(parser):
         type=str,
         nargs="+",
         required=False,
-        help="Blending mode to blend the foreground image into the background image with. Available modes are: soft_light, lighten_only, dodge, add, darken_only, multiply, hard_light, difference, subtract, grain-extract, grain_merge, divide, overlay and normal.",
+        help="Blending mode to blend the foreground image into the background image with. Available modes are: soft_light, lighten_only, dodge, add, darken_only, multiply, hard_light, difference, subtract, grain-extract, grain_merge, divide, overlay and normal. Multiple modes can be applied per layer using , as an in-layer separator.",
     )
     required_args.add_argument(
         "--blend-opacities",
-        type=float,
+        type=str,
         nargs="+",
         required=False,
-        help="Blending mode to blend the foreground image into the background image with.",
+        help="Opacity to blend the foreground image into the background image with. If multiple blend modes are given per layer, in-layer opacities for each mode can be given by separating them with ,.",
     )
     required_args.add_argument(
         "--blend-cmaps",
@@ -1271,7 +1271,9 @@ def _process_args_composite(args):
     if args.preset:
         bp.load_preset(args.preset)
     else:
-        bp.set_blends(args.blend_modes, args.blend_cmaps, args.blend_opacities)
+        opacities = [[float(o) for o in layer.split(",")] for layer in args.blend_opacities]
+        print(opacities)
+        bp.set_blends(args.blend_modes, args.blend_cmaps, opacities)
     bp.prepare_images()
     bp.blend()
 

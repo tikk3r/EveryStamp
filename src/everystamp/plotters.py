@@ -162,7 +162,7 @@ class BasicFITSPlot:
         )
 
     def savedata(self, outfile):
-        """Save data of a BasicPlot object to a FITS file with the same WCS information.
+        """Save data of a BasicPlot object to a FITS file with the same WCS information
 
         Any tonemapping applied to the original data will be carried over to the FITS file. Physical units will thus be lost.
         """
@@ -186,7 +186,7 @@ class BlendPlot:
         rmscutg
         blend_modesg
         blend_cmapsg
-        blend_opacitiesg
+        blend_opacities
 
     Methods:
         blend
@@ -229,9 +229,11 @@ class BlendPlot:
         Plots are saved as PNGs in the current directory.
         """
         print("Preparing background image.")
-        fig = FITSFigure(self.background, figsize=(8, 8), dpi=600)
+        fig = FITSFigure(self.background, figsize=(8, 8), dpi=150)
         fig.show_rgb(interpolation="none")
-        print(f"Recentring on {self.centre.ra.value}, {self.centre.dec.value} {self.radius}")
+        print(
+            f"Recentring on {self.centre.ra.value}, {self.centre.dec.value} {self.radius}"
+        )
         fig.recenter(self.centre.ra.value, self.centre.dec.value, self.radius)
         fig.axis_labels.hide()
         fig.tick_labels.hide()
@@ -249,7 +251,7 @@ class BlendPlot:
                 d, interval=PercentileInterval(99.99), stretch=SqrtStretch()
             )
 
-            figf = FITSFigure(self.background, figsize=(8, 8), dpi=600)
+            figf = FITSFigure(self.background, figsize=(8, 8), dpi=150)
             if self.blend_cmaps[i] in list(mplcm):
                 cm = self.blend_cmaps[i]
             else:
@@ -270,7 +272,7 @@ class BlendPlot:
             fig.ax.imshow(
                 d, transform=fig.ax.get_transform(wcs), cmap="afmhot", norm=norm
             )
-            fig.savefig(f"temp_reference{i:02d}.png", dpi=600)
+            fig.savefig(f"temp_reference{i:02d}.png", dpi=150)
 
         del fig, figf
 
@@ -281,9 +283,18 @@ class BlendPlot:
             None
         """
         img_blend = np.array(Image.open("temp_background.png")).astype(float)
-        for i, (bms, ba) in enumerate(zip(self.blend_modes, self.blend_opacities)):
+        for i, (bms, bas) in enumerate(zip(self.blend_modes, self.blend_opacities)):
             img_fg = np.array(Image.open(f"temp_foreground_{i:02d}.png")).astype(float)
-            for bm in bms.split(","):
+            if len(bas) == 1:
+                opacs = bas * len(bms.split(","))
+            elif (len(bas) > 1) and (len(bas) != len(bms.split(","))):
+                raise ValueError(
+                    "Blend layers and opacities must match in length if nested opacities are given."
+                )
+            else:
+                opacs = bas
+            for bm, ba in zip(bms.split(","), opacs):
+                print(f"Blending {bm} with {ba} opacity.")
                 match bm:
                     case "add":
                         img_blend = addition(img_blend, img_fg, ba)
@@ -353,7 +364,7 @@ class BlendPlot:
         self,
         blend_modes: List[str],
         blend_cmaps: List[str],
-        blend_opacities: List[float],
+        blend_opacities: List[float | List[float]],
     ) -> None:
         """Set the blending modes, colour maps and opacities of the current plot.
 
