@@ -7,7 +7,6 @@ from collections.abc import Iterable
 from urllib.request import urlopen
 
 import astropy.units as u
-import casacore.tables as ct
 import numpy as np
 import pyvo
 import requests
