@@ -1,15 +1,43 @@
 """Sub-module for plotting FITS images."""
-from typing import Optional, Union
 
+from typing import List, Optional, Union
+
+import astropy.units as u
+import colormaps
 import matplotlib.pyplot as plt
 import numpy
-from aplpy import FITSFigure
-from astropy.io import fits
-from astropy.wcs import WCS
-from matplotlib.pyplot import figure
 import numpy as np
-from typing import Union
-import astropy.units as u
+from aplpy import FITSFigure
+from astropy.coordinates import SkyCoord
+from astropy.io import fits
+from astropy.visualization import (
+    ImageNormalize,
+    MinMaxInterval,
+    PercentileInterval,
+    LinearStretch,
+    LogStretch,
+    SqrtStretch,
+)
+from astropy.wcs import WCS
+from blend_modes import (
+    addition,
+    hard_light,
+    soft_light,
+    lighten_only,
+    darken_only,
+    multiply,
+    dodge,
+    difference,
+    subtract,
+    grain_extract,
+    grain_merge,
+    divide,
+    overlay,
+    normal,
+)
+from matplotlib import colormaps as mplcm
+from matplotlib.pyplot import figure
+from PIL import Image
 
 
 def find_rms(image_data):
@@ -21,18 +49,20 @@ def find_rms(image_data):
     """
 
     maskSup = 1e-7
-    m = image_data[np.abs(image_data)>maskSup]
+    m = image_data[np.abs(image_data) > maskSup]
     rmsold = np.std(m)
     diff = 1e-1
-    cut = 3.
+    cut = 3.0
     med = np.median(m)
     for _ in range(10):
-        ind = np.where(np.abs(m - med) < rmsold*cut)[0]
+        ind = np.where(np.abs(m - med) < rmsold * cut)[0]
         rms = np.std(m[ind])
-        if np.abs((rms-rmsold) / rmsold) < diff: break
+        if np.abs((rms - rmsold) / rmsold) < diff:
+            break
         rmsold = rms
-    print(f'Noise : {str(round(rms * 1000, 4))} {u.mJy/u.beam}')
+    print(f"Noise : {str(round(rms * 1000, 4))} {u.mJy/u.beam}")
     return rms
+
 
 class BasicFITSPlot:
     """Creates a basic plot of a FITS file."""
@@ -90,7 +120,6 @@ class BasicFITSPlot:
         if not cmap:
             f.show_grayscale(vmin=cmap_min, vmax=cmap_max, pmax=100)
         else:
-            print(f'Using colour map: {cmap}')
             f.show_colorscale(vmin=cmap_min, vmax=cmap_max, pmax=100, cmap=cmap)
         if contour_image:
             head = fits.getheader(contour_image)
@@ -133,7 +162,7 @@ class BasicFITSPlot:
         )
 
     def savedata(self, outfile):
-        """Save data of a BasicPlot object to a FITS file with the same WCS information.
+        """Save data of a BasicPlot object to a FITS file with the same WCS information
 
         Any tonemapping applied to the original data will be carried over to the FITS file. Physical units will thus be lost.
         """
@@ -143,6 +172,213 @@ class BasicFITSPlot:
             filename=outfile,
             overwrite=True,
         )
+
+
+class BlendPlot:
+    """Creates a composite image using blending modes.
+
+    Attributes:
+        backgroundg
+        foregroundg
+        blend_cmapsg
+        centreg
+        radiusg
+        rmscutg
+        blend_modesg
+        blend_cmapsg
+        blend_opacities
+
+    Methods:
+        blend
+        load_preset
+        prepare_images
+        set_blends
+    """
+
+    def __init__(
+        self,
+        background: str,
+        foreground: List[str],
+        cmaps: List[str],
+        centre: SkyCoord,
+        radius: float,
+        rmscut: float,
+    ) -> None:
+        """Initialises the BlendPlot.
+
+        Args:
+            background (str):
+            foreground (str):
+            cmaps (list[str]):
+            centre (SkyCoord):
+            radius (float):
+            rmscut (float):
+        """
+        Image.MAX_IMAGE_PIXELS = None
+        self.background = background
+        self.foreground = foreground
+        self.blend_cmaps = cmaps
+        self.centre = centre
+        self.radius = radius
+        self.rmscut = rmscut
+
+    def prepare_images(self) -> None:
+        """Prepare images for blending.
+
+        This involves plotting all the specified images in the same WCS projection, with the specified rms noise cut.
+        Plots are saved as PNGs in the current directory.
+        """
+        print("Preparing background image.")
+        fig = FITSFigure(self.background, figsize=(8, 8), dpi=150)
+        fig.show_rgb(interpolation="none")
+        print(
+            f"Recentring on {self.centre.ra.value}, {self.centre.dec.value} {self.radius}"
+        )
+        fig.recenter(self.centre.ra.value, self.centre.dec.value, self.radius)
+        fig.axis_labels.hide()
+        fig.tick_labels.hide()
+        fig.ticks.hide()
+        fig.savefig("temp_background.png")
+
+        for i, fg in enumerate(self.foreground):
+            print("Preparing foreground image.")
+            h = fits.getheader(fg)
+            wcs = WCS(h).celestial
+            d = fits.getdata(fg).squeeze()
+            rms = find_rms(d)
+            d[d < self.rmscut * rms] = np.nan
+            norm = ImageNormalize(
+                d, interval=PercentileInterval(99.99), stretch=SqrtStretch()
+            )
+
+            figf = FITSFigure(self.background, figsize=(8, 8), dpi=150)
+            if self.blend_cmaps[i] in list(mplcm):
+                cm = self.blend_cmaps[i]
+            else:
+                cm = eval("colormaps." + self.blend_cmaps[i])
+            figf.ax.imshow(
+                d,
+                transform=figf.ax.get_transform(wcs),
+                cmap=cm,
+                norm=norm,
+                interpolation="none",
+            )
+            figf.recenter(self.centre.ra.value, self.centre.dec.value, self.radius)
+            figf.axis_labels.hide()
+            figf.tick_labels.hide()
+            figf.ticks.hide()
+            figf.savefig(f"temp_foreground_{i:02d}.png", transparent=True)
+
+            fig.ax.imshow(
+                d, transform=fig.ax.get_transform(wcs), cmap="afmhot", norm=norm
+            )
+            fig.savefig(f"temp_reference{i:02d}.png", dpi=150)
+
+        del fig, figf
+
+    def blend(self) -> None:
+        """Blend the background and foreground images together using the specified modes.
+
+        Returns:
+            None
+        """
+        img_blend = np.array(Image.open("temp_background.png")).astype(float)
+        for i, (bms, bas) in enumerate(zip(self.blend_modes, self.blend_opacities)):
+            img_fg = np.array(Image.open(f"temp_foreground_{i:02d}.png")).astype(float)
+            if len(bas) == 1:
+                opacs = bas * len(bms.split(","))
+            elif (len(bas) > 1) and (len(bas) != len(bms.split(","))):
+                raise ValueError(
+                    "Blend layers and opacities must match in length if nested opacities are given."
+                )
+            else:
+                opacs = bas
+            for bm, ba in zip(bms.split(","), opacs):
+                print(f"Blending {bm} with {ba} opacity.")
+                match bm:
+                    case "add":
+                        img_blend = addition(img_blend, img_fg, ba)
+                    case "softlight":
+                        img_blend = soft_light(img_blend, img_fg, ba)
+                    case "hardlight":
+                        img_blend = hard_light(img_blend, img_fg, ba)
+                    case "lighten_only":
+                        img_blend = lighten_only(img_blend, img_fg, ba)
+                    case "darken_only":
+                        img_blend = darken_only(img_blend, img_fg, ba)
+                    case "multiply":
+                        img_blend = multiply(img_blend, img_fg, ba)
+                    case "dodge":
+                        img_blend = dodge(img_blend, img_fg, ba)
+                    case "difference":
+                        img_blend = difference(img_blend, img_fg, ba)
+                    case "subtract":
+                        img_blend = subtract(img_blend, img_fg, ba)
+                    case "grain_extract":
+                        img_blend = grain_extract(img_blend, img_fg, ba)
+                    case "grain_merge":
+                        img_blend = grain_merge(img_blend, img_fg, ba)
+                    case "divide":
+                        img_blend = divide(img_blend, img_fg, ba)
+                    case "overlay":
+                        img_blend = overlay(img_blend, img_fg, ba)
+                    case "normal":
+                        img_blend = normal(img_blend, img_fg, ba)
+        Image.fromarray(np.uint8(img_blend)).save(
+            self.foreground[0].replace(".fits", "_blend.png")
+        )
+
+    def load_preset(self, preset: str) -> None:
+        """Loads a preset of blending modes, colour maps and opacities.
+
+        Args:
+            preset (str): name of the preset to load.
+
+        Returns:
+            None
+
+        Raises:
+            ValueError: if an unknown preset is specified.
+
+        """
+        match preset:
+            case "opt+x-ray+lofar":
+                self.blend_modes = ["add,softlight", "add,add,overlay"]
+                self.blend_cmaps = ["c_7_16", "solar"]
+                self.blend_opacities = [0.35, 0.6]
+                self.rmscut = 5.0
+            case "opt+lofar_hot":
+                self.blend_modes = ["add,add"]
+                self.blend_cmaps = ["afmhot"]
+                self.blend_opacities = [0.6]
+                self.rmscut = 5.0
+            case "opt+lofar_solar":
+                self.blend_modes = ["add,softlight"]
+                self.blend_cmaps = ["solar"]
+                self.blend_opacities = [0.6]
+                self.rmscut = 5.0
+            case _:
+                raise ValueError("Unknown preset requested.")
+
+    def set_blends(
+        self,
+        blend_modes: List[str],
+        blend_cmaps: List[str],
+        blend_opacities: List[float | List[float]],
+    ) -> None:
+        """Set the blending modes, colour maps and opacities of the current plot.
+
+        Args:
+            blend_modes (list[str]): blending modes to apply to each image.
+            blend_cmaps (list[str]): colour maps to use for each image.
+            blend_opacities (list[float]): opacities with which to blend each layer.
+
+        Returns:
+            None
+        """
+        self.blend_modes = blend_modes
+        self.blend_cmaps = blend_cmaps
+        self.blend_opacities = blend_opacities
 
 
 class SRTPlot:
@@ -208,10 +444,11 @@ class SRTPlot:
 
 
 class BasicImagePlot:
-    """ Creates a basic plot of an image (not FITS) file."""
+    """Creates a basic plot of an image (not FITS) file."""
+
     def __init__(self, imname, wcsimage=None):
-        """ Initialise a basic plotting object for 2D FITS files.
-        
+        """Initialise a basic plotting object for 2D FITS files.
+
         Args:
             fitsname : str
                 Name of the FITS file that will be plotted.
@@ -228,8 +465,16 @@ class BasicImagePlot:
         else:
             self.wcs = None
 
-    def plot2D(self, plot_colourbar=False, contour_image: numpy.ndarray = None, contour_levels: Union[int, list] = 5, cmap: str = "gray", cmap_min: float = None, cmap_max: float = None):
-        """ Save a plot of the FITS image without any axes."""
+    def plot2D(
+        self,
+        plot_colourbar=False,
+        contour_image: numpy.ndarray = None,
+        contour_levels: Union[int, list] = 5,
+        cmap: str = "gray",
+        cmap_min: float = None,
+        cmap_max: float = None,
+    ):
+        """Save a plot of the FITS image without any axes."""
         figsize = [self.imdata.shape[0] // self.dpi, self.imdata.shape[1] // self.dpi]
         if figsize[0] < self.imdata.shape[0]:
             figsize[0] = 4
@@ -240,18 +485,28 @@ class BasicImagePlot:
         if self.wcs:
             ax = fig.add_subplot(111, projection=self.wcs)
             if self.data is not None:
-                ax.imshow(np.flipud(self.data), interpolation='none', cmap=cmap)
+                ax.imshow(np.flipud(self.data), interpolation="none", cmap=cmap)
             else:
-                ax.imshow(np.flipud(self.imdata), interpolation='none', cmap=cmap)
+                ax.imshow(np.flipud(self.imdata), interpolation="none", cmap=cmap)
         else:
             ax = fig.add_subplot(111)
             if self.data is not None:
-                ax.imshow(np.flipud(self.data), origin='lower', interpolation='none', cmap=cmap)
+                ax.imshow(
+                    np.flipud(self.data),
+                    origin="lower",
+                    interpolation="none",
+                    cmap=cmap,
+                )
             else:
-                ax.imshow(np.flipud(self.imdata), origin='lower', interpolation='none', cmap=cmap)
+                ax.imshow(
+                    np.flipud(self.imdata),
+                    origin="lower",
+                    interpolation="none",
+                    cmap=cmap,
+                )
         if contour_image:
             # Flip to get North up.
-            #cdata = np.flipud(fits.getdata(contour_image).squeeze())
+            # cdata = np.flipud(fits.getdata(contour_image).squeeze())
             cdata = fits.getdata(contour_image).squeeze()
             chead = fits.getheader(contour_image)
             wcs = WCS(chead).celestial
@@ -261,16 +516,22 @@ class BasicImagePlot:
             if type(contour_levels) is int:
                 step = len(clevels) // contour_levels
                 clevels = clevels[::step]
-            ax.contour(cdata, levels=clevels, colors='w', transform=ax.get_transform(wcs), linewidths=2)
-        #ax.xaxis.set_visible(False)
-        #ax.yaxis.set_visible(False)
-        #plt.gca().set_axis_off()
+            ax.contour(
+                cdata,
+                levels=clevels,
+                colors="w",
+                transform=ax.get_transform(wcs),
+                linewidths=2,
+            )
+        # ax.xaxis.set_visible(False)
+        # ax.yaxis.set_visible(False)
+        # plt.gca().set_axis_off()
         plt.subplots_adjust(top=1, bottom=0, right=1, left=0, hspace=0, wspace=0)
         plt.xlabel("Right ascension [J2000]", fontsize=16)
         plt.ylabel("Declination [J2000]", fontsize=16)
-        #plt.margins(0, 0)
-        #plt.gca().xaxis.set_major_locator(plt.NullLocator())
-        #plt.gca().yaxis.set_major_locator(plt.NullLocator())
+        # plt.margins(0, 0)
+        # plt.gca().xaxis.set_major_locator(plt.NullLocator())
+        # plt.gca().yaxis.set_major_locator(plt.NullLocator())
         file_ext = "." + self.image.split(".")[-1]
         fig.savefig(
             self.image.replace(file_ext, ".output.png"),

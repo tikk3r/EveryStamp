@@ -1,11 +1,15 @@
 aplpy
 astropy
 astroquery
+blend-modes
+colormaps
 matplotlib
 markupsafe
 numpy<2
 panstamps
 Pillow
+pyavm
+python-magic
 pyvo
 requests
 opencv-python-headless
