@@ -20,7 +20,7 @@ import requests
 from astropy.coordinates import SkyCoord
 from astropy.table import Table
 from astroquery.skyview import SkyView  # type: ignore
-from everystamp.cutters import make_cutout_2D, make_cutout_2D_fitsio
+from everystamp.cutters import make_cutout_2D, make_cutout_2D_fast
 from everystamp.tonemapping import lhdr, normalise
 
 logging.basicConfig(
@@ -714,7 +714,7 @@ def _add_args_cutout(parser):
         help="Download cutouts from the given catalogue. The catalogue should contain the columns RA and DEC.",
     )
     required_args.add_argument(
-        "--mode",
+        "--cutout-mode",
         type=str,
         required=False,
         default="fast",
@@ -1177,6 +1177,13 @@ def _process_args_cutout(args):
         ras = tab["RA"]
         decs = tab["DEC"]
     coords = SkyCoord(ras, decs, unit="deg")
+    match args.cutout_mode:
+        case "fast":
+            cutout_func = make_cutout_2D_fast
+        case "astropy":
+            cutout_func = make_cutout_2D
+        case _:
+            raise ValueError(f"Invalid cutout mode {args.cutout_mode} encountered.")
     for c in coords:
         out = os.path.join(
             args.ddir,
@@ -1187,8 +1194,7 @@ def _process_args_cutout(args):
                 ),
             ),
         )
-        make_cutout_2D_fitsio(args.image, pos=c, size=s, outfile=out)
-        #make_cutout_2D(args.image, pos=c, size=s, outfile=out)
+        cutout_func(args.image, pos=c, size=s, outfile=out)
 
 
 def _process_args_composite(args):
