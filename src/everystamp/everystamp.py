@@ -718,7 +718,7 @@ def _add_args_cutout(parser):
         type=str,
         required=False,
         default="fast",
-        choices=["fast","astropy"]
+        choices=["fast", "astropy"],
         help="Affects the way cutouts are made. `astropy` uses astropy's Cutout2D, while `fast` simply slices the array.",
     )
 
@@ -1177,13 +1177,12 @@ def _process_args_cutout(args):
         ras = tab["RA"]
         decs = tab["DEC"]
     coords = SkyCoord(ras, decs, unit="deg")
-    match args.cutout_mode:
-        case "fast":
-            cutout_func = make_cutout_2D_fast
-        case "astropy":
-            cutout_func = make_cutout_2D
-        case _:
-            raise ValueError(f"Invalid cutout mode {args.cutout_mode} encountered.")
+    if args.cutout_mode == "fast":
+        cutout_func = make_cutout_2D_fast
+    elif args.cutout_mode == "astropy":
+        cutout_func = make_cutout_2D
+    else:
+        raise ValueError(f"Invalid cutout mode {args.cutout_mode} encountered.")
     for c in coords:
         out = os.path.join(
             args.ddir,
@@ -1286,7 +1285,9 @@ def _process_args_composite(args):
     if args.preset:
         bp.load_preset(args.preset)
     else:
-        opacities = [[float(o) for o in layer.split(",")] for layer in args.blend_opacities]
+        opacities = [
+            [float(o) for o in layer.split(",")] for layer in args.blend_opacities
+        ]
         print(opacities)
         bp.set_blends(args.blend_modes, args.blend_cmaps, opacities)
     bp.prepare_images()
