@@ -1209,7 +1209,7 @@ def _process_args_composite(args):
     import pyavm
 
     if args.bg_wcs_from:
-        filetype= magic.from_file(args.bg_wcs_from).split()
+        filetype = magic.from_file(args.bg_wcs_from).split()
         if "FITS" in filetype:
             print(f"Extracting WCS information from FITS file {args.bg_wcs_from}.")
             try:
@@ -1220,16 +1220,12 @@ def _process_args_composite(args):
                         f, sep="\n", padding=False, endcard=False
                     )
             avm = pyavm.AVM.from_header(header)
-            avm.embed(
-                args.background, os.path.basename(args.background) + ".avm.png"
-            )
+            avm.embed(args.background, os.path.basename(args.background) + ".avm.png")
         elif "ASCII" in filetype:
             print(f"Extracting WCS information from ASCII file {args.bg_wcs_from}.")
             raise NotImplementedError
         else:
-            print(
-                f"Could not parse WCS from {args.bg_wcs_from}; unknown file type."
-            )
+            print(f"Could not parse WCS from {args.bg_wcs_from}; unknown file type.")
             sys.exit(-1)
     else:
         try:
@@ -1238,33 +1234,33 @@ def _process_args_composite(args):
         except pyavm.exceptions.NoXMPPacketFound:
             if args.bg_wcs_from:
                 print("No AVM metadata found in background image.")
-                match magic.from_file(args.bg_wcs_from).split():
-                    case ["FITS", *_]:
-                        print(
-                            f"Extracting WCS information from FITS file {args.bg_wcs_from}."
-                        )
-                        try:
-                            header = fits.getheader(args.bg_wcs_from)
-                        except OSError:
-                            with open(args.bg_wcs_from, "rb") as f:
-                                header = fits.Header.fromfile(
-                                    f, sep="\n", padding=False, endcard=False
-                                )
-                        avm = pyavm.AVM.from_header(header)
-                        avm.embed(
-                            args.background,
-                            os.path.basename(args.background) + ".avm.png",
-                        )
-                    case ["ASCII", *_]:
-                        print(
-                            f"Extracting WCS information from ASCII file {args.bg_wcs_from}."
-                        )
-                        raise NotImplementedError
-                    case _:
-                        print(
-                            f"Could not parse WCS from {args.bg_wcs_from}; unknown file type."
-                        )
-                        sys.exit(-1)
+                filetype = magic.from_file(args.bg_wcs_from).split()
+                if "FITS" in filetype:
+                    print(
+                        f"Extracting WCS information from FITS file {args.bg_wcs_from}."
+                    )
+                    try:
+                        header = fits.getheader(args.bg_wcs_from)
+                    except OSError:
+                        with open(args.bg_wcs_from, "rb") as f:
+                            header = fits.Header.fromfile(
+                                f, sep="\n", padding=False, endcard=False
+                            )
+                    avm = pyavm.AVM.from_header(header)
+                    avm.embed(
+                        args.background,
+                        os.path.basename(args.background) + ".avm.png",
+                    )
+                elif "ASCII" in filetype:
+                    print(
+                        f"Extracting WCS information from ASCII file {args.bg_wcs_from}."
+                    )
+                    raise NotImplementedError
+                else:
+                    print(
+                        f"Could not parse WCS from {args.bg_wcs_from}; unknown file type."
+                    )
+                    sys.exit(-1)
             else:
                 print(
                     "Cannot make composite: No AVM metadata found in background image and no WCS file given."
