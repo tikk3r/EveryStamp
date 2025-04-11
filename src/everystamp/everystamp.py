@@ -1209,7 +1209,7 @@ def _process_args_composite(args):
     import pyavm
 
     if args.bg_wcs_from:
-        filetype= magic.from_file(args.bg_wcs_from).split():
+        filetype= magic.from_file(args.bg_wcs_from).split()
         if "FITS" in filetype:
             print(f"Extracting WCS information from FITS file {args.bg_wcs_from}.")
             try:
