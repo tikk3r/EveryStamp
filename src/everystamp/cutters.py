@@ -1,20 +1,24 @@
 """Sub-module for trimming FITS images."""
 
 import sys
-from typing import Union
+from typing import Optional, Union
 
-#import pyregion
+import numpy as np
+
+# import pyregion
+from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.nddata import Cutout2D
+from astropy.units import Quantity
 from astropy.wcs import WCS
 from numpy import array
 
 
 def make_cutout_2D(
-    image: str = None,
-    pos: Union[list, tuple] = None,
-    size: Union[list, tuple] = None,
-    outfile: str = None,
+    image: str,
+    pos: SkyCoord,
+    size: Quantity,
+    outfile: str,
 ):
     """
     Make 2D cutout with astropy
@@ -35,6 +39,43 @@ def make_cutout_2D(
     cutout = Cutout2D(data, pos, size, wcs=wcs)
     hdu = fits.PrimaryHDU(data=cutout.data, header=cutout.wcs.to_header())
     hdu.writeto(outfile)
+
+
+def make_cutout_2D_fast(
+    image: str,
+    pos: SkyCoord,
+    size: Quantity,
+    outfile: str,
+):
+    with fits.open(image) as hdul:
+        hdu = hdul[0]
+        wcs = WCS(hdu.header).celestial
+
+        pix_pos = wcs.world_to_pixel(pos)
+
+        width_pix, height_pix = wcs.world_to_pixel(
+            SkyCoord(pos.ra + size, pos.dec + size)
+        )
+        width_pix -= pix_pos[0]
+        height_pix -= pix_pos[1]
+
+        # Calculate the bounding box in pixel coordinates
+        x_min = int(np.floor(pix_pos[0] - width_pix / 2))
+        x_max = int(np.ceil(pix_pos[0] + width_pix / 2))
+        y_min = int(np.floor(pix_pos[1] - height_pix / 2))
+        y_max = int(np.ceil(pix_pos[1] + height_pix / 2))
+
+        cutout_data = hdu.data[..., y_min:y_max, x_max:x_min]
+
+        hdu.header["NAXIS1"] = x_max - x_min
+        hdu.header["NAXIS2"] = y_max - y_min
+        hdu.header["CRPIX1"] -= x_max
+        hdu.header["CRPIX2"] -= y_min
+
+        hdu_out = fits.PrimaryHDU(data=cutout_data, header=hdu.header)
+        hdu_out.writeto(outfile)
+
+    return hdu_out
 
 
 def make_cutout_region(image: str = None, region: str = None, outfile: str = None):

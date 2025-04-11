@@ -164,13 +164,20 @@ class LoTSSDownloader(FileDownloader):
             .replace("d", ":")
             .replace("s", "")
         )
-        url = self.url.format(coord_str=coord_str, size_arcmin=size_arcmin, release=release)
+        url = self.url.format(
+            coord_str=coord_str, size_arcmin=size_arcmin, release=release
+        )
         return url
 
     def download(self, **kwargs):
         if kwargs["mode"] != "fits":
             raise ValueError("LoTSSDownloader only supports FITS downloads.")
-        furl = self.format_url(ra=kwargs["ra"], dec=kwargs["dec"], size=kwargs["size"], release=kwargs["release"])
+        furl = self.format_url(
+            ra=kwargs["ra"],
+            dec=kwargs["dec"],
+            size=kwargs["size"],
+            release=kwargs["release"],
+        )
         logger.info(furl)
         fname = "LoTSS-{release:s}_{ra:f}_{dec:f}_{size:.3f}.{mode:s}".format(
             ra=kwargs["ra"],
@@ -743,7 +750,7 @@ class VODownloader:
         if im.format == "image/fits":
             self.logger.info("Downloading cutout from {:s}".format(self.name))
             im.cachedataset(
-                os.path.join(
+                filename=os.path.join(
                     ddir,
                     "{:s}_{:.4f}_{:.4f}_{:.3f}.fits".format(self.name, ra, dec, size),
                 )

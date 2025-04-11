@@ -20,7 +20,7 @@ import requests
 from astropy.coordinates import SkyCoord
 from astropy.table import Table
 from astroquery.skyview import SkyView  # type: ignore
-from everystamp.cutters import make_cutout_2D
+from everystamp.cutters import make_cutout_2D, make_cutout_2D_fast
 from everystamp.tonemapping import lhdr, normalise
 
 logging.basicConfig(
@@ -713,6 +713,14 @@ def _add_args_cutout(parser):
         default="",
         help="Download cutouts from the given catalogue. The catalogue should contain the columns RA and DEC.",
     )
+    required_args.add_argument(
+        "--cutout-mode",
+        type=str,
+        required=False,
+        default="fast",
+        choices=["fast", "astropy"],
+        help="Affects the way cutouts are made. `astropy` uses astropy's Cutout2D, while `fast` simply slices the array.",
+    )
 
     optional_args = parser.add_argument_group("Optional arguments")
     optional_args.add_argument(
@@ -1169,6 +1177,12 @@ def _process_args_cutout(args):
         ras = tab["RA"]
         decs = tab["DEC"]
     coords = SkyCoord(ras, decs, unit="deg")
+    if args.cutout_mode == "fast":
+        cutout_func = make_cutout_2D_fast
+    elif args.cutout_mode == "astropy":
+        cutout_func = make_cutout_2D
+    else:
+        raise ValueError(f"Invalid cutout mode {args.cutout_mode} encountered.")
     for c in coords:
         out = os.path.join(
             args.ddir,
@@ -1179,7 +1193,7 @@ def _process_args_cutout(args):
                 ),
             ),
         )
-        make_cutout_2D(args.image, pos=c, size=s, outfile=out)
+        cutout_func(args.image, pos=c, size=s, outfile=out)
 
 
 def _process_args_composite(args):
@@ -1195,28 +1209,24 @@ def _process_args_composite(args):
     import pyavm
 
     if args.bg_wcs_from:
-        match magic.from_file(args.bg_wcs_from).split():
-            case ["FITS", *_]:
-                print(f"Extracting WCS information from FITS file {args.bg_wcs_from}.")
-                try:
-                    header = fits.getheader(args.bg_wcs_from)
-                except OSError:
-                    with open(args.bg_wcs_from, "rb") as f:
-                        header = fits.Header.fromfile(
-                            f, sep="\n", padding=False, endcard=False
-                        )
-                avm = pyavm.AVM.from_header(header)
-                avm.embed(
-                    args.background, os.path.basename(args.background) + ".avm.png"
-                )
-            case ["ASCII", *_]:
-                print(f"Extracting WCS information from ASCII file {args.bg_wcs_from}.")
-                raise NotImplementedError
-            case _:
-                print(
-                    f"Could not parse WCS from {args.bg_wcs_from}; unknown file type."
-                )
-                sys.exit(-1)
+        filetype = magic.from_file(args.bg_wcs_from).split()
+        if "FITS" in filetype:
+            print(f"Extracting WCS information from FITS file {args.bg_wcs_from}.")
+            try:
+                header = fits.getheader(args.bg_wcs_from)
+            except OSError:
+                with open(args.bg_wcs_from, "rb") as f:
+                    header = fits.Header.fromfile(
+                        f, sep="\n", padding=False, endcard=False
+                    )
+            avm = pyavm.AVM.from_header(header)
+            avm.embed(args.background, os.path.basename(args.background) + ".avm.png")
+        elif "ASCII" in filetype:
+            print(f"Extracting WCS information from ASCII file {args.bg_wcs_from}.")
+            raise NotImplementedError
+        else:
+            print(f"Could not parse WCS from {args.bg_wcs_from}; unknown file type.")
+            sys.exit(-1)
     else:
         try:
             avm = pyavm.AVM.from_image(args.background)
@@ -1224,33 +1234,33 @@ def _process_args_composite(args):
         except pyavm.exceptions.NoXMPPacketFound:
             if args.bg_wcs_from:
                 print("No AVM metadata found in background image.")
-                match magic.from_file(args.bg_wcs_from).split():
-                    case ["FITS", *_]:
-                        print(
-                            f"Extracting WCS information from FITS file {args.bg_wcs_from}."
-                        )
-                        try:
-                            header = fits.getheader(args.bg_wcs_from)
-                        except OSError:
-                            with open(args.bg_wcs_from, "rb") as f:
-                                header = fits.Header.fromfile(
-                                    f, sep="\n", padding=False, endcard=False
-                                )
-                        avm = pyavm.AVM.from_header(header)
-                        avm.embed(
-                            args.background,
-                            os.path.basename(args.background) + ".avm.png",
-                        )
-                    case ["ASCII", *_]:
-                        print(
-                            f"Extracting WCS information from ASCII file {args.bg_wcs_from}."
-                        )
-                        raise NotImplementedError
-                    case _:
-                        print(
-                            f"Could not parse WCS from {args.bg_wcs_from}; unknown file type."
-                        )
-                        sys.exit(-1)
+                filetype = magic.from_file(args.bg_wcs_from).split()
+                if "FITS" in filetype:
+                    print(
+                        f"Extracting WCS information from FITS file {args.bg_wcs_from}."
+                    )
+                    try:
+                        header = fits.getheader(args.bg_wcs_from)
+                    except OSError:
+                        with open(args.bg_wcs_from, "rb") as f:
+                            header = fits.Header.fromfile(
+                                f, sep="\n", padding=False, endcard=False
+                            )
+                    avm = pyavm.AVM.from_header(header)
+                    avm.embed(
+                        args.background,
+                        os.path.basename(args.background) + ".avm.png",
+                    )
+                elif "ASCII" in filetype:
+                    print(
+                        f"Extracting WCS information from ASCII file {args.bg_wcs_from}."
+                    )
+                    raise NotImplementedError
+                else:
+                    print(
+                        f"Could not parse WCS from {args.bg_wcs_from}; unknown file type."
+                    )
+                    sys.exit(-1)
             else:
                 print(
                     "Cannot make composite: No AVM metadata found in background image and no WCS file given."
@@ -1271,7 +1281,9 @@ def _process_args_composite(args):
     if args.preset:
         bp.load_preset(args.preset)
     else:
-        opacities = [[float(o) for o in layer.split(",")] for layer in args.blend_opacities]
+        opacities = [
+            [float(o) for o in layer.split(",")] for layer in args.blend_opacities
+        ]
         print(opacities)
         bp.set_blends(args.blend_modes, args.blend_cmaps, opacities)
     bp.prepare_images()
