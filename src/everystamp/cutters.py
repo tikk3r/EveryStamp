@@ -1,11 +1,8 @@
 """Sub-module for trimming FITS images."""
 
-from typing import Optional, Union
-
 import numpy as np
 import pyregion
 
-# import pyregion
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.nddata import Cutout2D
@@ -20,13 +17,13 @@ def make_cutout_2D(
     size: Quantity,
     outfile: str,
 ):
-    """
-    Make 2D cutout with astropy
-    ---------------------------
-    :param image: image name
-    :param pos: central position
-    :param size: image size
-    :param outfile: output fits file
+    """Make a square cutout of given size using Astropy's Cutout2D function.
+
+    Args:
+        image: name of the FITS image to make a cutout of.
+        pos: position on which to centre the cutout.
+        size: width of the cutout.
+        outfile: name of the trimmed output image.
     """
     head = fits.getheader(image)
     data = fits.getdata(image).squeeze()
@@ -47,6 +44,14 @@ def make_cutout_2D_fast(
     size: Quantity,
     outfile: str,
 ):
+    """Make a square cutout of given size by slicing instead of Astropy's Cutout2D function.
+
+    Args:
+        image: name of the FITS image to make a cutout of.
+        pos: position on which to centre the cutout.
+        size: width of the cutout.
+        outfile: name of the trimmed output image.
+    """
     with fits.open(image) as hdul:
         hdu = hdul[0]
         wcs = WCS(hdu.header).celestial
@@ -75,24 +80,25 @@ def make_cutout_2D_fast(
         hdu_out = fits.PrimaryHDU(data=cutout_data, header=hdu.header)
         hdu_out.writeto(outfile)
 
-    return hdu_out
-
 
 def make_cutout_region(image: str, region: str, outfile: str):
-    """
-    Make 2D cutout with pyregion
-    ---------------------------
-    :param image: image name
-    :param region: region file
-    :param outfile: output fits file
-    """
+    """Make a cutout from a FITS image using a DS9 region file.
 
+    Args:
+        image: name of the FITS image to make a cutout of.
+        region: the region to which the image will be trimmed, in DS9 format.
+        outfile: name of the trimmed output image.
+
+    Raises:
+        NotImplementedError: for cubes with 3 or more dimensions.
+        RuntimeError: if the region cannot be parsed for whatever reason.
+    """
     hdu = fits.open(image)
     head = hdu[0].header
-    data = hdu[0].data
+    data = hdu[0].data.squeeze()
 
-    while data.ndim > 2:
-        data = data[0]
+    if data.ndim > 2:
+        raise NotImplementedError("Region cutouts for >2D images not supported.")
 
     r = pyregion.open(region).as_imagecoord(header=head)
     mask = r.get_mask(hdu=hdu[0], shape=(head["NAXIS1"], head["NAXIS2"]))
