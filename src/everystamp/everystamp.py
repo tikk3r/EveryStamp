@@ -20,7 +20,7 @@ import requests
 from astropy.coordinates import SkyCoord
 from astropy.table import Table
 from astroquery.skyview import SkyView  # type: ignore
-from everystamp.cutters import make_cutout_2D, make_cutout_2D_fast
+from everystamp.cutters import make_cutout_2D, make_cutout_2D_fast, make_cutout_region
 from everystamp.tonemapping import lhdr, normalise
 
 logging.basicConfig(
@@ -707,6 +707,13 @@ def _add_args_cutout(parser):
         help="Width and height of the square cutout in degrees.",
     )
     required_args.add_argument(
+        "--region",
+        type=str,
+        required=False,
+        default="",
+        help="DS9 region file to trim the image to.",
+    )
+    required_args.add_argument(
         "--from_catalogue",
         type=str,
         required=False,
@@ -719,7 +726,7 @@ def _add_args_cutout(parser):
         required=False,
         default="fast",
         choices=["fast", "astropy"],
-        help="Affects the way cutouts are made. `astropy` uses astropy's Cutout2D, while `fast` simply slices the array.",
+        help="Affects the way cutouts are made. `astropy` uses astropy's Cutout2D, while `fast` simply slices the array. Does not affect cutouts made with a region file.",
     )
 
     optional_args = parser.add_argument_group("Optional arguments")
@@ -1177,23 +1184,42 @@ def _process_args_cutout(args):
         ras = tab["RA"]
         decs = tab["DEC"]
     coords = SkyCoord(ras, decs, unit="deg")
-    if args.cutout_mode == "fast":
-        cutout_func = make_cutout_2D_fast
-    elif args.cutout_mode == "astropy":
-        cutout_func = make_cutout_2D
-    else:
-        raise ValueError(f"Invalid cutout mode {args.cutout_mode} encountered.")
-    for c in coords:
-        out = os.path.join(
-            args.ddir,
-            os.path.basename(args.image).replace(
-                ".fits",
-                ".cropped_{:.4f}_{:.4f}_{:.4f}.fits".format(
-                    c.ra.value, c.dec.value, args.size
+
+    if args.region and (args.from_catalogue or args.size):
+        raise ValueError("Cannot specify a region, and a catalogue or size at the same time.")
+    if args.region and (args.cutout_mode == "fast"):
+        raise NotImplementedError("Cutout mode `fast` is not supported with regions.")
+
+    if args.region:
+        for c in coords:
+            out = os.path.join(
+                args.ddir,
+                os.path.basename(args.image).replace(
+                    ".fits",
+                    ".cropped_{:.4f}_{:.4f}_{:.4f}.fits".format(
+                        c.ra.value, c.dec.value, args.size
+                    ),
                 ),
-            ),
-        )
-        cutout_func(args.image, pos=c, size=s, outfile=out)
+            )
+            make_cutout_region(args.image, region=args.region, outfile=out)
+    else:
+        if args.cutout_mode == "fast":
+            cutout_func = make_cutout_2D_fast
+        elif args.cutout_mode == "astropy":
+            cutout_func = make_cutout_2D
+        else:
+            raise ValueError(f"Invalid cutout mode {args.cutout_mode} encountered.")
+        for c in coords:
+            out = os.path.join(
+                args.ddir,
+                os.path.basename(args.image).replace(
+                    ".fits",
+                    ".cropped_{:.4f}_{:.4f}_{:.4f}.fits".format(
+                        c.ra.value, c.dec.value, args.size
+                    ),
+                ),
+            )
+            cutout_func(args.image, pos=c, size=s, outfile=out)
 
 
 def _process_args_composite(args):
