@@ -19,7 +19,7 @@ Four main types of functionality are currently supported: downloading cutouts, s
     everystamp -h
     usage: everystamp [-h] {download,plot,cutout} ...
 
-    EveryStamp 1.5.0 by Frits Sweijen
+    EveryStamp 1.6.0 by Frits Sweijen
 
     subcommands:
       Description of sub commands.
