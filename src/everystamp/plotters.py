@@ -504,9 +504,7 @@ class BasicImagePlot:
 
     def plot2D(
         self,
-        plot_colourbar=False,
         contour_image: numpy.ndarray = None,
-        contour_levels: Union[int, list] = 5,
         cmap: str = "gray",
         cmap_min: float = None,
         cmap_max: float = None,
@@ -521,69 +519,8 @@ class BasicImagePlot:
         f = FITSFigure(self.wcsimage, figsize=self.figsize, dimensions=[0, 1], slices=[0])
         f.show_rgb(self.image)
         if contour_image:
-            ## Flip to get North up.
-            ##cdata = np.flipud(fits.getdata(contour_image).squeeze())
             cdata = fits.getdata(contour_image).squeeze()
-            chead = fits.getheader(contour_image)
             crms = find_rms(cdata)
             clevels = np.arange(5*crms, np.percentile(cdata, 99.999), np.sqrt(2) * crms)
             f.show_contour(contour_image, levels=clevels, colors="w")
         f.savefig(self.image + "_plot.png", dpi=self.dpi)
-        return
-        fig = figure(figsize=figsize, dpi=self.dpi)
-        if self.wcs:
-            ax = fig.add_subplot(111, projection=self.wcs)
-            #if self.data is not None:
-            #    ax.imshow(np.flipud(self.data), interpolation='none', cmap=cmap)
-            #else:
-            #    ax.imshow(np.flipud(self.imdata), interpolation='none', cmap=cmap)
-        else:
-            raise ValueError("BOOM")
-            ax = fig.add_subplot(111)
-            if self.data is not None:
-                ax.imshow(
-                    np.flipud(self.data),
-                    origin="lower",
-                    interpolation="none",
-                    cmap=cmap,
-                )
-            else:
-                ax.imshow(
-                    np.flipud(self.imdata),
-                    origin="lower",
-                    interpolation="none",
-                    cmap=cmap,
-                )
-        if contour_image:
-            # Flip to get North up.
-            # cdata = np.flipud(fits.getdata(contour_image).squeeze())
-            cdata = fits.getdata(contour_image).squeeze()
-            chead = fits.getheader(contour_image)
-            wcs = WCS(chead).celestial
-            crms = find_rms(cdata)
-            crms = 30e-6
-            clevels = np.arange(5*crms, np.percentile(cdata, 99.999), np.sqrt(2) * crms)
-            print("Contour levels:", clevels)
-            if type(contour_levels) is int:
-                step = len(clevels) // contour_levels
-                if step > 0:
-                    clevels = clevels[::step]
-                else:
-                    clevels = 5
-            ax.contour(cdata, levels=clevels, colors='k', transform=ax.get_transform(wcs), linewidths=2, zorder=999)
-        #ax.xaxis.set_visible(False)
-        #ax.yaxis.set_visible(False)
-        #plt.gca().set_axis_off()
-        #plt.subplots_adjust(top=1, bottom=0, right=1, left=0, hspace=0, wspace=0)
-        plt.xlabel("Right ascension [J2000]", fontsize=16)
-        plt.ylabel("Declination [J2000]", fontsize=16)
-        # plt.margins(0, 0)
-        # plt.gca().xaxis.set_major_locator(plt.NullLocator())
-        # plt.gca().yaxis.set_major_locator(plt.NullLocator())
-        file_ext = "." + self.image.split(".")[-1]
-        fig.savefig(
-            self.image.replace(file_ext, ".output.png"),
-            bbox_inches="tight",
-            transparent=True,
-            dpi=self.dpi,
-        )
