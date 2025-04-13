@@ -5,11 +5,16 @@ import pyregion
 
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
+from astropy.io.fits import Header
 from astropy.nddata import Cutout2D
 from astropy.units import Quantity
 from astropy.wcs import WCS
 from numpy import array
 
+def copy_header_keywords(in_header: Header, out_header: Header):
+    for key in in_header.keys():
+        if key not in out_header.keys():
+            out_header[key] = in_header[key]
 
 def make_cutout_2D(
     image: str,
@@ -34,7 +39,9 @@ def make_cutout_2D(
     wcs = WCS(head).celestial
 
     cutout = Cutout2D(data, pos, size, wcs=wcs)
-    hdu = fits.PrimaryHDU(data=cutout.data, header=cutout.wcs.to_header())
+    head_new = cutout.wcs.to_header()
+    copy_header_keywords(head, head_new)
+    hdu = fits.PrimaryHDU(data=cutout.data, header=head_new)
     hdu.writeto(outfile)
 
 
@@ -130,5 +137,7 @@ def make_cutout_region(image: str, region: str, outfile: str):
     else:
         raise RuntimeError("Non-square or circular region found.")
 
-    hdu = fits.PrimaryHDU(data=cutout.data, header=cutout.wcs.to_header())
+    head_new = cutout.wcs.to_header()
+    copy_header_keywords(head, head_new)
+    hdu = fits.PrimaryHDU(data=cutout.data, header=head_new)
     hdu.writeto(outfile)
