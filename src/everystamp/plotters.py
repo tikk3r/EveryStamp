@@ -84,16 +84,38 @@ class BasicFITSPlot:
         self.figsize = (12, 8)
         self.fitsimage = fitsname
         self.fitsdata = fits.getdata(fitsname).squeeze()
-        rgbdata = make_lupton_rgb(self.fitsdata[2], self.fitsdata[1], self.fitsdata[0], filename=self.fitsimage.replace(".fits", "_rgb.jpeg"), Q=10.0, stretch=0.1)
-        fits.writeto(self.fitsimage.replace(".fits", "_temp_rgb.fits"), header=fits.getheader(self.fitsimage), data=np.transpose(rgbdata, (2, 0, 1)), overwrite=True)
+        rgbdata = make_lupton_rgb(
+            self.fitsdata[2],
+            self.fitsdata[1],
+            self.fitsdata[0],
+            filename=self.fitsimage.replace(".fits", "_rgb.jpeg"),
+            Q=10.0,
+            stretch=0.1,
+        )
+        fits.writeto(
+            self.fitsimage.replace(".fits", "_temp_rgb.fits"),
+            header=fits.getheader(self.fitsimage),
+            data=np.transpose(rgbdata, (2, 0, 1)),
+            overwrite=True,
+        )
         self.load_rgb = False
         if len(self.fitsdata.shape) > 2:
-            #raise NotImplementedError(
+            # raise NotImplementedError(
             #    "Supplied FITS file appears to have dimensions besides RA and DEC. BasicPlot only supports 2D FITS files."
-            #)
+            # )
             print("Generating RGB image")
             colour_stretch = "linear"
-            aplpy.make_rgb_image(self.fitsimage.replace(".fits", "_temp_rgb.fits"), self.fitsimage.replace(".fits", "_temp_rgb.png"), embed_avm_tags=True, stretch_r=colour_stretch, stretch_g=colour_stretch, stretch_b=colour_stretch, pmax_r=100, pmax_g=100, pmax_b=100)
+            aplpy.make_rgb_image(
+                self.fitsimage.replace(".fits", "_temp_rgb.fits"),
+                self.fitsimage.replace(".fits", "_temp_rgb.png"),
+                embed_avm_tags=True,
+                stretch_r=colour_stretch,
+                stretch_g=colour_stretch,
+                stretch_b=colour_stretch,
+                pmax_r=100,
+                pmax_g=100,
+                pmax_b=100,
+            )
             self.rgbimage = self.fitsimage.replace(".fits", "_temp_rgb.png")
             self.load_rgb = True
         self.data = self.fitsdata
@@ -108,8 +130,23 @@ class BasicFITSPlot:
             self.figsize[1] = 8
 
     def get_contour_levels(self, cdata: numpy.ndarray) -> numpy.ndarray:
+        """Generate a set of contour levels.
+
+        Args:
+            cdata: data to generate the contour levels from.
+
+        Returns:
+            contours: levels at which to draw the contours.
+        """
         crms = find_rms(cdata)
-        contour_levels = np.arange(np.sqrt(3*crms), np.sqrt(np.percentile(cdata, 99.999)), np.sqrt(2*np.sqrt(2) * crms))**2
+        contour_levels = (
+            np.arange(
+                np.sqrt(3 * crms),
+                np.sqrt(np.percentile(cdata, 99.999)),
+                np.sqrt(2 * np.sqrt(2) * crms),
+            )
+            ** 2
+        )
         print(f"Minimum contour: {3*crms}")
         return contour_levels
 
@@ -131,13 +168,18 @@ class BasicFITSPlot:
                 Add contours based on this image.
             contour_levels:
                 Number of contour levels to draw if an integer or contour levels if a list. Defaults to 5.
+            cmap_min: lower limit for the colour map.
+            cmap_max: upper limit for the colour map.
+            cmap: colour map to use for the plotted image.
         """
         if self.load_rgb:
-            f = FITSFigure(self.fitsimage.replace(".fits", "_temp_rgb.png"), figsize=self.figsize)
+            f = FITSFigure(
+                self.fitsimage.replace(".fits", "_temp_rgb.png"), figsize=self.figsize
+            )
             f.show_rgb()
             ra = fits.getheader(self.fitsimage)["CRVAL1"]
             dec = fits.getheader(self.fitsimage)["CRVAL2"]
-            f.recenter(ra, dec, radius=8.0/3600)
+            f.recenter(ra, dec, radius=8.0 / 3600)
         else:
             hdu = fits.PrimaryHDU(
                 header=WCS(fits.getheader(self.fitsimage)).celestial.to_header(),
@@ -147,20 +189,33 @@ class BasicFITSPlot:
             if not cmap:
                 f.show_grayscale(vmin=cmap_min, vmax=cmap_max, pmax=100)
             else:
-                print(f'Using colour map: {cmap}')
+                print(f"Using colour map: {cmap}")
                 f.show_colorscale(vmin=cmap_min, vmax=cmap_max, pmax=100, cmap=cmap)
         if contour_image:
             cdata = fits.getdata(contour_image).squeeze()
             chead = fits.getheader(contour_image)
             contour_levels = self.get_contour_levels(cdata)
             hdu_c = fits.PrimaryHDU(data=cdata, header=chead)
-            f.show_contour(hdu_c, levels=contour_levels, colors='white')
+            f.show_contour(hdu_c, levels=contour_levels, colors="white")
         if plot_colourbar:
             f.add_colorbar()
         f.savefig(self.fitsimage.replace("fits", "png"), dpi=self.dpi)
 
-    def plot_noaxes(self, cmap_min: float = None, cmap_max: float = None, cmap=None, contour_image=None):
-        """Save a plot of the FITS image without any axes."""
+    def plot_noaxes(
+        self,
+        cmap_min: Optional[float] = None,
+        cmap_max: Optional[float] = None,
+        cmap: Optional[str] = None,
+        contour_image: Optional[str] = None,
+    ):
+        """Save a plot of the FITS image without any axes.
+
+        Args:
+            cmap: colour map to use for plotting the image.
+            contour_image: name of the image to take contours from.
+            cmap_min: lower limit for the colour map.
+            cmap_max: upper limit for the colour map.
+        """
         figsize = [
             self.fitsdata.shape[0] // self.dpi,
             self.fitsdata.shape[1] // self.dpi,
@@ -169,7 +224,6 @@ class BasicFITSPlot:
             figsize[0] = 12
         if figsize[1] < 8:
             figsize[1] = 8
-        #fig = figure(figsize=figsize)
         if self.load_rgb:
             f = FITSFigure("temp_rgb.png", figsize=self.figsize)
             f.show_rgb()
@@ -188,7 +242,7 @@ class BasicFITSPlot:
             chead = fits.getheader(contour_image)
             contour_levels = self.get_contour_levels(cdata)
             hdu_c = fits.PrimaryHDU(data=cdata, header=chead)
-            f.show_contour(hdu_c, levels=contour_levels, colors='white')
+            f.show_contour(hdu_c, levels=contour_levels, colors="white")
         plt.axis("off")
         f.savefig(
             self.fitsimage.replace("fits", ".noaxes.png"),
@@ -200,6 +254,9 @@ class BasicFITSPlot:
         """Save data of a BasicPlot object to a FITS file with the same WCS information
 
         Any tonemapping applied to the original data will be carried over to the FITS file. Physical units will thus be lost.
+
+        Args:
+            outfile: name of the output file.
         """
         fits.writeto(
             data=self.data,
@@ -516,11 +573,15 @@ class BasicImagePlot:
         if figsize[1] < self.imdata.shape[1]:
             figsize[1] = 8
         print("FIGURE SIZE: ", figsize)
-        f = FITSFigure(self.wcsimage, figsize=self.figsize, dimensions=[0, 1], slices=[0])
+        f = FITSFigure(
+            self.wcsimage, figsize=self.figsize, dimensions=[0, 1], slices=[0]
+        )
         f.show_rgb(self.image)
         if contour_image:
             cdata = fits.getdata(contour_image).squeeze()
             crms = find_rms(cdata)
-            clevels = np.arange(5*crms, np.percentile(cdata, 99.999), np.sqrt(2) * crms)
+            clevels = np.arange(
+                5 * crms, np.percentile(cdata, 99.999), np.sqrt(2) * crms
+            )
             f.show_contour(contour_image, levels=clevels, colors="w")
         f.savefig(self.image + "_plot.png", dpi=self.dpi)
