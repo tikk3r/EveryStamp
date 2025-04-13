@@ -1,9 +1,9 @@
 """Sub-module for trimming FITS images."""
 
-import sys
 from typing import Optional, Union
 
 import numpy as np
+import pyregion
 
 # import pyregion
 from astropy.coordinates import SkyCoord
@@ -78,7 +78,7 @@ def make_cutout_2D_fast(
     return hdu_out
 
 
-def make_cutout_region(image: str = None, region: str = None, outfile: str = None):
+def make_cutout_region(image: str, region: str, outfile: str):
     """
     Make 2D cutout with pyregion
     ---------------------------
@@ -86,7 +86,6 @@ def make_cutout_region(image: str = None, region: str = None, outfile: str = Non
     :param region: region file
     :param outfile: output fits file
     """
-    raise NotImplementedError
 
     hdu = fits.open(image)
     head = hdu[0].header
@@ -123,7 +122,7 @@ def make_cutout_region(image: str = None, region: str = None, outfile: str = Non
             mode="partial",
         )
     else:
-        sys.exit("ERROR: Should not arrive here")
+        raise RuntimeError("Non-square or circular region found.")
 
     hdu = fits.PrimaryHDU(data=cutout.data, header=cutout.wcs.to_header())
     hdu.writeto(outfile)
