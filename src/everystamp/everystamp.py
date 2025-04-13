@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Python library aiming to provide a wrapper around various astronomical surveys that offer cutouts."""
 
-__version__ = "1.5.1"
+__version__ = "1.6.0"
 __author__ = "Frits Sweijen"
 __license__ = "GPLv3"
 import argparse
