@@ -75,15 +75,12 @@ def make_cutout_2D_fast(
         y_max = int(np.floor(pix_pos[1]) + 1 + height_pix // 2 + 1)
         print(x_min, x_max, y_min, y_max)
 
-        #cutout_data = hdu.data[..., y_min:y_max, x_min:x_max]
         cutout_data = hdu.data[..., y_min:y_max, x_min:x_max]
 
         hdu.header["NAXIS1"] = width_pix
         hdu.header["NAXIS2"] = height_pix
-        hdu.header["CRPIX1"] = width_pix // 2
-        hdu.header["CRPIX2"] = height_pix // 2 + 1
-        hdu.header["CRVAL1"] = pos.ra.to("deg").value - hdu.header["CDELT1"]
-        hdu.header["CRVAL2"] = pos.dec.to("deg").value + hdu.header["CDELT2"]
+        hdu.header["CRPIX1"] -= x_min
+        hdu.header["CRPIX2"] -= y_min
 
         hdu_out = fits.PrimaryHDU(data=cutout_data, header=hdu.header)
         hdu_out.writeto(outfile)
