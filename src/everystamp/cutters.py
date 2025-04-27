@@ -65,24 +65,25 @@ def make_cutout_2D_fast(
 
         pix_pos = wcs.world_to_pixel(pos)
 
-        width_pix, height_pix = wcs.world_to_pixel(
-            SkyCoord(pos.ra + size, pos.dec + size)
-        )
-        width_pix -= pix_pos[0]
-        height_pix -= pix_pos[1]
+        width_pix = np.floor(size.to("deg").value / abs(hdu.header["CDELT1"]))
+        height_pix = np.floor(size.to("deg").value / abs(hdu.header["CDELT2"]))
 
         # Calculate the bounding box in pixel coordinates
-        x_min = int(np.floor(pix_pos[0] - width_pix / 2))
-        x_max = int(np.ceil(pix_pos[0] + width_pix / 2))
-        y_min = int(np.floor(pix_pos[1] - height_pix / 2))
-        y_max = int(np.ceil(pix_pos[1] + height_pix / 2))
+        x_min = int(np.floor(pix_pos[0]) + 1 - width_pix // 2)
+        x_max = int(np.floor(pix_pos[0]) + 1 + width_pix // 2 + 1)
+        y_min = int(np.floor(pix_pos[1]) + 1 - height_pix // 2)
+        y_max = int(np.floor(pix_pos[1]) + 1 + height_pix // 2 + 1)
+        print(x_min, x_max, y_min, y_max)
 
-        cutout_data = hdu.data[..., y_min:y_max, x_max:x_min]
+        #cutout_data = hdu.data[..., y_min:y_max, x_min:x_max]
+        cutout_data = hdu.data[..., y_min:y_max, x_min:x_max]
 
-        hdu.header["NAXIS1"] = x_max - x_min
-        hdu.header["NAXIS2"] = y_max - y_min
-        hdu.header["CRPIX1"] -= x_max
-        hdu.header["CRPIX2"] -= y_min
+        hdu.header["NAXIS1"] = width_pix
+        hdu.header["NAXIS2"] = height_pix
+        hdu.header["CRPIX1"] = width_pix // 2
+        hdu.header["CRPIX2"] = height_pix // 2 + 1
+        hdu.header["CRVAL1"] = pos.ra.to("deg").value - hdu.header["CDELT1"]
+        hdu.header["CRVAL2"] = pos.dec.to("deg").value + hdu.header["CDELT2"]
 
         hdu_out = fits.PrimaryHDU(data=cutout_data, header=hdu.header)
         hdu_out.writeto(outfile)
