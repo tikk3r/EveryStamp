@@ -14,7 +14,6 @@ from typing import Generator
 import astropy.units as units
 import astropy.visualization
 import cv2  # type: ignore
-from numpy import require
 import numpy as np
 import requests
 from astropy.coordinates import SkyCoord
@@ -61,15 +60,16 @@ def _add_args_download(parser):
         parser : ArgumentParser
             ArgumentParser instance to which to add entries.
     """
-    custom_surveys = ["legacy", "pan-starrs", "vlass", "lolss", "lotss", "tgss"]
+    #custom_surveys = ["legacy", "pan-starrs", "vlass", "lolss", "lotss", "tgss"]
     try:
-        skyview_surveys = list(flatten(list(SkyView.survey_dict.values())))
+        #skyview_surveys = list(flatten(list(SkyView.survey_dict.values())))
+        SkyView.survey_dict.values()
     except requests.exceptions.ConnectionError:
         logger.warning(
             "Failed to get SkyView surveys. SkyView cutouts will not be available."
         )
-        skyview_surveys = []
-    allowed_surveys = custom_surveys + ["SkyView surveys"]
+        #skyview_surveys = []
+    #allowed_surveys = custom_surveys + skyview_surveys
     required_args = parser.add_argument_group("Required arguments")
     required_args.add_argument(
         "--survey",
@@ -1002,7 +1002,7 @@ def _process_args_plot(args):
     import numpy as np
 
     from everystamp.plotters import BasicFITSPlot, BasicImagePlot, SRTPlot
-    from everystamp.tonemapping import gamma, make_nonnegative
+    from everystamp.tonemapping import gamma
     from everystamp.tonemapping.lhdr import (
         ashikhmin,
         drago,
