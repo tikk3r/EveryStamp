@@ -3,28 +3,21 @@
 from typing import List, Optional, Union
 
 import astropy.units as u
-import colormaps
+import colormaps #noqa F403
 import matplotlib.pyplot as plt
 import numpy
 import aplpy
-from aplpy import FITSFigure, make_rgb_image
+from aplpy import FITSFigure
 from astropy.io import fits
 from astropy.visualization import make_lupton_rgb
 from astropy.wcs import WCS
-from matplotlib.pyplot import figure
 import numpy as np
-from aplpy import FITSFigure
 from astropy.coordinates import SkyCoord
-from astropy.io import fits
 from astropy.visualization import (
     ImageNormalize,
-    MinMaxInterval,
     PercentileInterval,
-    LinearStretch,
-    LogStretch,
     SqrtStretch,
 )
-from astropy.wcs import WCS
 from blend_modes import (
     addition,
     hard_light,
@@ -42,7 +35,6 @@ from blend_modes import (
     normal,
 )
 from matplotlib import colormaps as mplcm
-from matplotlib.pyplot import figure
 from PIL import Image
 
 
