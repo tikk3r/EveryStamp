@@ -208,7 +208,7 @@ def _add_args_download(parser):
         type=str,
         required=False,
         default="dr1",
-        choices=["pdr", "dr1", "dr2", "dr2-low"],
+        choices=["pdr", "dr1", "dr2", "dr2-low", "dr3"],
         help="Data release to download from.",
     )
 
@@ -837,6 +837,11 @@ def _process_args_download(args):
         logger.info("Download directory does not exist, creating it")
         os.mkdir(args.ddir)
     logger.info("Survey is %s", args.survey)
+    if args.lotss_release == "dr3":
+        print("LoTSS DR3 is not yet publicly available. Please authenticate.")
+        import getpass
+        user = getpass.getpass("username:")
+        password = getpass.getpass("password:")
     for ra, dec in zip(ras, decs):
         if args.survey.startswith("hips:"):
             from everystamp.downloaders import HiPSDownloader
@@ -878,6 +883,18 @@ def _process_args_download(args):
                 bands=args.ps_bands,
                 mode=args.mode,
                 size=args.size,
+                ddir=args.ddir,
+            )
+        elif args.survey == "first":
+            if args.mode == "both":
+                raise ValueError("FIRST download does not support `both` (yet).")
+            from everystamp.downloaders import FIRSTDownloader
+            vd = FIRSTDownloader()
+            vd.download(
+                ra=ra,
+                dec=dec,
+                size=args.size,
+                mode=args.mode,
                 ddir=args.ddir,
             )
         elif args.survey == "vlass":
@@ -936,6 +953,19 @@ def _process_args_download(args):
                     ddir=args.ddir,
                     mode=args.mode.replace("e", ""),
                     release=args.lotss_release,
+                )
+            elif args.lotss_release == "dr3":
+                from everystamp.downloaders import LoTSSDownloader
+
+                vd = LoTSSDownloader()
+                vd.download(
+                    ra=ra,
+                    dec=dec,
+                    size=args.size,
+                    ddir=args.ddir,
+                    mode=args.mode.replace("e", ""),
+                    release=args.lotss_release,
+                    credentials=(user, password),
                 )
         elif args.survey == "tgss":
             if args.mode == "both" or args.mode == "jpeg":
