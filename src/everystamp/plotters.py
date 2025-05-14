@@ -38,14 +38,16 @@ from matplotlib import colormaps as mplcm
 from PIL import Image
 
 
-def find_rms(image_data):
-    """
-    from Cyril Tasse/kMS
+def find_rms(image_data: numpy.ndarray) -> float:
+    """ Calculate the rms noise of an image. From Cyril Tasse/kMS.
 
-    :param image_data: image data array
-    :return: rms (noise measure)
-    """
+    Args:
+        image_data (ndarray): image to calculate the noise of.
 
+    Returns:
+        rms (float): rms noise in units of the image.
+        
+    """
     maskSup = 1e-7
     m = image_data[np.abs(image_data) > maskSup]
     rmsold = np.std(m)
@@ -65,7 +67,7 @@ def find_rms(image_data):
 class BasicFITSPlot:
     """Creates a basic plot of a FITS file."""
 
-    def __init__(self, fitsname):
+    def __init__(self, fitsname: str):
         """Initialise a basic plotting object for 2D FITS files.
 
         Args:
@@ -242,7 +244,7 @@ class BasicFITSPlot:
             dpi=self.dpi,
         )
 
-    def savedata(self, outfile):
+    def savedata(self, outfile: str):
         """Save data of a BasicPlot object to a FITS file with the same WCS information
 
         Any tonemapping applied to the original data will be carried over to the FITS file. Physical units will thus be lost.
@@ -468,7 +470,7 @@ class BlendPlot:
 class SRTPlot:
     """Create a line profile plot similar in style to the SRTPLOT task used by Hogbom 1974."""
 
-    def __init__(self, fitsname):
+    def __init__(self, fitsname: str):
         """Initialise a basic plotting object for 2D FITS files.
 
         Args:
@@ -530,7 +532,7 @@ class SRTPlot:
 class BasicImagePlot:
     """Creates a basic plot of an image (not FITS) file."""
 
-    def __init__(self, imname, wcsimage=None):
+    def __init__(self, imname: str, wcsimage: Optional[str]=None):
         """Initialise a basic plotting object for 2D FITS files.
 
         Args:
@@ -553,10 +555,10 @@ class BasicImagePlot:
 
     def plot2D(
         self,
-        contour_image: numpy.ndarray = None,
+        contour_image: Optional[numpy.ndarray] = None,
         cmap: str = "gray",
-        cmap_min: float = None,
-        cmap_max: float = None,
+        cmap_min: Optional[float] = None,
+        cmap_max: Optional[float] = None,
     ):
         """Save a plot of the FITS image without any axes."""
         figsize = [self.imdata.shape[0] // self.dpi, self.imdata.shape[1] // self.dpi]
