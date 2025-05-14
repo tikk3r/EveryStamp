@@ -90,7 +90,7 @@ class FileDownloader(object):
             print("OOps: Something Else", err)
             raise err
 
-    def download_file(self, url, filename=None, target_dir=None):
+    def download_file(self, url, filename=None, target_dir=None, credentials=None):
         """
         Stream downloads files via HTTP
         :param url: Url link to file to download
@@ -106,7 +106,10 @@ class FileDownloader(object):
             raise ValueError("Invalid target_dir={} specified".format(target_dir))
         local_filename = self.get_url_filename(url) if not filename else filename
 
-        req = requests.get(url, stream=True, verify=True)
+        if credentials:
+            req = requests.get(url, stream=True, verify=True, auth=credentials)
+        else:
+            req = requests.get(url, stream=True, verify=True)
         req.raise_for_status()
         try:
             file_size = int(req.headers["Content-Length"])
@@ -194,8 +197,69 @@ class LoTSSDownloader(FileDownloader):
             ddir = os.getcwd()
         else:
             ddir = kwargs["ddir"]
-        self.download_file(furl, filename=fname, target_dir=ddir)
+        self.download_file(furl, filename=fname, target_dir=ddir, credentials=kwargs["credentials"])
 
+class FIRSTDownloader(FileDownloader):
+    """Downloader sub-class for the FIRST survey."""
+
+    supported_keywords = ["ra", "dec", "mode"]
+    logger = logging.getLogger("EveryStamp:LegacyDownloader")
+
+    def __init__(self):
+        self.url_fits = "https://third.ucllnl.org/cgi-bin/firstcutout?RA={ra:s}&Dec={dec:s}&Equinox=J2000&ImageSize={size:f}&ImageType=FITS+File&MaxInt=10&Epochs=&Fieldname=&.submit=+Extract+the+Cutout+&.cgifields=ImageType"
+
+        self.url_image = "https://third.ucllnl.org/cgi-bin/firstimage?RA={ra:s}&Dec={dec:s}&Equinox=J2000&ImageSize={size:f}&MaxInt=10"
+
+    def format_url(
+        self,
+        ra=None,
+        dec=None,
+        size=None,
+        mode="jpeg",
+        **kwargs,
+    ):
+        """Returns a properly formatted URL that can be used to obtain a cutout from Legacy."""
+        pos = SkyCoord(ra, dec, frame="icrs", unit="deg")
+        ra = pos.ra.to_string("h", sep=":")
+        dec = pos.dec.to_string(sep=":")
+        size *= 60
+        if mode == "jpeg":
+            return self.url_image.format(
+                ra=ra,
+                dec=dec,
+                size=size,
+            )
+        elif mode == "fits":
+            return self.url_fits.format(
+                ra=ra,
+                dec=dec,
+                size=size,
+            )
+
+    def download(self, **kwargs):
+        if kwargs["mode"] == "both":
+            raise NotImplementedError("Download mode `both` is not supported for FIRSTDownloader.")
+        else:
+            furl = self.format_url(**kwargs)
+            self.logger.info("Downloading cutout from %s", furl)
+            if not kwargs["ddir"]:
+                self.logger.info(
+                    "Download directory not specified, downloading to %s instead",
+                    os.getcwd(),
+                )
+                ddir = os.getcwd()
+            else:
+                ddir = kwargs["ddir"]
+            fname = "FIRST_{ra:f}_{dec:f}_{size:.3f}.{mode:s}".format(
+                ra=kwargs["ra"],
+                dec=kwargs["dec"],
+                size=kwargs["size"],
+                mode=kwargs["mode"],
+            )
+        try:
+            self.download_file(furl, filename=fname, target_dir=ddir)
+        except requests.exceptions.HTTPError:
+            self.logger.warning(f"Failed to download {fname}")
 
 class LegacyDownloader(FileDownloader):
     """Downloader sub-class for the DESI Legacy Imaging Surveys."""
