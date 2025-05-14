@@ -26,7 +26,7 @@ logging.basicConfig(
 logger = logging.getLogger("EveryStamp:Downloader")
 
 
-def flatten(xs):
+def flatten(xs: list) -> Iterable:
     """Flatten a nested list, as per the example on https://stackoverflow.com/a/40857703.
 
     Args:
@@ -58,13 +58,20 @@ class FileDownloader(object):
     limitations under the License.
     """
 
-    def get_url_filename(self, url):
-        """
-        Discover file name from HTTP URL, If none is discovered derive name from http redirect HTTP content header Location
-        :param url: Url link to file to download
-        :type url: str
-        :return: Base filename
-        :rtype: str
+    def get_url_filename(self, url: str) -> str:
+        """ Discover file name from HTTP URL, If none is discovered derive name from http redirect HTTP content header Location
+
+        Args:
+            url (str): URL from which to get the file name.
+
+        Returns:
+            filename (str): name of the file that will be downloaded.
+
+        Raises:
+            requests.exceptions.HTTPError: if an HTTP error code is encountered.
+            requests.exceptions.ConnectionError: if the connection fails to succeed.
+            requests.exceptions.Timeout: if the connection times out.
+            requests.exceptions.RequestException: if an error different than above occurs.
         """
         try:
             filename = os.path.basename(url)
@@ -87,20 +94,23 @@ class FileDownloader(object):
             print("Timeout Error:", errt)
             raise errt
         except requests.exceptions.RequestException as err:
-            print("OOps: Something Else", err)
+            print("Oops: Something went wrong", err)
             raise err
 
-    def download_file(self, url, filename=None, target_dir=None, credentials=None):
-        """
-        Stream downloads files via HTTP
-        :param url: Url link to file to download
-        :type url: str
-        :param filename: filename overrides filename defined in Url param
-        :type filename: str
-        :param target_dir: target destination directory to download file to
-        :type target_dir: str
-        :return: Absolute path to target destination where file has been downloaded to
-        :rtype: str
+    def download_file(self, url: str, filename=None, target_dir=None, credentials=None) -> str:
+        """ Stream downloads files via HTTP
+
+        Args:
+            url (str): URL to download file from.
+            filename (str): filename to download to. Overrides filename defined in the URL.
+            target_dir (str): directory to download file to.
+            credentials (tuple): login credentials if needed.
+
+        Returns:
+            target_dest_dir (str): directory where the file will be downloaded to.
+
+        Raises:
+            ValueError: 
         """
         if target_dir and not os.path.isdir(target_dir):
             raise ValueError("Invalid target_dir={} specified".format(target_dir))
