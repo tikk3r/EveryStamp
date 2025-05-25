@@ -207,7 +207,10 @@ class LoTSSDownloader(FileDownloader):
             ddir = os.getcwd()
         else:
             ddir = kwargs["ddir"]
-        self.download_file(furl, filename=fname, target_dir=ddir, credentials=kwargs["credentials"])
+        if "dr3" in kwargs["release"]:
+            self.download_file(furl, filename=fname, target_dir=ddir, credentials=kwargs["credentials"])
+        else:
+            self.download_file(furl, filename=fname, target_dir=ddir)
 
 class FIRSTDownloader(FileDownloader):
     """Downloader sub-class for the FIRST survey."""
