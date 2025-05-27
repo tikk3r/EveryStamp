@@ -65,8 +65,16 @@ def make_cutout_2D_fast(
 
         pix_pos = wcs.world_to_pixel(pos)
 
-        width_pix = np.floor(size.to("deg").value / abs(hdu.header["CDELT1"]))
-        height_pix = np.floor(size.to("deg").value / abs(hdu.header["CDELT2"]))
+        try:
+            width_pix = np.floor(size.to("deg").value / abs(hdu.header["CDELT1"]))
+        except KeyError:
+            print("Couldn't find CDELT1, trying CD1_1")
+            width_pix = np.floor(size.to("deg").value / abs(hdu.header["CDELT1"]))
+        try:
+            height_pix = np.floor(size.to("deg").value / abs(hdu.header["CDELT2"]))
+        except KeyError:
+            print("Couldn't find CDELT2, trying CD2_2")
+            height_pix = np.floor(size.to("deg").value / abs(hdu.header["CDELT2"]))
 
         # Calculate the bounding box in pixel coordinates
         x_min = int(np.floor(pix_pos[0]) + 1 - width_pix // 2)
