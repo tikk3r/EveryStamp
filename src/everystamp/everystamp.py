@@ -60,16 +60,6 @@ def _add_args_download(parser):
         parser : ArgumentParser
             ArgumentParser instance to which to add entries.
     """
-    #custom_surveys = ["legacy", "pan-starrs", "vlass", "lolss", "lotss", "tgss"]
-    try:
-        #skyview_surveys = list(flatten(list(SkyView.survey_dict.values())))
-        SkyView.survey_dict.values()
-    except requests.exceptions.ConnectionError:
-        logger.warning(
-            "Failed to get SkyView surveys. SkyView cutouts will not be available."
-        )
-        #skyview_surveys = []
-    #allowed_surveys = custom_surveys + skyview_surveys
     required_args = parser.add_argument_group("Required arguments")
     required_args.add_argument(
         "--survey",
@@ -977,6 +967,8 @@ def _process_args_download(args):
             )
             vd.download(ra=ra, dec=dec, size=args.size, ddir=args.ddir)
         else:
+            logger.warning(f"{args.survey} is not supported.")
+            sys.exit(0)
             if args.mode == "both" or args.mode == "jpeg":
                 raise ValueError("SkyView download does not support JPEG (yet).")
             from everystamp.downloaders import SkyViewDownloader
