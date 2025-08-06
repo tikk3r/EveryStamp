@@ -34,6 +34,9 @@ EveryStamp offers image manipulation that can be used to visualise an image to y
 2. CLAHE
 3. Gamma correction
 
+## Image stretching and colour maps
+The `--stretch` parameter can be used to apply log, sqrt, squared, asinh or sinh stretches to the image. The colour map and its limits can be controlled via `--cmap`, `--cmap-min` and `--cmap-max`. N.B. the latter values apply to _post_-stretched values.
+
 ## Gamma correction
 [Gamma correction](https://en.wikipedia.org/wiki/Gamma_correction) can be applied as a final step by adding `--gamma <gamma>` to the plotting arguments. As implemented here, this will gamma stretch an image by
 
@@ -48,3 +51,13 @@ A value of \\(\gamma = 2\\) results in a square root stretch of the input image.
 
 ## HDR tonemapping
 When dealing with a high dynamic range (HDR) image, simple tonemapping operators may not be enough. If LuminanceHDR is installed (see [installation]({{ site.baseurl }}{% link docs/installation.md %})), several HDR tonemapping algorithms are available through the `--hdr-tonemap` argument.
+
+# Overplotting contours
+If you have an image you'd like to overplot as contours, it can be passed to `--contour_image`.
+
+# Plotting styles
+
+The `--style` option controls in what style an image is plotted. Currently, the only available alternative style is that of the SRTPLOT task by Hogbom 1974.
+
+## SRTPLOT
+SRTPLOT style plots draw slices of intensity along the right ascension axis every number of (pixel) steps in declination, offset by some value. To enable this style, use `--style srtplot`. The settings `--srt_lines` and `--srt_offset` control how many declinations are plotted and what the vertical offset between each slice is on the plot.
