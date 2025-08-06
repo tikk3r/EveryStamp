@@ -680,13 +680,13 @@ def _add_args_cutout(parser):
     required_args.add_argument(
         "--ra",
         type=float,
-        required=True,
+        required=False,
         help="Right ascension of cutout centre in degrees.",
     )
     required_args.add_argument(
         "--dec",
         type=float,
-        required=True,
+        required=False,
         help="Declination of cutout centre in degrees.",
     )
     required_args.add_argument(
