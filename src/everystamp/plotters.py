@@ -187,7 +187,7 @@ class BasicFITSPlot:
                 f.show_colorscale(vmin=cmap_min, vmax=cmap_max, pmax=100, cmap=cmap)
         if contour_image:
             cdata = fits.getdata(contour_image).squeeze()
-            chead= WCS(fits.getheader(contour_image)).celestial.to_header(),
+            chead= WCS(fits.getheader(contour_image)).celestial.to_header()
             contour_levels = self.get_contour_levels(cdata)
             hdu_c = fits.PrimaryHDU(data=cdata, header=chead)
             f.show_contour(hdu_c, levels=contour_levels, colors="white")

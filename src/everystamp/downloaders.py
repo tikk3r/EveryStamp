@@ -46,11 +46,11 @@ def flatten(xs: list) -> Iterable:
 
 class FileDownloader(object):
     """From https://medium.com/better-programming/python-progress-bars-with-tqdm-by-example-ce98dbbc9697
+
     Copyright 2019 tiptapcode Authors. All Rights Reserved.
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
-         http://www.apache.org/licenses/LICENSE-2.0
+    You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -59,7 +59,7 @@ class FileDownloader(object):
     """
 
     def get_url_filename(self, url: str) -> str:
-        """ Discover file name from HTTP URL, If none is discovered derive name from http redirect HTTP content header Location
+        """Discover file name from HTTP URL, If none is discovered derive name from http redirect HTTP content header Location
 
         Args:
             url (str): URL from which to get the file name.
@@ -97,8 +97,10 @@ class FileDownloader(object):
             print("Oops: Something went wrong", err)
             raise err
 
-    def download_file(self, url: str, filename=None, target_dir=None, credentials=None) -> str:
-        """ Stream downloads files via HTTP
+    def download_file(
+        self, url: str, filename=None, target_dir=None, credentials=None
+    ) -> str:
+        """Stream downloads files via HTTP
 
         Args:
             url (str): URL to download file from.
@@ -110,7 +112,7 @@ class FileDownloader(object):
             target_dest_dir (str): directory where the file will be downloaded to.
 
         Raises:
-            ValueError: 
+            ValueError:
         """
         if target_dir and not os.path.isdir(target_dir):
             raise ValueError("Invalid target_dir={} specified".format(target_dir))
@@ -208,9 +210,12 @@ class LoTSSDownloader(FileDownloader):
         else:
             ddir = kwargs["ddir"]
         if "dr3" in kwargs["release"]:
-            self.download_file(furl, filename=fname, target_dir=ddir, credentials=kwargs["credentials"])
+            self.download_file(
+                furl, filename=fname, target_dir=ddir, credentials=kwargs["credentials"]
+            )
         else:
             self.download_file(furl, filename=fname, target_dir=ddir)
+
 
 class FIRSTDownloader(FileDownloader):
     """Downloader sub-class for the FIRST survey."""
@@ -251,7 +256,9 @@ class FIRSTDownloader(FileDownloader):
 
     def download(self, **kwargs):
         if kwargs["mode"] == "both":
-            raise NotImplementedError("Download mode `both` is not supported for FIRSTDownloader.")
+            raise NotImplementedError(
+                "Download mode `both` is not supported for FIRSTDownloader."
+            )
         else:
             furl = self.format_url(**kwargs)
             self.logger.info("Downloading cutout from %s", furl)
@@ -273,6 +280,7 @@ class FIRSTDownloader(FileDownloader):
             self.download_file(furl, filename=fname, target_dir=ddir)
         except requests.exceptions.HTTPError:
             self.logger.warning(f"Failed to download {fname}")
+
 
 class LegacyDownloader(FileDownloader):
     """Downloader sub-class for the DESI Legacy Imaging Surveys."""

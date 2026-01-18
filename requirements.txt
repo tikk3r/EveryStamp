@@ -1,5 +1,5 @@
 aplpy
-astropy
+astropy<7
 astroquery
 blend-modes
 colormaps

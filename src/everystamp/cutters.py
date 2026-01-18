@@ -51,7 +51,7 @@ def make_cutout_2D_fast(
     size: Quantity,
     outfile: str,
 ):
-    """Make a square cutout of given size by slicing instead of Astropy's Cutout2D function.
+    """ Make a square cutout of given size by slicing instead of Astropy's Cutout2D function.
 
     Args:
         image: name of the FITS image to make a cutout of.
