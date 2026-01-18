@@ -32,6 +32,8 @@ class TimmermanStretch(BaseStretch):
     def __call__(
         self,
         values: np.ndarray,
+        rms_factor: float = 2.5,
+        peak_factor: float = 75.0,
         clip: bool = True,
         out: Optional[np.ndarray] = None,
         invalid: Optional[float] = None,
@@ -57,6 +59,10 @@ class TimmermanStretch(BaseStretch):
                 "under" value (i.e., any finite value < 0).  If `None`, then
                 NaN values are not replaced.  This keyword has no effect if
                 ``clip=True``.
+            rms_factor : float
+                Sets the minimum value of the stretch based on the rms.
+            peak_factor : float
+                Proxy for the maximum value of the stretch based on the rms.
 
         Returns:
             result : ndarray
@@ -70,7 +76,7 @@ class TimmermanStretch(BaseStretch):
             rms = findrms(values)
             rms_factor = 2.5
             vmin = -rms_factor * rms
-            vmax = np.nanmax((75 * rms, np.nanmax(values)))
+            vmax = np.nanmax((peak_factor * rms, np.nanmax(values)))
             power_scaling = np.log(0.2) / np.log(2 * rms_factor * rms / (vmax - vmin))
             values = values**power_scaling
 
