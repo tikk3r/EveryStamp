@@ -21,6 +21,7 @@ from astropy.table import Table
 from astroquery.skyview import SkyView  # type: ignore
 from everystamp.cutters import make_cutout_2D, make_cutout_2D_fast, make_cutout_region
 from everystamp.tonemapping import lhdr, normalise
+from everystamp.tonemapping.stretches import TimmermanStretch
 
 logging.basicConfig(
     format="[%(name)s] %(asctime)s - %(levelname)s: %(message)s", level=logging.INFO
@@ -271,8 +272,8 @@ def _add_args_plot(parser):
         default=None,
         type=str,
         required=False,
-        choices=["log", "sqrt", "squared", "asinh", "sinh"],
-        help="Stretch an image with a certian function.",
+        choices=["log", "sqrt", "squared", "asinh", "sinh", "timmerman"],
+        help="Stretch an image with a certain function.",
     )
     required_args.add_argument(
         "--cmap",
@@ -830,6 +831,7 @@ def _process_args_download(args):
     if args.lotss_release == "dr3":
         print("LoTSS DR3 is not yet publicly available. Please authenticate.")
         import getpass
+
         user = getpass.getpass("username:")
         password = getpass.getpass("password:")
     for ra, dec in zip(ras, decs):
@@ -879,6 +881,7 @@ def _process_args_download(args):
             if args.mode == "both":
                 raise ValueError("FIRST download does not support `both` (yet).")
             from everystamp.downloaders import FIRSTDownloader
+
             vd = FIRSTDownloader()
             vd.download(
                 ra=ra,
@@ -1017,6 +1020,8 @@ def _process_args_plot(args):
             bp = BasicFITSPlot(args.image)
         elif args.style == "srtplot":
             bp = SRTPlot(args.image)
+        else:
+            raise ValueError("Unkonwn plot style specified.")
     else:
         # Probably an image format.
         bp = BasicImagePlot(args.image, wcsimage=args.wcs_image)
@@ -1168,7 +1173,11 @@ def _process_args_plot(args):
             stretch = astropy.visualization.AsinhStretch()
         elif args.stretch == "sinh":
             stretch = astropy.visualization.SinhStretch()
-        bp.data = stretch(normalise(bp.data), min)
+        elif args.stretch == "timmerman":
+            stretch = TimmermanStretch()
+        else:
+            raise ValueError("Unknown stretch passed")
+        bp.data = stretch(normalise(bp.data))
 
     if args.contour_image and (args.style == "normal"):
         bp.plot2D(
@@ -1184,9 +1193,16 @@ def _process_args_plot(args):
     if args.image.lower().endswith("fits") and (args.style == "normal"):
         bp.savedata(args.image.replace(".fits", ".tonemapped.fits"))
         if args.contour_image:
-            bp.plot_noaxes(cmap=args.cmap, cmap_min=args.cmap_min, cmap_max=args.cmap_max, contour_image=args.contour_image)
+            bp.plot_noaxes(
+                cmap=args.cmap,
+                cmap_min=args.cmap_min,
+                cmap_max=args.cmap_max,
+                contour_image=args.contour_image,
+            )
         else:
-            bp.plot_noaxes(cmap=args.cmap, cmap_min=args.cmap_min, cmap_max=args.cmap_max)
+            bp.plot_noaxes(
+                cmap=args.cmap, cmap_min=args.cmap_min, cmap_max=args.cmap_max
+            )
 
 
 def _process_args_cutout(args):
@@ -1211,7 +1227,9 @@ def _process_args_cutout(args):
     coords = SkyCoord(ras, decs, unit="deg")
 
     if args.region and (args.from_catalogue or args.size):
-        raise ValueError("Cannot specify a region, and a catalogue or size at the same time.")
+        raise ValueError(
+            "Cannot specify a region, and a catalogue or size at the same time."
+        )
     if args.region and (args.cutout_mode == "fast"):
         raise NotImplementedError("Cutout mode `fast` is not supported with regions.")
 
