@@ -74,7 +74,6 @@ class TimmermanStretch(BaseStretch):
             if replace_invalid:
                 idx = values < 0
             rms = findrms(values)
-            rms_factor = 2.5
             vmin = -rms_factor * rms
             vmax = np.nanmax((peak_factor * rms, np.nanmax(values)))
             power_scaling = np.log(0.2) / np.log(2 * rms_factor * rms / (vmax - vmin))
