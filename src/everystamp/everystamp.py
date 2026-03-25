@@ -715,7 +715,7 @@ def _add_args_cutout(parser):
         "--cutout-mode",
         type=str,
         required=False,
-        default="fast",
+        default="astropy",
         choices=["fast", "astropy"],
         help="Affects the way cutouts are made. `astropy` uses astropy's Cutout2D, while `fast` simply slices the array. Does not affect cutouts made with a region file.",
     )
