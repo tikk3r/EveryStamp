@@ -797,6 +797,8 @@ def _add_args_composite(parser):
             "opt+lofar_hot",
             "opt+lofar_solar",
             "opt+lofar_pink",
+            "opt+lofar_subtlepink",
+            "opt+lofar_amber",
             "opt+x-ray+lofar",
         ],
     )
