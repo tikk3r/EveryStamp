@@ -451,6 +451,11 @@ class BlendPlot:
                 self.blend_cmaps = ["sunburst"]
                 self.blend_opacities = [1.0, 1.0, 0.5]
                 self.rmscut = 5.0
+            case "opt+lofar_amber":
+                self.blend_modes = ["add,add,overlay,add"]
+                self.blend_cmaps = ["amber"]
+                self.blend_opacities = [1.0, 1.0, 0.1, 0.1]
+                self.rmscut = 5.0
             case "opt+lofar_solar":
                 self.blend_modes = ["add,softlight"]
                 self.blend_cmaps = ["solar"]
