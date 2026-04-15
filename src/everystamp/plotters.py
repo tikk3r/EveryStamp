@@ -3,7 +3,7 @@
 from typing import List, Optional, Union
 
 import astropy.units as u
-import colormaps #noqa F403
+import colormaps  # noqa F403
 import matplotlib.pyplot as plt
 import numpy
 import aplpy
@@ -39,14 +39,14 @@ from PIL import Image
 
 
 def find_rms(image_data: numpy.ndarray) -> float:
-    """ Calculate the rms noise of an image. From Cyril Tasse/kMS.
+    """Calculate the rms noise of an image. From Cyril Tasse/kMS.
 
     Args:
         image_data (ndarray): image to calculate the noise of.
 
     Returns:
         rms (float): rms noise in units of the image.
-        
+
     """
     maskSup = 1e-7
     m = image_data[np.abs(image_data) > maskSup]
@@ -187,7 +187,7 @@ class BasicFITSPlot:
                 f.show_colorscale(vmin=cmap_min, vmax=cmap_max, pmax=100, cmap=cmap)
         if contour_image:
             cdata = fits.getdata(contour_image).squeeze()
-            chead= WCS(fits.getheader(contour_image)).celestial.to_header()
+            chead = WCS(fits.getheader(contour_image)).celestial.to_header()
             contour_levels = self.get_contour_levels(cdata)
             hdu_c = fits.PrimaryHDU(data=cdata, header=chead)
             f.show_contour(hdu_c, levels=contour_levels, colors="white")
@@ -239,9 +239,10 @@ class BasicFITSPlot:
             f.show_contour(hdu_c, levels=contour_levels, colors="white")
         plt.axis("off")
         f.savefig(
-            self.fitsimage.replace("fits", ".noaxes.png"),
+            self.fitsimage.replace(".fits", ".noaxes.png"),
             transparent=True,
             dpi=self.dpi,
+            pad_inches=0,
         )
 
     def savedata(self, outfile: str):
@@ -324,7 +325,7 @@ class BlendPlot:
         fig.axis_labels.hide()
         fig.tick_labels.hide()
         fig.ticks.hide()
-        fig.savefig("temp_background.png")
+        fig.savefig("temp_background.png", pad_inches=0)
 
         for i, fg in enumerate(self.foreground):
             print("Preparing foreground image.")
@@ -353,12 +354,12 @@ class BlendPlot:
             figf.axis_labels.hide()
             figf.tick_labels.hide()
             figf.ticks.hide()
-            figf.savefig(f"temp_foreground_{i:02d}.png", transparent=True)
+            figf.savefig(f"temp_foreground_{i:02d}.png", transparent=True, pad_inches=0)
 
             fig.ax.imshow(
                 d, transform=fig.ax.get_transform(wcs), cmap="afmhot", norm=norm
             )
-            fig.savefig(f"temp_reference{i:02d}.png", dpi=150)
+            fig.savefig(f"temp_reference{i:02d}.png", dpi=150, pad_inches=0)
 
         del fig, figf
 
@@ -443,7 +444,7 @@ class BlendPlot:
             case "opt+lofar_pink":
                 self.blend_modes = ["add,softlight"]
                 self.blend_cmaps = ["fushia_red_pink1"]
-                self.blend_opacities = [0.6,1.0]
+                self.blend_opacities = [0.6, 1.0]
                 self.rmscut = 5.0
             case "opt+lofar_solar":
                 self.blend_modes = ["add,softlight"]
@@ -539,7 +540,7 @@ class SRTPlot:
 class BasicImagePlot:
     """Creates a basic plot of an image (not FITS) file."""
 
-    def __init__(self, imname: str, wcsimage: Optional[str]=None):
+    def __init__(self, imname: str, wcsimage: Optional[str] = None):
         """Initialise a basic plotting object for 2D FITS files.
 
         Args:

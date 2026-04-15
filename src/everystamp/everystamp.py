@@ -834,12 +834,6 @@ def _process_args_download(args):
         logger.info("Download directory does not exist, creating it")
         os.mkdir(args.ddir)
     logger.info("Survey is %s", args.survey)
-    if args.lotss_release == "dr3":
-        print("LoTSS DR3 is not yet publicly available. Please authenticate.")
-        import getpass
-
-        user = getpass.getpass("username:")
-        password = getpass.getpass("password:")
     for ra, dec in zip(ras, decs):
         if args.survey.startswith("hips:"):
             from everystamp.downloaders import HiPSDownloader
@@ -964,7 +958,7 @@ def _process_args_download(args):
                     ddir=args.ddir,
                     mode=args.mode.replace("e", ""),
                     release=args.lotss_release,
-                    credentials=(user, password),
+                    credentials=None,
                 )
         elif args.survey == "tgss":
             if args.mode == "both" or args.mode == "jpeg":
