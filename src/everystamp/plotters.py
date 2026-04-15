@@ -446,6 +446,11 @@ class BlendPlot:
                 self.blend_cmaps = ["fushia_red_pink1"]
                 self.blend_opacities = [0.6, 1.0]
                 self.rmscut = 5.0
+            case "opt+lofar_subtlepink":
+                self.blend_modes = ["add,add,lighten_only"]
+                self.blend_cmaps = ["sunburst"]
+                self.blend_opacities = [1.0, 1.0, 0.5]
+                self.rmscut = 5.0
             case "opt+lofar_solar":
                 self.blend_modes = ["add,softlight"]
                 self.blend_cmaps = ["solar"]
