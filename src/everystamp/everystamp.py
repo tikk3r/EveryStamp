@@ -18,6 +18,7 @@ import numpy as np
 import requests
 from astropy.coordinates import SkyCoord
 from astropy.table import Table
+from astropy.wcs import WCS
 from astroquery.skyview import SkyView  # type: ignore
 from everystamp.cutters import make_cutout_2D, make_cutout_2D_fast, make_cutout_region
 from everystamp.tonemapping import lhdr, normalise
@@ -792,7 +793,12 @@ def _add_args_composite(parser):
         type=str,
         default="",
         help="Apply a preset of blending modes.",
-        choices=["opt+lofar_hot", "opt+lofar_solar", "opt+x-ray+lofar"],
+        choices=[
+            "opt+lofar_hot",
+            "opt+lofar_solar",
+            "opt+lofar_pink",
+            "opt+x-ray+lofar",
+        ],
     )
 
 
@@ -1288,7 +1294,9 @@ def _process_args_composite(args):
                     header = fits.Header.fromfile(
                         f, sep="\n", padding=False, endcard=False
                     )
-            avm = pyavm.AVM.from_header(header)
+            # avm = pyavm.AVM.from_header(header)
+            bg_wcs = WCS(header).celestial
+            avm = pyavm.AVM.from_wcs(bg_wcs)
             avm.embed(args.background, os.path.basename(args.background) + ".avm.png")
         elif "ASCII" in filetype:
             print(f"Extracting WCS information from ASCII file {args.bg_wcs_from}.")
@@ -1338,7 +1346,15 @@ def _process_args_composite(args):
 
     background_file = os.path.basename(args.background) + ".avm.png"
     header_fg = fits.getheader(args.foreground[0])
-    pos = SkyCoord(header_fg["CRVAL1"], header_fg["CRVAL2"], unit="deg")
+
+    nx = header_fg["NAXIS1"]
+    ny = header_fg["NAXIS2"]
+    x = nx / 2
+    y = ny / 2
+    wcs = WCS(header_fg)
+    ra, dec = wcs.wcs_pix2world(x, y, 1)
+
+    pos = SkyCoord(ra, dec, unit="deg")
     bp = BlendPlot(
         background_file,
         args.foreground,

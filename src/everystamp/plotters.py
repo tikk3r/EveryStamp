@@ -371,6 +371,8 @@ class BlendPlot:
         img_blend = np.array(Image.open("temp_background.png")).astype(float)
         for i, (bms, bas) in enumerate(zip(self.blend_modes, self.blend_opacities)):
             img_fg = np.array(Image.open(f"temp_foreground_{i:02d}.png")).astype(float)
+            if type(bas) is not list:
+                bas = [bas]
             if len(bas) == 1:
                 opacs = bas * len(bms.split(","))
             elif (len(bas) > 1) and (len(bas) != len(bms.split(","))):
@@ -437,6 +439,11 @@ class BlendPlot:
                 self.blend_modes = ["add,add"]
                 self.blend_cmaps = ["afmhot"]
                 self.blend_opacities = [0.6]
+                self.rmscut = 5.0
+            case "opt+lofar_pink":
+                self.blend_modes = ["add,softlight"]
+                self.blend_cmaps = ["fushia_red_pink1"]
+                self.blend_opacities = [0.6,1.0]
                 self.rmscut = 5.0
             case "opt+lofar_solar":
                 self.blend_modes = ["add,softlight"]
