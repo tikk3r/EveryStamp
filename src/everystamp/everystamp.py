@@ -15,11 +15,9 @@ import astropy.units as units
 import astropy.visualization
 import cv2  # type: ignore
 import numpy as np
-import requests
 from astropy.coordinates import SkyCoord
 from astropy.table import Table
 from astropy.wcs import WCS
-from astroquery.skyview import SkyView  # type: ignore
 from everystamp.cutters import make_cutout_2D, make_cutout_2D_fast, make_cutout_region
 from everystamp.tonemapping import lhdr, normalise
 from everystamp.tonemapping.stretches import TimmermanStretch
