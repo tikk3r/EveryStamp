@@ -342,8 +342,6 @@ class LegacyDownloader(FileDownloader):
     def download(self, **kwargs):
         if kwargs["mode"] == "both":
             furl = self.format_url(**kwargs)
-            if kwargs["get_weightmap"]:
-                furl = f"{furl:s}&invvar"
             self.logger.info("Downloading cutout from %s", furl)
             if not kwargs["ddir"]:
                 self.logger.info(
