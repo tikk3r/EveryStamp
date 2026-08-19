@@ -491,7 +491,7 @@ class VLASSDownloader(FileDownloader):
                 f"CADC returned no downloadable VLASS images near RA={ra}, Dec={dec}."
             )
 
-        filename = f"VLASS_{position.ra.deg:.6f}_{position.dec.deg:.6f}_poststamp.fits"
+        filename = f"VLASS_{position.ra.deg:.6f}_{position.dec.deg:.6f}_{size:.3f}.fits"
         return self.download_file(urls[0], filename=filename, target_dir=ddir)
 
     def get_tiles(self, summary_file="VLASS_dyn_summary.php"):
