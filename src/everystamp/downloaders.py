@@ -366,6 +366,8 @@ class LegacyDownloader(FileDownloader):
             self.download_file(furl, filename=fname, target_dir=ddir)
         else:
             furl = self.format_url(**kwargs)
+            if kwargs["get_weightmap"]:
+                furl = f"{furl:s}&invvar"
             self.logger.info("Downloading cutout from %s", furl)
             if not kwargs["ddir"]:
                 self.logger.info(
@@ -375,12 +377,21 @@ class LegacyDownloader(FileDownloader):
                 ddir = os.getcwd()
             else:
                 ddir = kwargs["ddir"]
-            fname = "legacystamps_{ra:f}_{dec:f}_{layer:s}.{mode:s}".format(
-                ra=kwargs["ra"],
-                dec=kwargs["dec"],
-                layer=kwargs["layer"],
-                mode=kwargs["mode"],
-            )
+
+            if kwargs["get_weightmap"]:
+                fname = "legacystamps_{ra:f}_{dec:f}_{layer:s}.invvar.{mode:s}".format(
+                    ra=kwargs["ra"],
+                    dec=kwargs["dec"],
+                    layer=kwargs["layer"],
+                    mode=kwargs["mode"],
+                )
+            else:
+                fname = "legacystamps_{ra:f}_{dec:f}_{layer:s}.{mode:s}".format(
+                    ra=kwargs["ra"],
+                    dec=kwargs["dec"],
+                    layer=kwargs["layer"],
+                    mode=kwargs["mode"],
+                )
         try:
             self.download_file(furl, filename=fname, target_dir=ddir)
         except requests.exceptions.HTTPError:
