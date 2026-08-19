@@ -14,4 +14,4 @@ jobs:
         run: pip install ruff
       - name: Check formating
         id: ruff-check
-        run: ruff check && if [[ $? -ne 0 ]]; then echo "Code formatting inconsistent. Format using ruff format." && exit 1; fi
+        run: ruff check src/everystamp && if [[ $? -ne 0 ]]; then echo "Code formatting inconsistent. Format using ruff format." && exit 1; fi
