@@ -148,13 +148,6 @@ def _add_args_download(parser):
         action="store_true",
         help="Automatically change the pixel size if the resulting image would exceed the server maximum of 3000x3000 pixels.",
     )
-    legacy_args.add_argument(
-        "--legacy_weightmap",
-        required=False,
-        default=False,
-        action="store_true",
-        help="Download the weight map for the requested band instead of the image itself.",
-    )
 
     ps_args = parser.add_argument_group("[Pan-STARRS]")
     ps_args.add_argument(
@@ -187,6 +180,14 @@ def _add_args_download(parser):
         default="ql",
         choices=["ql", "se"],
         help="Image to consider: Quick Look (ql) or Single Epoch (se). Default: ql.",
+    )
+    vlass_args.add_argument(
+        "--vlass-server",
+        type=str,
+        required=False,
+        default="cadc",
+        choices=["cadc", "nrao"],
+        help="VLASS server to use. Default: cadc.",
     )
 
     lolss_args = parser.add_argument_group("[LoLSS]")
@@ -871,7 +872,6 @@ def _process_args_download(args):
                 layer=args.legacy_layer,
                 autoscale=args.legacy_autoscale,
                 ddir=args.ddir,
-                get_weightmap=args.legacy_weightmap,
             )
         elif args.survey == "pan-starrs":
             from everystamp.downloaders import PanSTARRSDownloader
@@ -904,14 +904,25 @@ def _process_args_download(args):
             from everystamp.downloaders import VLASSDownloader
 
             vd = VLASSDownloader(datatype=args.vlass_type)
-            vd.download(
-                ra=ra,
-                dec=dec,
-                size=args.size,
-                crop=True,
-                consider_QA_rejected=args.vlass_consider_QA_rejected,
-                ddir=args.ddir,
-            )
+            if args.vlass_server == "cadc":
+                logger.info(
+                    "Downloading highest calibrationLevel product from CADC; epoch and dataproduct type (QL, SE) are ignored for now."
+                )
+                vd.download_cadc(
+                    ra=ra,
+                    dec=dec,
+                    size=args.size,
+                    ddir=args.ddir,
+                )
+            else:
+                vd.download(
+                    ra=ra,
+                    dec=dec,
+                    size=args.size,
+                    crop=True,
+                    consider_QA_rejected=args.vlass_consider_QA_rejected,
+                    ddir=args.ddir,
+                )
         elif args.survey == "lolss":
             if args.mode == "both" or args.mode == "jpeg":
                 raise ValueError("LoLLS download does not support JPEG (yet).")
