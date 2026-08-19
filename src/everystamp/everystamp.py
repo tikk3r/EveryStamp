@@ -905,7 +905,9 @@ def _process_args_download(args):
 
             vd = VLASSDownloader(datatype=args.vlass_type)
             if args.vlass_server == "cadc":
-                logger.info("Downloading highest calibrationLevel product from CADC; epoch and dataproduct type (QL, SE) are ignored for now.")
+                logger.info(
+                    "Downloading highest calibrationLevel product from CADC; epoch and dataproduct type (QL, SE) are ignored for now."
+                )
                 vd.download_cadc(
                     ra=ra,
                     dec=dec,
@@ -1363,7 +1365,8 @@ def _process_args_composite(args):
     x = nx / 2
     y = ny / 2
     wcs = WCS(header_fg)
-    ra, dec = wcs.wcs_pix2world(x, y, 1)
+    # ra, dec = wcs.wcs_pix2world(x, y, 1)
+    ra, dec = wcs.wcs_pix2world(x, y, 0)
 
     pos = SkyCoord(ra, dec, unit="deg")
     bp = BlendPlot(
