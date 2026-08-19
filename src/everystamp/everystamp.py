@@ -188,6 +188,14 @@ def _add_args_download(parser):
         choices=["ql", "se"],
         help="Image to consider: Quick Look (ql) or Single Epoch (se). Default: ql.",
     )
+    vlass_args.add_argument(
+        "--vlass-server",
+        type=str,
+        required=False,
+        default="cadc",
+        choices=["cadc", "nrao"],
+        help="VLASS server to use. Default: cadc.",
+    )
 
     lolss_args = parser.add_argument_group("[LoLSS]")
     lolss_args.add_argument(
@@ -904,14 +912,23 @@ def _process_args_download(args):
             from everystamp.downloaders import VLASSDownloader
 
             vd = VLASSDownloader(datatype=args.vlass_type)
-            vd.download(
-                ra=ra,
-                dec=dec,
-                size=args.size,
-                crop=True,
-                consider_QA_rejected=args.vlass_consider_QA_rejected,
-                ddir=args.ddir,
-            )
+            if args.vlass_server == "cadc":
+                logger.info("Downloading highest calibrationLevel product from CADC; epoch and dataproduct type (QL, SE) are ignored for now.")
+                vd.download_cadc(
+                    ra=ra,
+                    dec=dec,
+                    size=args.size,
+                    ddir=args.ddir,
+                )
+            else:
+                vd.download(
+                    ra=ra,
+                    dec=dec,
+                    size=args.size,
+                    crop=True,
+                    consider_QA_rejected=args.vlass_consider_QA_rejected,
+                    ddir=args.ddir,
+                )
         elif args.survey == "lolss":
             if args.mode == "both" or args.mode == "jpeg":
                 raise ValueError("LoLLS download does not support JPEG (yet).")

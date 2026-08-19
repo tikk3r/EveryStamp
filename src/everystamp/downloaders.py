@@ -17,6 +17,7 @@ from astropy.nddata import Cutout2D
 from astropy.table import Table
 from astropy.wcs import WCS
 from astropy.wcs.utils import skycoord_to_pixel
+from astroquery.cadc import Cadc
 from astroquery.hips2fits import hips2fits
 from astroquery.skyview import SkyView
 
@@ -461,6 +462,37 @@ class VLASSDownloader(FileDownloader):
             self.pixel_scale = 2.777777777778e-4 * 3600  # arcsec / pixel
         elif self.datatype == "se":
             self.pixel_scale = 1.666666666667e-04 * 3600
+
+    def download_cadc(
+        self,
+        ra=0.0,
+        dec=0.0,
+        size=0.1,
+        ddir=os.getcwd(),
+    ):
+        """Download a VLASS image through the Canadian Astronomy Data Centre.
+
+        The arguments match :meth:`download` so this can be selected as an
+        alternative VLASS backend. CADC returns the selected image and does
+        not perform the local crop used by the NRAO backend.
+        """
+        position = SkyCoord(ra, dec, unit="deg", frame="icrs")
+        radius = (size / 2) * u.deg
+
+        cadc = Cadc()
+        results = cadc.query_region(position, radius=radius, collection="VLASS")
+        if len(results) == 0:
+            raise ValueError(f"No VLASS images found near RA={ra}, Dec={dec}.")
+
+        results.sort("calibrationLevel", reverse=True)
+        urls = cadc.get_image_list(results, position, radius)
+        if len(urls) == 0:
+            raise ValueError(
+                f"CADC returned no downloadable VLASS images near RA={ra}, Dec={dec}."
+            )
+
+        filename = f"VLASS_{position.ra.deg:.6f}_{position.dec.deg:.6f}_poststamp.fits"
+        return self.download_file(urls[0], filename=filename, target_dir=ddir)
 
     def get_tiles(self, summary_file="VLASS_dyn_summary.php"):
         """
