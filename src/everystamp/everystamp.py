@@ -27,7 +27,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger("EveryStamp")
 
-
 # Check if LuminanceHDR is installed.
 HAS_LHDR = (
     lhdr.has_luminance_hdr()
@@ -989,8 +988,10 @@ def _process_args_download(args):
             )
             vd.download(ra=ra, dec=dec, size=args.size, ddir=args.ddir)
         else:
-            logger.warning(f"{args.survey} is not supported.")
-            sys.exit(0)
+            logger.info(f"{args.survey} has no dedicated downloaders, trying SkyView.")
+            logger.warning(
+                "SkyView is case sensitive; if it should exist and is not found, double check name and case."
+            )
             if args.mode == "both" or args.mode == "jpeg":
                 raise ValueError("SkyView download does not support JPEG (yet).")
             from everystamp.downloaders import SkyViewDownloader
