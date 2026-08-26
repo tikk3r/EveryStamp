@@ -147,6 +147,13 @@ def _add_args_download(parser):
         action="store_true",
         help="Automatically change the pixel size if the resulting image would exceed the server maximum of 3000x3000 pixels.",
     )
+    legacy_args.add_argument(
+        "--legacy_weightmap",
+        required=False,
+        default=False,
+        action="store_true",
+        help="Download the weight map for the requested band instead of the image itself.",
+    )
 
     ps_args = parser.add_argument_group("[Pan-STARRS]")
     ps_args.add_argument(
@@ -871,6 +878,7 @@ def _process_args_download(args):
                 layer=args.legacy_layer,
                 autoscale=args.legacy_autoscale,
                 ddir=args.ddir,
+                get_weightmap=args.legacy_weightmap,
             )
         elif args.survey == "pan-starrs":
             from everystamp.downloaders import PanSTARRSDownloader
